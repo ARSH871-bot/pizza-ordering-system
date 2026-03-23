@@ -1,5 +1,10 @@
 # Pizza Ordering System
 
+![Version](https://img.shields.io/badge/version-1.3.0-brightgreen)
+![License](https://img.shields.io/badge/license-MIT-blue)
+![Platform](https://img.shields.io/badge/platform-Windows-lightgrey)
+![Framework](https://img.shields.io/badge/.NET-4.5-purple)
+
 A Windows Forms desktop application built in C# (.NET Framework 4.5) that simulates a pizza restaurant point-of-sale (POS) ordering system for **Pizza Express**.
 
 ## Features
@@ -7,7 +12,9 @@ A Windows Forms desktop application built in C# (.NET Framework 4.5) that simula
 - **Pizza Customization**
   - 4 sizes: Small ($4.00), Medium ($7.00), Large ($10.00), Extra Large ($13.00)
   - 3 crust types: Normal, Cheesy, Sausage
-  - 14 toppings available at $0.75 each (Pepperoni, Extra Cheese, Mushroom, Ham, Bacon, Ground Beef, Jalapeno, Pineapple, Dried Shrimps, Anchovies, Sun Dried Tomatoes, Spinach, Roasted Garlic, Shredded Chicken)
+  - 14 toppings at $0.75 each (Pepperoni, Extra Cheese, Mushroom, Ham, Bacon, Ground Beef, Jalapeno, Pineapple, Dried Shrimps, Anchovies, Sun Dried Tomatoes, Spinach, Roasted Garlic, Shredded Chicken)
+  - **Quantity selector (1–20)** per pizza — price scales automatically
+  - **"Add Pizza to Cart"** button — stage a pizza, reset fields, and configure a completely different pizza in the same order
 
 - **Drinks**
   - Coke, Diet Coke, Iced Tea, Ginger Ale, Sprite, Root Beer — $1.45/can
@@ -19,15 +26,22 @@ A Windows Forms desktop application built in C# (.NET Framework 4.5) that simula
   - Free dips: Garlic, BBQ, Sour Cream
 
 - **Order Summary**
-  - Itemized order list with quantities and prices
-  - 13% HST (tax) calculation
-  - Subtotal and total due display
+  - Itemised order list with Item, Quantity, and Price CAD columns
+  - 13% HST calculation with subtotal and total due
 
-- **Checkout**
-  - Customer delivery information (name, address, city, province, postal code, phone)
-  - Payment methods: Cash, Credit Card, Debit Card, Promo Card
+- **Checkout & Validation**
+  - Customer delivery info: First Name, Last Name, Address, City, Province (dropdown), Postal Code, Contact No, Email
+  - **Canadian postal code validation** — enforces A1A 1A1 format
+  - **Contact number validation** — digits only, 7–15 characters (optional field)
+  - Payment methods: Cash, Credit Card, Debit Card, **Promo Card**
+  - **Promo codes**: `PIZZA10` (10% off), `PIZZA20` (20% off), `FREESHIP` (free order)
   - Change calculation for cash payments
-  - New order flow without restarting the application
+  - **Export receipt to `.txt`** — timestamped file with full order details
+
+- **App Flow**
+  - Confirm button gated on valid payment entry
+  - "Order Again" resets the entire form without restarting the application
+  - Exit confirmation dialog to prevent accidental data loss
 
 ## Screenshots
 
@@ -74,23 +88,16 @@ PizzaOrderingSystemC#/
 └── WindowsFormsApplication3.sln
 ```
 
-## Roadmap
+## Changelog
 
-### v1.1.0 — Released
-- Fixed 13 bugs (2 critical, 5 high, 4 medium, 2 low)
-- Full details in [CHANGELOG.md](CHANGELOG.md)
+All 31 user stories across 3 feature releases are implemented. See [CHANGELOG.md](CHANGELOG.md) for full details.
 
-### v1.2.0 — Released
-- Postal code format validation (Canadian A1A 1A1, US-32)
-- Contact number validation — digits only, 7–15 chars (US-33)
-- Promo Code Discount — PIZZA10 / PIZZA20 / FREESHIP codes (US-34)
-- Export Order Receipt to timestamped `.txt` file (US-35)
-- Full details in [CHANGELOG.md](CHANGELOG.md)
-
-### v1.3.0 — Released
-- Pizza Quantity Selection — NumericUpDown (1–20) in Pizza Size group (US-30)
-- Order Multiple Different Pizzas — "Add Pizza to Cart" button for multi-pizza orders (US-31)
-- Full details in [CHANGELOG.md](CHANGELOG.md)
+| Version | Highlights |
+|---|---|
+| **v1.3.0** | Pizza quantity selector (1–20); multi-pizza ordering via "Add Pizza to Cart" |
+| **v1.2.0** | Postal code & phone validation; promo codes; receipt export to `.txt` |
+| **v1.1.0** | 13 bug fixes (2 critical, 5 high, 4 medium, 2 low) |
+| **v1.0.0** | Initial release |
 
 ## Contributing
 
