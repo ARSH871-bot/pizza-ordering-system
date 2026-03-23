@@ -5,18 +5,31 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-## [Unreleased] — v1.2.0 Planned
+## [Unreleased]
 
 ### Planned Features
 
 - **US-30** — Pizza Quantity Selection: allow ordering more than 1 of the same pizza per order
 - **US-31** — Order Multiple Different Pizzas: add multiple size/crust configurations to a single order
-- **US-32** — Postal Code Format Validation: enforce Canadian A1A 1A1 format on Postal Code field
-- **US-33** — Contact Number Validation: digits only, 7–15 digit length when Contact No is provided
-- **US-34** — Promo Code Discount: activate the "Promo Card" payment method with real discount codes
-- **US-35** — Export Order Receipt: save a timestamped .txt receipt file after payment is confirmed
 
-See the [v1.2.0 milestone](https://github.com/ARSH871-bot/pizza-ordering-system/milestone/1) for full details.
+---
+
+## [1.2.0] — 2026-03-23
+
+### Added
+
+- **US-34** — Promo Code Discount: the "Promo Card" payment method now accepts real discount codes.
+  - Supported codes: `PIZZA10` (10% off), `PIZZA20` (20% off), `FREESHIP` (100% off / free order)
+  - The card number label dynamically changes to "*Promo Code:" when Promo Card is selected
+  - Invalid codes are rejected with a clear error message
+- **US-35** — Export Order Receipt: after clicking Submit Order a Yes/No dialog offers to save a timestamped `.txt` receipt.
+  - Receipt includes store header, customer delivery info, itemised order list, subtotal / HST / total, and payment method
+  - Default filename: `Receipt_yyyyMMdd_HHmmss.txt`
+
+### Improved
+
+- **US-32** — Postal Code Format Validation: the Pay button now enforces the Canadian A1A 1A1 format (regex `^[A-Z]\d[A-Z]\d[A-Z]\d$`) before processing any payment. Spaces and lowercase input are normalised automatically.
+- **US-33** — Contact Number Validation: when a contact number is entered it is validated for digits only and a length of 7–15 digits (regex `^\+?\d{7,15}$`). The field remains optional.
 
 ---
 

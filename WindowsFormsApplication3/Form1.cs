@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -265,7 +267,7 @@ namespace WindowsFormsApplication3
                 int qty = int.Parse(textBox1.Text);
                 double cost = qty * 1.45;
                 item.SubItems.Add(textBox1.Text);
-                item.SubItems.Add(cost.ToString("F2")); // FIX-11: consistent 2 decimal places
+                item.SubItems.Add(cost.ToString("F2"));
                 listView1.Items.Add(item);
             }
             else
@@ -279,7 +281,7 @@ namespace WindowsFormsApplication3
                 int qty = int.Parse(textBox2.Text);
                 double cost = qty * 1.45;
                 item.SubItems.Add(textBox2.Text);
-                item.SubItems.Add(cost.ToString("F2")); // FIX-11
+                item.SubItems.Add(cost.ToString("F2"));
                 listView1.Items.Add(item);
             }
             else
@@ -293,7 +295,7 @@ namespace WindowsFormsApplication3
                 int qty = int.Parse(textBox3.Text);
                 double cost = qty * 1.45;
                 item.SubItems.Add(textBox3.Text);
-                item.SubItems.Add(cost.ToString("F2")); // FIX-11
+                item.SubItems.Add(cost.ToString("F2"));
                 listView1.Items.Add(item);
             }
             else
@@ -307,7 +309,7 @@ namespace WindowsFormsApplication3
                 int qty = int.Parse(textBox4.Text);
                 double cost = qty * 1.45;
                 item.SubItems.Add(textBox4.Text);
-                item.SubItems.Add(cost.ToString("F2")); // FIX-11
+                item.SubItems.Add(cost.ToString("F2"));
                 listView1.Items.Add(item);
             }
             else
@@ -321,7 +323,7 @@ namespace WindowsFormsApplication3
                 int qty = int.Parse(textBox5.Text);
                 double cost = qty * 1.45;
                 item.SubItems.Add(textBox5.Text);
-                item.SubItems.Add(cost.ToString("F2")); // FIX-11
+                item.SubItems.Add(cost.ToString("F2"));
                 listView1.Items.Add(item);
             }
             else
@@ -335,7 +337,7 @@ namespace WindowsFormsApplication3
                 int qty = int.Parse(textBox6.Text);
                 double cost = qty * 1.45;
                 item.SubItems.Add(textBox6.Text);
-                item.SubItems.Add(cost.ToString("F2")); // FIX-11
+                item.SubItems.Add(cost.ToString("F2"));
                 listView1.Items.Add(item);
             }
             else
@@ -349,7 +351,7 @@ namespace WindowsFormsApplication3
                 int qty = int.Parse(textBox7.Text);
                 double cost = qty * 1.25;
                 item.SubItems.Add(textBox7.Text);
-                item.SubItems.Add(cost.ToString("F2")); // FIX-11
+                item.SubItems.Add(cost.ToString("F2"));
                 listView1.Items.Add(item);
             }
             else
@@ -467,7 +469,7 @@ namespace WindowsFormsApplication3
             textBox10.Enabled = false;
             textBox19.Enabled = false;
             textBox21.Enabled = false;
-            textBox18.Enabled = false; // FIX-13: card field disabled until a card payment method is selected
+            textBox18.Enabled = false; // FIX-13: disabled until a card payment method is selected
 
             comboBox1.Items.Add("Alberta");
             comboBox1.Items.Add("British Columbia");
@@ -553,7 +555,7 @@ namespace WindowsFormsApplication3
 
         private void listView1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            // FIX-10: intentionally empty — event wired by Designer, no action needed
+            // intentionally empty — event wired by Designer, no action needed
         }
 
         private void button4_Click(object sender, EventArgs e)
@@ -597,120 +599,260 @@ namespace WindowsFormsApplication3
 
         private void button7_Click(object sender, EventArgs e)
         {
+            // US-34: Promo Card has its own validation and discount flow
+            if (comboBox2.Text == "Promo Card")
+            {
+                if (textBox11.Text == "" || textBox12.Text == "" || textBox13.Text == "" || textBox15.Text == "")
+                {
+                    MessageBox.Show("Please fill in required fields");
+                    return;
+                }
+
+                // US-32: Validate Canadian postal code
+                string postalCode = textBox15.Text.Trim().Replace(" ", "").ToUpper();
+                if (!Regex.IsMatch(postalCode, @"^[A-Z]\d[A-Z]\d[A-Z]\d$"))
+                {
+                    MessageBox.Show("Please enter a valid Canadian postal code (e.g. A1A 1A1)");
+                    return;
+                }
+
+                // US-33: Validate contact number if provided
+                if (!string.IsNullOrWhiteSpace(textBox16.Text))
+                {
+                    string contactNo = textBox16.Text.Trim();
+                    if (!Regex.IsMatch(contactNo, @"^\+?\d{7,15}$"))
+                    {
+                        MessageBox.Show("Please enter a valid contact number (digits only, 7-15 digits)");
+                        return;
+                    }
+                }
+
+                // US-34: Validate promo code
+                string code = textBox18.Text.Trim().ToUpper();
+                if (string.IsNullOrWhiteSpace(code))
+                {
+                    MessageBox.Show("Please enter a promo code.");
+                    return;
+                }
+
+                double discount = 0;
+                string discountLabel = "";
+                switch (code)
+                {
+                    case "PIZZA10": discount = 0.10; discountLabel = "10% off"; break;
+                    case "PIZZA20": discount = 0.20; discountLabel = "20% off"; break;
+                    case "FREESHIP": discount = 1.00; discountLabel = "100% off (Free Order)"; break;
+                    default:
+                        MessageBox.Show("Invalid promo code. Please try again.");
+                        return;
+                }
+
+                char[] dollars = { '$' };
+                double originalTotal = Convert.ToDouble(textBox10.Text.TrimStart(dollars));
+                double discountedTotal = originalTotal * (1 - discount);
+
+                textBox19.Text = discountedTotal.ToString("c2");
+                textBox20.Text = discountedTotal.ToString("F2");
+                textBox21.Text = "$0.00";
+
+                MessageBox.Show("Promo code applied! " + discountLabel + "\nNew total: " + discountedTotal.ToString("c2"), "Promo Applied");
+                button8.Enabled = true;
+                return;
+            }
+
+            // Standard payment flow (Cash, Credit Card, Debit Card)
             if (textBox11.Text == "" || textBox12.Text == "" || textBox13.Text == "" || textBox15.Text == "" || textBox20.Text == "" || comboBox2.Text == "")
             {
                 MessageBox.Show("Please fill in required fields");
+                return;
+            }
+
+            // US-32: Validate Canadian postal code
+            string postal = textBox15.Text.Trim().Replace(" ", "").ToUpper();
+            if (!Regex.IsMatch(postal, @"^[A-Z]\d[A-Z]\d[A-Z]\d$"))
+            {
+                MessageBox.Show("Please enter a valid Canadian postal code (e.g. A1A 1A1)");
+                return;
+            }
+
+            // US-33: Validate contact number if provided
+            if (!string.IsNullOrWhiteSpace(textBox16.Text))
+            {
+                string contactNo = textBox16.Text.Trim();
+                if (!Regex.IsMatch(contactNo, @"^\+?\d{7,15}$"))
+                {
+                    MessageBox.Show("Please enter a valid contact number (digits only, 7-15 digits)");
+                    return;
+                }
+            }
+
+            string money = textBox19.Text;
+            char[] dollarSign = { '$' };
+            string paymoney = money.TrimStart(dollarSign);
+            double paymentDue = Convert.ToDouble(paymoney);
+            double amountPaid = Convert.ToDouble(textBox20.Text);
+            double change = amountPaid - paymentDue;
+            textBox21.Text = change.ToString("c2");
+
+            if (change < 0)
+            {
+                MessageBox.Show("Please pay your balance");
+                button8.Enabled = false; // FIX-04
             }
             else
             {
-                string money = textBox19.Text;
-                char[] dollars = { '$' };
-                string paymoney = money.TrimStart(dollars);
-                double paymentDue = Convert.ToDouble(paymoney);
-                double amountPaid = Convert.ToDouble(textBox20.Text);
-                double change = 0;
-                change = amountPaid - paymentDue;
-                textBox21.Text = change.ToString("c2");
-
-                if (change < 0)
-                {
-                    MessageBox.Show("Please pay your balance");
-                    button8.Enabled = false; // FIX-04: disable confirm if payment is insufficient
-                }
-                else
-                {
-                    button8.Enabled = true;
-                }
+                button8.Enabled = true;
             }
         }
 
         private void button8_Click(object sender, EventArgs e)
         {
-           DialogResult dialog = MessageBox.Show("Thanks for ordering at Pizza Express. Your ordered items will be ready and delivered in 30 minutes. Do you want to order some more?", "Exit", MessageBoxButtons.YesNo);
+            // US-35: Offer to save receipt before data is cleared
+            DialogResult saveReceipt = MessageBox.Show("Would you like to save a receipt of this order?", "Save Receipt", MessageBoxButtons.YesNo);
+            if (saveReceipt == DialogResult.Yes)
+            {
+                SaveFileDialog sfd = new SaveFileDialog();
+                sfd.Filter = "Text Files (*.txt)|*.txt";
+                sfd.FileName = "Receipt_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".txt";
+                if (sfd.ShowDialog() == DialogResult.OK)
+                {
+                    StringBuilder sb = new StringBuilder();
+                    sb.AppendLine("========================================");
+                    sb.AppendLine("            PIZZA EXPRESS");
+                    sb.AppendLine("========================================");
+                    sb.AppendLine("Date: " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+                    sb.AppendLine();
+                    sb.AppendLine("CUSTOMER INFORMATION");
+                    sb.AppendLine("Name:        " + textBox11.Text + " " + textBox12.Text);
+                    sb.AppendLine("Address:     " + textBox13.Text);
+                    sb.AppendLine("City:        " + textBox14.Text);
+                    sb.AppendLine("Province:    " + comboBox1.Text);
+                    sb.AppendLine("Postal Code: " + textBox15.Text);
+                    sb.AppendLine("Contact No:  " + textBox16.Text);
+                    sb.AppendLine();
+                    sb.AppendLine("ORDER SUMMARY");
+                    sb.AppendLine(string.Format("{0,-38} {1,5} {2,10}", "Item", "Qty", "Price CAD"));
+                    sb.AppendLine(new string('-', 55));
+                    foreach (ListViewItem item in listView1.Items)
+                    {
+                        sb.AppendLine(string.Format("{0,-38} {1,5} {2,10}",
+                            item.Text,
+                            item.SubItems[1].Text,
+                            item.SubItems[2].Text));
+                    }
+                    sb.AppendLine(new string('-', 55));
+                    sb.AppendLine(string.Format("{0,-44} {1,10}", "Subtotal:", textBox8.Text));
+                    sb.AppendLine(string.Format("{0,-44} {1,10}", "HST (13%):", textBox9.Text));
+                    sb.AppendLine(string.Format("{0,-44} {1,10}", "Total Due:", textBox19.Text));
+                    sb.AppendLine();
+                    sb.AppendLine("PAYMENT");
+                    sb.AppendLine("Method:       " + comboBox2.Text);
+                    sb.AppendLine("Amount Paid:  " + textBox20.Text);
+                    sb.AppendLine("Change:       " + textBox21.Text);
+                    sb.AppendLine();
+                    sb.AppendLine("========================================");
+                    sb.AppendLine(" Thank you for ordering at Pizza Express!");
+                    sb.AppendLine(" Delivery in approximately 30 minutes.");
+                    sb.AppendLine("========================================");
 
-           if (dialog == DialogResult.Yes)
-           {
-               //Clearing all data
-               checkBox1.Checked = false;
-               checkBox2.Checked = false;
-               checkBox3.Checked = false;
-               checkBox4.Checked = false;
-               checkBox5.Checked = false;
-               checkBox6.Checked = false;
-               checkBox7.Checked = false;
-               checkBox8.Checked = false;
-               checkBox9.Checked = false;
-               checkBox10.Checked = false;
-               checkBox11.Checked = false;
-               checkBox12.Checked = false;
-               checkBox13.Checked = false;
-               checkBox14.Checked = false;
-               checkBox15.Checked = false;
-               checkBox16.Checked = false;
-               checkBox17.Checked = false;
-               checkBox18.Checked = false;
-               checkBox19.Checked = false;
-               checkBox20.Checked = false;
-               checkBox21.Checked = false;
-               checkBox22.Checked = false;
-               checkBox23.Checked = false;
-               checkBox24.Checked = false;
-               checkBox25.Checked = false;
-               checkBox26.Checked = false;
-               checkBox27.Checked = false;
-               checkBox28.Checked = false;
+                    File.WriteAllText(sfd.FileName, sb.ToString());
+                    MessageBox.Show("Receipt saved successfully.", "Receipt Saved");
+                }
+            }
 
-               textBox1.Text = "";
-               textBox2.Text = "";
-               textBox3.Text = "";
-               textBox4.Text = "";
-               textBox5.Text = "";
-               textBox6.Text = "";
-               textBox7.Text = "";
+            DialogResult dialog = MessageBox.Show("Thanks for ordering at Pizza Express. Your ordered items will be ready and delivered in 30 minutes. Do you want to order some more?", "Exit", MessageBoxButtons.YesNo);
 
-               listView1.Items.Clear();
-               textBox8.Text = "";
-               textBox9.Text = "";
-               textBox10.Text = "";
+            if (dialog == DialogResult.Yes)
+            {
+                //Clearing all data
+                checkBox1.Checked = false;
+                checkBox2.Checked = false;
+                checkBox3.Checked = false;
+                checkBox4.Checked = false;
+                checkBox5.Checked = false;
+                checkBox6.Checked = false;
+                checkBox7.Checked = false;
+                checkBox8.Checked = false;
+                checkBox9.Checked = false;
+                checkBox10.Checked = false;
+                checkBox11.Checked = false;
+                checkBox12.Checked = false;
+                checkBox13.Checked = false;
+                checkBox14.Checked = false;
+                checkBox15.Checked = false;
+                checkBox16.Checked = false;
+                checkBox17.Checked = false;
+                checkBox18.Checked = false;
+                checkBox19.Checked = false;
+                checkBox20.Checked = false;
+                checkBox21.Checked = false;
+                checkBox22.Checked = false;
+                checkBox23.Checked = false;
+                checkBox24.Checked = false;
+                checkBox25.Checked = false;
+                checkBox26.Checked = false;
+                checkBox27.Checked = false;
+                checkBox28.Checked = false;
 
-               textBox11.Text = "";
-               textBox12.Text = "";
-               textBox13.Text = "";
-               textBox14.Text = "";
-               textBox15.Text = "";
-               textBox16.Text = "";
-               textBox17.Text = "";
-               textBox18.Text = "";
-               textBox19.Text = "";
-               textBox20.Text = "";
-               textBox21.Text = "";
-               comboBox1.Text = "";
-               comboBox2.Text = "";
+                textBox1.Text = "";
+                textBox2.Text = "";
+                textBox3.Text = "";
+                textBox4.Text = "";
+                textBox5.Text = "";
+                textBox6.Text = "";
+                textBox7.Text = "";
 
-               // FIX-06: restore default pizza selections and reset payment state
-               radioButton1.Checked = true;
-               radioButton5.Checked = true;
-               button8.Enabled = false;
-               textBox18.Enabled = false;
+                listView1.Items.Clear();
+                textBox8.Text = "";
+                textBox9.Text = "";
+                textBox10.Text = "";
 
-               tabControl1.SelectTab("tabPage1");
-           }
+                textBox11.Text = "";
+                textBox12.Text = "";
+                textBox13.Text = "";
+                textBox14.Text = "";
+                textBox15.Text = "";
+                textBox16.Text = "";
+                textBox17.Text = "";
+                textBox18.Text = "";
+                textBox19.Text = "";
+                textBox20.Text = "";
+                textBox21.Text = "";
+                comboBox1.Text = "";
+                comboBox2.Text = "";
 
-           else if(dialog == DialogResult.No)
-           {
-               this.Close();
-           }
+                // FIX-06: restore default pizza selections and reset payment state
+                radioButton1.Checked = true;
+                radioButton5.Checked = true;
+                button8.Enabled = false;
+                textBox18.Enabled = false;
+                label15.Text = "*Card No:"; // US-34: reset label after promo card use
+
+                tabControl1.SelectTab("tabPage1");
+            }
+
+            else if (dialog == DialogResult.No)
+            {
+                this.Close();
+            }
         }
 
         private void comboBox2_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (comboBox2.Text == "Cash")
             {
-                textBox18.Enabled = false; // cash needs no card number
+                textBox18.Enabled = false;
+                label15.Text = "*Card No:"; // restore label
+            }
+            else if (comboBox2.Text == "Promo Card")
+            {
+                textBox18.Enabled = true;
+                label15.Text = "*Promo Code:"; // US-34: contextual label change
             }
             else
             {
-                textBox18.Enabled = true; // FIX-05: re-enable card field for all other payment methods
+                textBox18.Enabled = true; // FIX-05: re-enable for Credit/Debit card
+                label15.Text = "*Card No:"; // restore label
             }
         }
     }
