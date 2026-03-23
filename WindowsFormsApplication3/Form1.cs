@@ -86,13 +86,12 @@ namespace WindowsFormsApplication3
         private void button9_Click(object sender, EventArgs e)
         {
             var pizzaItems = BuildCurrentPizzaItems();
-            if (pizzaItems.Count == 0 || pizzaItems[0].SubItems[2].Text == null)
+            if (pizzaItems.Count == 0)
             {
                 MessageBox.Show("Please select a pizza size and crust before adding to cart.");
                 return;
             }
             _stagedPizzas.AddRange(pizzaItems);
-            int qty = (int)numericUpDown1.Value;
             MessageBox.Show("Pizza added to cart! You can now configure another pizza or click Confirm Order when ready.", "Pizza Added");
             ResetPizzaAndToppings();
         }
