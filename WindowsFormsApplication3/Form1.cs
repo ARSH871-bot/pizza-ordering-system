@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -17,10 +17,30 @@ namespace WindowsFormsApplication3
             InitializeComponent();
         }
 
-      
+
         private void button1_Click_1(object sender, EventArgs e)
         {
-            //Pizza Type Selection Fn1353
+            // FIX-01 & FIX-08: Validate all checked drink quantities before processing anything
+            int tempQty;
+            if (checkBox15.Checked && (!int.TryParse(textBox1.Text, out tempQty) || tempQty <= 0))
+            { MessageBox.Show("Please enter a valid quantity (greater than 0) for Coke."); return; }
+            if (checkBox16.Checked && (!int.TryParse(textBox2.Text, out tempQty) || tempQty <= 0))
+            { MessageBox.Show("Please enter a valid quantity (greater than 0) for Diet Coke."); return; }
+            if (checkBox17.Checked && (!int.TryParse(textBox3.Text, out tempQty) || tempQty <= 0))
+            { MessageBox.Show("Please enter a valid quantity (greater than 0) for Iced Tea."); return; }
+            if (checkBox18.Checked && (!int.TryParse(textBox4.Text, out tempQty) || tempQty <= 0))
+            { MessageBox.Show("Please enter a valid quantity (greater than 0) for Ginger Ale."); return; }
+            if (checkBox19.Checked && (!int.TryParse(textBox5.Text, out tempQty) || tempQty <= 0))
+            { MessageBox.Show("Please enter a valid quantity (greater than 0) for Sprite."); return; }
+            if (checkBox20.Checked && (!int.TryParse(textBox6.Text, out tempQty) || tempQty <= 0))
+            { MessageBox.Show("Please enter a valid quantity (greater than 0) for Root Beer."); return; }
+            if (checkBox21.Checked && (!int.TryParse(textBox7.Text, out tempQty) || tempQty <= 0))
+            { MessageBox.Show("Please enter a valid quantity (greater than 0) for Bottled Water."); return; }
+
+            // FIX-03: Clear list before adding to prevent duplicate items on repeated clicks
+            listView1.Items.Clear();
+
+            //Pizza Type Selection
 
             if (radioButton1.Checked == true)
             {
@@ -30,7 +50,6 @@ namespace WindowsFormsApplication3
                     item.SubItems.Add("1");
                     item.SubItems.Add("4.00");
                     listView1.Items.Add(item);
-         
                 }
                 else if (radioButton6.Checked == true)
                 {
@@ -38,7 +57,6 @@ namespace WindowsFormsApplication3
                     item.SubItems.Add("1");
                     item.SubItems.Add("4.00");
                     listView1.Items.Add(item);
-               
                 }
                 else if (radioButton7.Checked == true)
                 {
@@ -46,9 +64,7 @@ namespace WindowsFormsApplication3
                     item.SubItems.Add("1");
                     item.SubItems.Add("4.00");
                     listView1.Items.Add(item);
-             
                 }
-
             }
 
             else if (radioButton2.Checked == true)
@@ -59,7 +75,6 @@ namespace WindowsFormsApplication3
                     item.SubItems.Add("1");
                     item.SubItems.Add("7.00");
                     listView1.Items.Add(item);
-              
                 }
                 else if (radioButton6.Checked == true)
                 {
@@ -67,7 +82,6 @@ namespace WindowsFormsApplication3
                     item.SubItems.Add("1");
                     item.SubItems.Add("7.00");
                     listView1.Items.Add(item);
-             
                 }
                 else if (radioButton7.Checked == true)
                 {
@@ -75,7 +89,6 @@ namespace WindowsFormsApplication3
                     item.SubItems.Add("1");
                     item.SubItems.Add("7.00");
                     listView1.Items.Add(item);
-                
                 }
             }
 
@@ -87,7 +100,6 @@ namespace WindowsFormsApplication3
                     item.SubItems.Add("1");
                     item.SubItems.Add("10.00");
                     listView1.Items.Add(item);
-              
                 }
                 else if (radioButton6.Checked == true)
                 {
@@ -95,7 +107,6 @@ namespace WindowsFormsApplication3
                     item.SubItems.Add("1");
                     item.SubItems.Add("10.00");
                     listView1.Items.Add(item);
-              
                 }
                 else if (radioButton7.Checked == true)
                 {
@@ -103,7 +114,6 @@ namespace WindowsFormsApplication3
                     item.SubItems.Add("1");
                     item.SubItems.Add("10.00");
                     listView1.Items.Add(item);
-            
                 }
             }
 
@@ -115,7 +125,6 @@ namespace WindowsFormsApplication3
                     item.SubItems.Add("1");
                     item.SubItems.Add("13.00");
                     listView1.Items.Add(item);
-            
                 }
                 else if (radioButton6.Checked == true)
                 {
@@ -123,7 +132,6 @@ namespace WindowsFormsApplication3
                     item.SubItems.Add("1");
                     item.SubItems.Add("13.00");
                     listView1.Items.Add(item);
-               
                 }
                 else if (radioButton7.Checked == true)
                 {
@@ -131,7 +139,6 @@ namespace WindowsFormsApplication3
                     item.SubItems.Add("1");
                     item.SubItems.Add("13.00");
                     listView1.Items.Add(item);
-              
                 }
             }
 
@@ -144,16 +151,14 @@ namespace WindowsFormsApplication3
                 item.SubItems.Add("");
                 item.SubItems.Add("0.75");
                 listView1.Items.Add(item);
-           
             }
-            
+
             if (checkBox2.Checked == true)
             {
                 ListViewItem item = new ListViewItem("  Extra Cheese Toppings");
                 item.SubItems.Add("");
                 item.SubItems.Add("0.75");
                 listView1.Items.Add(item);
-          
             }
 
             if (checkBox3.Checked == true)
@@ -162,7 +167,6 @@ namespace WindowsFormsApplication3
                 item.SubItems.Add("");
                 item.SubItems.Add("0.75");
                 listView1.Items.Add(item);
-         
             }
 
             if (checkBox4.Checked == true)
@@ -171,7 +175,6 @@ namespace WindowsFormsApplication3
                 item.SubItems.Add("");
                 item.SubItems.Add("0.75");
                 listView1.Items.Add(item);
-             
             }
 
             if (checkBox5.Checked == true)
@@ -180,7 +183,6 @@ namespace WindowsFormsApplication3
                 item.SubItems.Add("");
                 item.SubItems.Add("0.75");
                 listView1.Items.Add(item);
-            
             }
 
             if (checkBox6.Checked == true)
@@ -189,7 +191,6 @@ namespace WindowsFormsApplication3
                 item.SubItems.Add("");
                 item.SubItems.Add("0.75");
                 listView1.Items.Add(item);
-          
             }
 
             if (checkBox7.Checked == true)
@@ -198,7 +199,6 @@ namespace WindowsFormsApplication3
                 item.SubItems.Add("");
                 item.SubItems.Add("0.75");
                 listView1.Items.Add(item);
-            
             }
 
             if (checkBox8.Checked == true)
@@ -207,7 +207,6 @@ namespace WindowsFormsApplication3
                 item.SubItems.Add("");
                 item.SubItems.Add("0.75");
                 listView1.Items.Add(item);
-       
             }
 
             if (checkBox9.Checked == true)
@@ -216,7 +215,6 @@ namespace WindowsFormsApplication3
                 item.SubItems.Add("");
                 item.SubItems.Add("0.75");
                 listView1.Items.Add(item);
-            
             }
 
             if (checkBox10.Checked == true)
@@ -225,7 +223,6 @@ namespace WindowsFormsApplication3
                 item.SubItems.Add("");
                 item.SubItems.Add("0.75");
                 listView1.Items.Add(item);
-        
             }
 
             if (checkBox11.Checked == true)
@@ -234,7 +231,6 @@ namespace WindowsFormsApplication3
                 item.SubItems.Add("");
                 item.SubItems.Add("0.75");
                 listView1.Items.Add(item);
-              
             }
 
             if (checkBox12.Checked == true)
@@ -243,9 +239,7 @@ namespace WindowsFormsApplication3
                 item.SubItems.Add("");
                 item.SubItems.Add("0.75");
                 listView1.Items.Add(item);
-       
             }
-
 
             if (checkBox13.Checked == true)
             {
@@ -253,7 +247,6 @@ namespace WindowsFormsApplication3
                 item.SubItems.Add("");
                 item.SubItems.Add("0.75");
                 listView1.Items.Add(item);
-           
             }
 
             if (checkBox14.Checked == true)
@@ -262,7 +255,6 @@ namespace WindowsFormsApplication3
                 item.SubItems.Add("");
                 item.SubItems.Add("0.75");
                 listView1.Items.Add(item);
-        
             }
 
             //Drink Selection
@@ -270,15 +262,12 @@ namespace WindowsFormsApplication3
             if (checkBox15.Checked == true)
             {
                 ListViewItem item = new ListViewItem("Coke - Can");
-                item.SubItems.Add(textBox1.Text);
-                int qty = Convert.ToInt32(textBox1.Text);
+                int qty = int.Parse(textBox1.Text);
                 double cost = qty * 1.45;
-                string dCost = cost.ToString();
-                item.SubItems.Add(dCost);
+                item.SubItems.Add(textBox1.Text);
+                item.SubItems.Add(cost.ToString("F2")); // FIX-11: consistent 2 decimal places
                 listView1.Items.Add(item);
-          
             }
-
             else
             {
                 textBox1.Text = "";
@@ -287,15 +276,12 @@ namespace WindowsFormsApplication3
             if (checkBox16.Checked == true)
             {
                 ListViewItem item = new ListViewItem("Diet Coke - Can");
-                item.SubItems.Add(textBox2.Text);
-                int qty = Convert.ToInt32(textBox2.Text);
+                int qty = int.Parse(textBox2.Text);
                 double cost = qty * 1.45;
-                string dCost = cost.ToString();
-                item.SubItems.Add(dCost);
+                item.SubItems.Add(textBox2.Text);
+                item.SubItems.Add(cost.ToString("F2")); // FIX-11
                 listView1.Items.Add(item);
-             
             }
-
             else
             {
                 textBox2.Text = "";
@@ -304,15 +290,12 @@ namespace WindowsFormsApplication3
             if (checkBox17.Checked == true)
             {
                 ListViewItem item = new ListViewItem("Iced Tea - Can");
-                item.SubItems.Add(textBox3.Text);
-                int qty = Convert.ToInt32(textBox3.Text);
+                int qty = int.Parse(textBox3.Text);
                 double cost = qty * 1.45;
-                string dCost = cost.ToString();
-                item.SubItems.Add(dCost);
+                item.SubItems.Add(textBox3.Text);
+                item.SubItems.Add(cost.ToString("F2")); // FIX-11
                 listView1.Items.Add(item);
-              
             }
-
             else
             {
                 textBox3.Text = "";
@@ -321,14 +304,12 @@ namespace WindowsFormsApplication3
             if (checkBox18.Checked == true)
             {
                 ListViewItem item = new ListViewItem("Ginger Ale - Can");
-                item.SubItems.Add(textBox4.Text);
-                int qty = Convert.ToInt32(textBox4.Text);
+                int qty = int.Parse(textBox4.Text);
                 double cost = qty * 1.45;
-                string dCost = cost.ToString();
-                item.SubItems.Add(dCost);
+                item.SubItems.Add(textBox4.Text);
+                item.SubItems.Add(cost.ToString("F2")); // FIX-11
                 listView1.Items.Add(item);
             }
-
             else
             {
                 textBox4.Text = "";
@@ -337,14 +318,12 @@ namespace WindowsFormsApplication3
             if (checkBox19.Checked == true)
             {
                 ListViewItem item = new ListViewItem("Sprite - Can");
-                item.SubItems.Add(textBox5.Text);
-                int qty = Convert.ToInt32(textBox5.Text);
+                int qty = int.Parse(textBox5.Text);
                 double cost = qty * 1.45;
-                string dCost = cost.ToString();
-                item.SubItems.Add(dCost);
+                item.SubItems.Add(textBox5.Text);
+                item.SubItems.Add(cost.ToString("F2")); // FIX-11
                 listView1.Items.Add(item);
             }
-
             else
             {
                 textBox5.Text = "";
@@ -353,14 +332,12 @@ namespace WindowsFormsApplication3
             if (checkBox20.Checked == true)
             {
                 ListViewItem item = new ListViewItem("Root Beer - Can");
-                item.SubItems.Add(textBox6.Text);
-                int qty = Convert.ToInt32(textBox6.Text);
+                int qty = int.Parse(textBox6.Text);
                 double cost = qty * 1.45;
-                string dCost = cost.ToString();
-                item.SubItems.Add(dCost);
+                item.SubItems.Add(textBox6.Text);
+                item.SubItems.Add(cost.ToString("F2")); // FIX-11
                 listView1.Items.Add(item);
             }
-
             else
             {
                 textBox6.Text = "";
@@ -369,14 +346,12 @@ namespace WindowsFormsApplication3
             if (checkBox21.Checked == true)
             {
                 ListViewItem item = new ListViewItem("Bottled Water");
-                item.SubItems.Add(textBox7.Text);
-                int qty = Convert.ToInt32(textBox7.Text);
+                int qty = int.Parse(textBox7.Text);
                 double cost = qty * 1.25;
-                string dCost = cost.ToString();
-                item.SubItems.Add(dCost);
+                item.SubItems.Add(textBox7.Text);
+                item.SubItems.Add(cost.ToString("F2")); // FIX-11
                 listView1.Items.Add(item);
             }
-
             else
             {
                 textBox7.Text = "";
@@ -390,7 +365,6 @@ namespace WindowsFormsApplication3
                 item.SubItems.Add("");
                 item.SubItems.Add("3.00");
                 listView1.Items.Add(item);
-          
             }
 
             if (checkBox23.Checked == true)
@@ -399,7 +373,6 @@ namespace WindowsFormsApplication3
                 item.SubItems.Add("");
                 item.SubItems.Add("3.00");
                 listView1.Items.Add(item);
-             
             }
 
             if (checkBox24.Checked == true)
@@ -408,7 +381,6 @@ namespace WindowsFormsApplication3
                 item.SubItems.Add("");
                 item.SubItems.Add("3.00");
                 listView1.Items.Add(item);
-               
             }
 
             if (checkBox25.Checked == true)
@@ -417,7 +389,6 @@ namespace WindowsFormsApplication3
                 item.SubItems.Add("");
                 item.SubItems.Add("3.00");
                 listView1.Items.Add(item);
-          
             }
 
             if (checkBox26.Checked == true)
@@ -426,9 +397,7 @@ namespace WindowsFormsApplication3
                 item.SubItems.Add("");
                 item.SubItems.Add("0.00");
                 listView1.Items.Add(item);
-          
             }
-
 
             if (checkBox27.Checked == true)
             {
@@ -436,7 +405,6 @@ namespace WindowsFormsApplication3
                 item.SubItems.Add("");
                 item.SubItems.Add("0.00");
                 listView1.Items.Add(item);
-              
             }
 
             if (checkBox28.Checked == true)
@@ -445,10 +413,15 @@ namespace WindowsFormsApplication3
                 item.SubItems.Add("");
                 item.SubItems.Add("0.00");
                 listView1.Items.Add(item);
-             
             }
 
-  
+            // FIX-09: Block empty order from proceeding
+            if (listView1.Items.Count == 0)
+            {
+                MessageBox.Show("Please select at least one item before proceeding.");
+                return;
+            }
+
             double total = 0;
             double hst = 0;
             double totaldue = 0;
@@ -464,7 +437,7 @@ namespace WindowsFormsApplication3
             string hstDisplay = hst.ToString("c2");
             string totalDisplay = totaldue.ToString("c2");
             string amount = total.ToString("c2");
-            
+
             textBox8.Text = amount;
             textBox9.Text = hstDisplay;
             textBox10.Text = totalDisplay;
@@ -474,6 +447,8 @@ namespace WindowsFormsApplication3
 
         private void button2_Click(object sender, EventArgs e)
         {
+            // FIX-07: Invalidate confirmed payment when user goes back to modify order
+            button8.Enabled = false;
             tabControl1.SelectTab("tabPage1");
         }
 
@@ -492,7 +467,8 @@ namespace WindowsFormsApplication3
             textBox10.Enabled = false;
             textBox19.Enabled = false;
             textBox21.Enabled = false;
-            
+            textBox18.Enabled = false; // FIX-13: card field disabled until a card payment method is selected
+
             comboBox1.Items.Add("Alberta");
             comboBox1.Items.Add("British Columbia");
             comboBox1.Items.Add("Manitoba");
@@ -509,10 +485,9 @@ namespace WindowsFormsApplication3
             comboBox2.Items.Add("Promo Card");
 
             button8.Enabled = false;
-
         }
 
-      
+
         private void textBox1_KeyPress(object sender, KeyPressEventArgs e)
         {
             char q = e.KeyChar;
@@ -578,7 +553,7 @@ namespace WindowsFormsApplication3
 
         private void listView1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            
+            // FIX-10: intentionally empty — event wired by Designer, no action needed
         }
 
         private void button4_Click(object sender, EventArgs e)
@@ -587,17 +562,28 @@ namespace WindowsFormsApplication3
             textBox8.Text = "";
             textBox9.Text = "";
             textBox10.Text = "";
-
+            button8.Enabled = false; // FIX-07: reset confirm button when order is cleared
         }
 
         private void button5_Click(object sender, EventArgs e)
         {
-            this.Close();
+            // FIX-12: confirm before closing mid-order
+            DialogResult confirm = MessageBox.Show("Are you sure you want to exit?", "Exit", MessageBoxButtons.YesNo);
+            if (confirm == DialogResult.Yes)
+            {
+                this.Close();
+            }
         }
 
         private void textBox20_KeyPress(object sender, KeyPressEventArgs e)
         {
             char q = e.KeyChar;
+            // FIX-02: block a second decimal point to prevent Convert.ToDouble crash
+            if (q == 46 && textBox20.Text.Contains("."))
+            {
+                e.Handled = true;
+                return;
+            }
             if (!Char.IsDigit(q) && q != 8 && q != 46)
             {
                 e.Handled = true;
@@ -611,13 +597,10 @@ namespace WindowsFormsApplication3
 
         private void button7_Click(object sender, EventArgs e)
         {
-
-
             if (textBox11.Text == "" || textBox12.Text == "" || textBox13.Text == "" || textBox15.Text == "" || textBox20.Text == "" || comboBox2.Text == "")
             {
                 MessageBox.Show("Please fill in required fields");
             }
-    
             else
             {
                 string money = textBox19.Text;
@@ -632,15 +615,12 @@ namespace WindowsFormsApplication3
                 if (change < 0)
                 {
                     MessageBox.Show("Please pay your balance");
-
+                    button8.Enabled = false; // FIX-04: disable confirm if payment is insufficient
                 }
-
                 else
                 {
                     button8.Enabled = true;
                 }
-                  
-
             }
         }
 
@@ -650,7 +630,6 @@ namespace WindowsFormsApplication3
 
            if (dialog == DialogResult.Yes)
            {
-
                //Clearing all data
                checkBox1.Checked = false;
                checkBox2.Checked = false;
@@ -708,6 +687,12 @@ namespace WindowsFormsApplication3
                comboBox1.Text = "";
                comboBox2.Text = "";
 
+               // FIX-06: restore default pizza selections and reset payment state
+               radioButton1.Checked = true;
+               radioButton5.Checked = true;
+               button8.Enabled = false;
+               textBox18.Enabled = false;
+
                tabControl1.SelectTab("tabPage1");
            }
 
@@ -715,17 +700,19 @@ namespace WindowsFormsApplication3
            {
                this.Close();
            }
-        
-        
         }
 
         private void comboBox2_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (comboBox2.Text == "Cash")
             {
-                textBox18.Enabled = false;
+                textBox18.Enabled = false; // cash needs no card number
+            }
+            else
+            {
+                textBox18.Enabled = true; // FIX-05: re-enable card field for all other payment methods
             }
         }
     }
-} 
+}
 //cpfn
