@@ -74,6 +74,28 @@ PizzaOrderingSystemC#/
 └── WindowsFormsApplication3.sln
 ```
 
+## Roadmap
+
+### v1.1.0 — Released
+- Fixed 13 bugs (2 critical, 5 high, 4 medium, 2 low)
+- Full details in [CHANGELOG.md](CHANGELOG.md)
+
+### v1.2.0 — Planned
+| # | Story | Priority |
+|---|---|---|
+| US-30 | [Pizza Quantity Selection](https://github.com/ARSH871-bot/pizza-ordering-system/issues/30) — order more than 1 of the same pizza | High |
+| US-31 | [Order Multiple Different Pizzas](https://github.com/ARSH871-bot/pizza-ordering-system/issues/31) — different size/crust combos in one order | High |
+| US-32 | [Postal Code Format Validation](https://github.com/ARSH871-bot/pizza-ordering-system/issues/32) — enforce Canadian A1A 1A1 format | Medium |
+| US-33 | [Contact Number Validation](https://github.com/ARSH871-bot/pizza-ordering-system/issues/33) — digits only, 7–15 digits | Medium |
+| US-34 | [Promo Code Discount](https://github.com/ARSH871-bot/pizza-ordering-system/issues/34) — activate the Promo Card payment method | Medium |
+| US-35 | [Export Order Receipt to Text File](https://github.com/ARSH871-bot/pizza-ordering-system/issues/35) — save a .txt receipt after payment | Medium |
+
+See the full [v1.2.0 milestone](https://github.com/ARSH871-bot/pizza-ordering-system/milestone/1) on GitHub.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for branching strategy, commit conventions, and how to submit a pull request.
+
 ## License
 
 This project is open source and available under the [MIT License](LICENSE).

@@ -5,7 +5,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-## [Unreleased]
+## [Unreleased] — v1.2.0 Planned
+
+### Planned Features
+
+- **US-30** — Pizza Quantity Selection: allow ordering more than 1 of the same pizza per order
+- **US-31** — Order Multiple Different Pizzas: add multiple size/crust configurations to a single order
+- **US-32** — Postal Code Format Validation: enforce Canadian A1A 1A1 format on Postal Code field
+- **US-33** — Contact Number Validation: digits only, 7–15 digit length when Contact No is provided
+- **US-34** — Promo Code Discount: activate the "Promo Card" payment method with real discount codes
+- **US-35** — Export Order Receipt: save a timestamped .txt receipt file after payment is confirmed
+
+See the [v1.2.0 milestone](https://github.com/ARSH871-bot/pizza-ordering-system/milestone/1) for full details.
 
 ---
 
