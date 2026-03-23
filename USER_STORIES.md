@@ -46,11 +46,11 @@
 As a customer, I want to select a pizza size, so that I can order a pizza that fits my appetite and budget.
 
 **Acceptance Criteria**
-- [ ] Four size options are available: Small, Medium, Large, Extra Large
-- [ ] Only one size can be selected at a time (mutually exclusive radio buttons)
-- [ ] Prices are fixed per size: Small $4.00, Medium $7.00, Large $10.00, Extra Large $13.00
-- [ ] A size is always pre-selected by default (Small) so the form is never in an invalid state
-- [ ] The selected size is reflected correctly in the order summary list
+- [x]Four size options are available: Small, Medium, Large, Extra Large
+- [x]Only one size can be selected at a time (mutually exclusive radio buttons)
+- [x]Prices are fixed per size: Small $4.00, Medium $7.00, Large $10.00, Extra Large $13.00
+- [x]A size is always pre-selected by default (Small) so the form is never in an invalid state
+- [x]The selected size is reflected correctly in the order summary list
 
 **Notes**
 - Default selection is Small on application load
@@ -71,11 +71,11 @@ As a customer, I want to select a pizza size, so that I can order a pizza that f
 As a customer, I want to choose a crust type, so that I can customize my pizza to my preference.
 
 **Acceptance Criteria**
-- [ ] Three crust options are available: Normal, Cheesy, Sausage
-- [ ] Only one crust type can be selected at a time (mutually exclusive radio buttons)
-- [ ] Normal crust is pre-selected by default
-- [ ] Crust type does not affect the price — only the label in the order summary changes
-- [ ] The selected crust name is included in the order line item description
+- [x]Three crust options are available: Normal, Cheesy, Sausage
+- [x]Only one crust type can be selected at a time (mutually exclusive radio buttons)
+- [x]Normal crust is pre-selected by default
+- [x]Crust type does not affect the price — only the label in the order summary changes
+- [x]The selected crust name is included in the order line item description
 
 **Notes**
 - Crust and size are combined into a single order list entry (e.g., "Cheesy Crust Large Pizza")
@@ -95,11 +95,11 @@ As a customer, I want to choose a crust type, so that I can customize my pizza t
 As a customer, I want to add toppings to my pizza, so that I can personalize my order with my favorite ingredients.
 
 **Acceptance Criteria**
-- [ ] 14 topping options are available: Pepperoni, Extra Cheese, Mushroom, Ham, Bacon, Ground Beef, Jalapeno, Pineapple, Dried Shrimps, Anchovies, Sun Dried Tomatoes, Spinach, Roasted Garlic, Shredded Chicken
-- [ ] Multiple toppings can be selected simultaneously (independent checkboxes)
-- [ ] Each selected topping appears as a separate line item in the order summary
-- [ ] Unselected toppings do not appear in the order summary
-- [ ] Each topping is priced at $0.75
+- [x]14 topping options are available: Pepperoni, Extra Cheese, Mushroom, Ham, Bacon, Ground Beef, Jalapeno, Pineapple, Dried Shrimps, Anchovies, Sun Dried Tomatoes, Spinach, Roasted Garlic, Shredded Chicken
+- [x]Multiple toppings can be selected simultaneously (independent checkboxes)
+- [x]Each selected topping appears as a separate line item in the order summary
+- [x]Unselected toppings do not appear in the order summary
+- [x]Each topping is priced at $0.75
 
 **Notes**
 - Toppings are listed with a leading indent in the order summary to visually distinguish them from the main pizza item
@@ -119,9 +119,9 @@ As a customer, I want to add toppings to my pizza, so that I can personalize my 
 As a customer, I want to see the price of each topping, so that I know how much extra I will be charged before confirming my order.
 
 **Acceptance Criteria**
-- [ ] Every topping shows a price of $0.75 in the order summary
-- [ ] The price is visible in the Price column of the order list
-- [ ] All toppings are uniformly priced (no exceptions)
+- [x]Every topping shows a price of $0.75 in the order summary
+- [x]The price is visible in the Price column of the order list
+- [x]All toppings are uniformly priced (no exceptions)
 
 ---
 
@@ -142,11 +142,11 @@ As a customer, I want to see the price of each topping, so that I know how much 
 As a customer, I want to select from a variety of canned drinks, so that I can include a beverage with my meal.
 
 **Acceptance Criteria**
-- [ ] 6 canned drink options are available: Coke, Diet Coke, Iced Tea, Ginger Ale, Sprite, Root Beer
-- [ ] Each drink is activated via a checkbox
-- [ ] Each drink can is priced at $1.45
-- [ ] The drink only appears in the order summary if its checkbox is checked
-- [ ] The total cost = quantity × $1.45 and is shown in the order summary
+- [x]6 canned drink options are available: Coke, Diet Coke, Iced Tea, Ginger Ale, Sprite, Root Beer
+- [x]Each drink is activated via a checkbox
+- [x]Each drink can is priced at $1.45
+- [x]The drink only appears in the order summary if its checkbox is checked
+- [x]The total cost = quantity × $1.45 and is shown in the order summary
 
 ---
 
@@ -163,10 +163,10 @@ As a customer, I want to select from a variety of canned drinks, so that I can i
 As a customer, I want to order Bottled Water as an alternative to canned drinks, so that I have a non-carbonated beverage option.
 
 **Acceptance Criteria**
-- [ ] Bottled Water is available as a separate drink option
-- [ ] It is priced at $1.25 (different from canned drinks at $1.45)
-- [ ] A quantity field is available for Bottled Water
-- [ ] Total cost = quantity × $1.25
+- [x]Bottled Water is available as a separate drink option
+- [x]It is priced at $1.25 (different from canned drinks at $1.45)
+- [x]A quantity field is available for Bottled Water
+- [x]Total cost = quantity × $1.25
 
 ---
 
@@ -183,11 +183,11 @@ As a customer, I want to order Bottled Water as an alternative to canned drinks,
 As a customer, I want to specify the quantity for each drink I order, so that I can order multiple cans of the same drink.
 
 **Acceptance Criteria**
-- [ ] Each drink has a dedicated quantity text field
-- [ ] The quantity field is associated 1:1 with its drink checkbox
-- [ ] If the drink checkbox is unchecked, the quantity field is cleared automatically
-- [ ] The total price in the order summary reflects the entered quantity
-- [ ] If no quantity is entered for a selected drink, the system should handle the conversion gracefully
+- [x]Each drink has a dedicated quantity text field
+- [x]The quantity field is associated 1:1 with its drink checkbox
+- [x]If the drink checkbox is unchecked, the quantity field is cleared automatically
+- [x]The total price in the order summary reflects the entered quantity
+- [x]If no quantity is entered for a selected drink, the system should handle the conversion gracefully
 
 **Notes**
 - If a drink is unchecked, its textbox is cleared in the `else` branch of the button click handler
@@ -207,10 +207,10 @@ As a customer, I want to specify the quantity for each drink I order, so that I 
 As a customer, I want the drink quantity fields to only accept numeric input, so that I cannot accidentally enter invalid characters.
 
 **Acceptance Criteria**
-- [ ] Only digit characters (0–9) are accepted in drink quantity fields
-- [ ] Backspace key is allowed for correction
-- [ ] Any non-numeric keypress is silently blocked (not entered)
-- [ ] This validation applies to all 7 drink quantity fields
+- [x]Only digit characters (0–9) are accepted in drink quantity fields
+- [x]Backspace key is allowed for correction
+- [x]Any non-numeric keypress is silently blocked (not entered)
+- [x]This validation applies to all 7 drink quantity fields
 
 ---
 
@@ -231,11 +231,11 @@ As a customer, I want the drink quantity fields to only accept numeric input, so
 As a customer, I want to add side items to my order, so that I can make it a complete meal.
 
 **Acceptance Criteria**
-- [ ] 4 side items are available: Chicken Wings, Poutine, Onion Rings, Cheesy Garlic Bread
-- [ ] Each is selectable via a checkbox
-- [ ] Each side item is priced at $3.00
-- [ ] Selected sides appear as individual line items in the order summary
-- [ ] Unselected sides do not appear in the order summary
+- [x]4 side items are available: Chicken Wings, Poutine, Onion Rings, Cheesy Garlic Bread
+- [x]Each is selectable via a checkbox
+- [x]Each side item is priced at $3.00
+- [x]Selected sides appear as individual line items in the order summary
+- [x]Unselected sides do not appear in the order summary
 
 ---
 
@@ -252,11 +252,11 @@ As a customer, I want to add side items to my order, so that I can make it a com
 As a customer, I want to add free dipping sauces to my order, so that I can enhance my meal at no extra cost.
 
 **Acceptance Criteria**
-- [ ] 3 dip options are available: Garlic Dip, BBQ Dip, Sour Cream Dip
-- [ ] Each is selectable via a checkbox
-- [ ] All dips are priced at $0.00
-- [ ] Selected dips appear in the order summary with a $0.00 price
-- [ ] Dips do not affect the subtotal or total
+- [x]3 dip options are available: Garlic Dip, BBQ Dip, Sour Cream Dip
+- [x]Each is selectable via a checkbox
+- [x]All dips are priced at $0.00
+- [x]Selected dips appear in the order summary with a $0.00 price
+- [x]Dips do not affect the subtotal or total
 
 ---
 
@@ -277,11 +277,11 @@ As a customer, I want to add free dipping sauces to my order, so that I can enha
 As a customer, I want to see an itemized list of everything I've ordered, so that I can verify my order before paying.
 
 **Acceptance Criteria**
-- [ ] Order summary is displayed in a 3-column list: Item Name, Quantity, Price
-- [ ] Every selected item (pizza, toppings, drinks, sides, dips) appears as a separate row
-- [ ] Item names accurately reflect the user's selections (e.g., size + crust combination)
-- [ ] Prices shown per row match the defined pricing for each item
-- [ ] The list is populated when the user clicks "Next" / proceeds from Tab 1
+- [x]Order summary is displayed in a 3-column list: Item Name, Quantity, Price
+- [x]Every selected item (pizza, toppings, drinks, sides, dips) appears as a separate row
+- [x]Item names accurately reflect the user's selections (e.g., size + crust combination)
+- [x]Prices shown per row match the defined pricing for each item
+- [x]The list is populated when the user clicks "Next" / proceeds from Tab 1
 
 ---
 
@@ -298,11 +298,11 @@ As a customer, I want to see an itemized list of everything I've ordered, so tha
 As a customer, I want to see the subtotal, HST, and total due, so that I understand the full cost of my order.
 
 **Acceptance Criteria**
-- [ ] Subtotal is the sum of all item prices in the order list
-- [ ] HST is calculated as 13% of the subtotal
-- [ ] Total due = Subtotal + HST
-- [ ] All three values are displayed in currency format (e.g., $12.75)
-- [ ] The fields are read-only and cannot be edited by the user
+- [x]Subtotal is the sum of all item prices in the order list
+- [x]HST is calculated as 13% of the subtotal
+- [x]Total due = Subtotal + HST
+- [x]All three values are displayed in currency format (e.g., $12.75)
+- [x]The fields are read-only and cannot be edited by the user
 
 ---
 
@@ -319,10 +319,10 @@ As a customer, I want to see the subtotal, HST, and total due, so that I underst
 As a customer, I want to go back to the order page from the order summary, so that I can make changes before proceeding to checkout.
 
 **Acceptance Criteria**
-- [ ] A "Back" button is available on the Order Review tab
-- [ ] Clicking it navigates back to Tab 1 (Order Selection)
-- [ ] Existing selections on Tab 1 remain intact after navigating back
-- [ ] The order list on Tab 2 retains its current state
+- [x]An "Order Again" button is available on the Order Review tab (actual button label is "Order Again", not "Back")
+- [x]Clicking it navigates back to Tab 1 (Order Selection)
+- [x]Existing selections on Tab 1 remain intact after navigating back
+- [x]The Confirm Order button is disabled when navigating back (payment re-validation required)
 
 ---
 
@@ -339,10 +339,10 @@ As a customer, I want to go back to the order page from the order summary, so th
 As a customer, I want to clear my entire order and start fresh, so that I can correct mistakes without closing the application.
 
 **Acceptance Criteria**
-- [ ] A "Clear" button is available on the Order Review tab
-- [ ] Clicking it removes all items from the order list
-- [ ] Subtotal, HST, and Total Due fields are cleared
-- [ ] The user remains on the Order Review tab after clearing
+- [x]A "Clear" button is available on the Order Review tab
+- [x]Clicking it removes all items from the order list
+- [x]Subtotal, HST, and Total Due fields are cleared
+- [x]The user remains on the Order Review tab after clearing
 
 **Notes**
 - This only clears the order list and totals — Tab 1 selections (checkboxes, radio buttons) are not reset by this button. Full reset only happens after order confirmation.
@@ -366,10 +366,11 @@ As a customer, I want to clear my entire order and start fresh, so that I can co
 As a customer, I want to enter my delivery details, so that my order can be delivered to the correct location.
 
 **Acceptance Criteria**
-- [ ] Fields available: First Name, Last Name, Address, City, Postal Code, Phone Number
-- [ ] All required fields must be filled before payment can be processed
-- [ ] If any required field is empty, a validation message is shown: "Please fill in required fields"
-- [ ] Fields accept free-text input
+- [x]Fields available: First Name*, Last Name*, Address*, City, Province (dropdown), Postal Code*, Contact No, Email (* = required)
+- [x]Required fields enforced: First Name, Last Name, Address, Postal Code
+- [x]Optional fields: City, Province, Contact No, Email
+- [x]If any required field is empty, a validation message is shown: "Please fill in required fields"
+- [x]All fields accept free-text input; Province uses a dropdown
 
 ---
 
@@ -386,9 +387,9 @@ As a customer, I want to enter my delivery details, so that my order can be deli
 As a customer, I want to select my province from a dropdown list, so that I can provide my location without typing errors.
 
 **Acceptance Criteria**
-- [ ] A dropdown (comboBox) lists Canadian provinces: Alberta, British Columbia, Manitoba, New Brunswick, Newfoundland and Labrador, Ontario, Prince Edward Island, Quebec, Saskatchewan
-- [ ] Only one province can be selected at a time
-- [ ] Province selection is not part of required-field validation (optional field)
+- [x]A dropdown (comboBox) lists Canadian provinces: Alberta, British Columbia, Manitoba, New Brunswick, Newfoundland and Labrador, Ontario, Prince Edward Island, Quebec, Saskatchewan
+- [x]Only one province can be selected at a time
+- [x]Province selection is not part of required-field validation (optional field)
 
 ---
 
@@ -405,10 +406,10 @@ As a customer, I want to select my province from a dropdown list, so that I can 
 As a customer, I want to choose my payment method, so that I can pay using whichever method I prefer.
 
 **Acceptance Criteria**
-- [ ] Four payment methods are available: Cash, Credit Card, Debit Card, Promo Card
-- [ ] Payment method selection is required before processing payment
-- [ ] If no payment method is selected, the validation message is shown
-- [ ] Selecting "Cash" disables the card number field (textBox18) automatically
+- [x]Four payment methods are available: Cash, Credit Card, Debit Card, Promo Card
+- [x]Payment method selection is required before processing payment
+- [x]If no payment method is selected, the validation message is shown
+- [x]Selecting "Cash" disables the card number field (textBox18) automatically
 
 ---
 
@@ -425,10 +426,10 @@ As a customer, I want to choose my payment method, so that I can pay using which
 As a customer, I want to enter the amount I am paying in cash, so that the system can calculate my change automatically.
 
 **Acceptance Criteria**
-- [ ] A text field accepts the cash amount entered by the customer
-- [ ] The field accepts decimal values (digits and decimal point only)
-- [ ] Non-numeric and non-decimal characters are blocked on keypress
-- [ ] The amount entered is compared against the total due when "Pay" is clicked
+- [x]A text field accepts the cash amount entered by the customer
+- [x]The field accepts decimal values (digits and decimal point only)
+- [x]Non-numeric and non-decimal characters are blocked on keypress
+- [x]The amount entered is compared against the total due when "Pay" is clicked
 
 ---
 
@@ -445,11 +446,11 @@ As a customer, I want to enter the amount I am paying in cash, so that the syste
 As a customer, I want to see the change owed to me after paying, so that I know exactly how much to expect back.
 
 **Acceptance Criteria**
-- [ ] Change = Amount Paid − Total Due
-- [ ] Change is displayed in currency format (e.g., $3.25)
-- [ ] The change field is read-only and cannot be edited
-- [ ] Change is only calculated and displayed after the "Pay" button is clicked
-- [ ] Change field is blank on initial load
+- [x]Change = Amount Paid − Total Due
+- [x]Change is displayed in currency format (e.g., $3.25)
+- [x]The change field is read-only and cannot be edited
+- [x]Change is only calculated and displayed after the "Pay" button is clicked
+- [x]Change field is blank on initial load
 
 ---
 
@@ -466,9 +467,9 @@ As a customer, I want to see the change owed to me after paying, so that I know 
 As a customer, I want to be warned if I haven't paid enough, so that I know I need to provide a higher amount before the order is confirmed.
 
 **Acceptance Criteria**
-- [ ] If change < 0 (amount paid is less than total due), a message box is shown: "Please pay your balance"
-- [ ] The "Confirm Order" button remains disabled when payment is insufficient
-- [ ] The customer can re-enter a higher amount and click "Pay" again
+- [x]If change < 0 (amount paid is less than total due), a message box is shown: "Please pay your balance"
+- [x]The "Confirm Order" button remains disabled when payment is insufficient
+- [x]The customer can re-enter a higher amount and click "Pay" again
 
 ---
 
@@ -485,10 +486,10 @@ As a customer, I want to be warned if I haven't paid enough, so that I know I ne
 As a customer, I want to be prevented from confirming the order if required fields are missing, so that incomplete orders are not accidentally submitted.
 
 **Acceptance Criteria**
-- [ ] Required fields: First Name, Last Name, City, Phone Number, Amount Paid, Payment Method
-- [ ] If any required field is empty when "Pay" is clicked, a message box displays: "Please fill in required fields"
-- [ ] Payment calculation and confirmation are blocked until all required fields are populated
-- [ ] Validation is triggered on "Pay" button click, not on field blur
+- [x]Required fields: First Name, Last Name, Address, Postal Code, Amount Paid, Payment Method
+- [x]If any required field is empty when "Pay" is clicked, a message box displays: "Please fill in required fields"
+- [x]Payment calculation and confirmation are blocked until all required fields are populated
+- [x]Validation is triggered on "Pay" button click
 
 ---
 
@@ -509,10 +510,10 @@ As a customer, I want to be prevented from confirming the order if required fiel
 As a customer, I want to receive a confirmation message when my order is placed, so that I know it has been successfully submitted and when to expect my delivery.
 
 **Acceptance Criteria**
-- [ ] A dialog box is shown after clicking "Confirm Order"
-- [ ] The message reads: "Thanks for ordering at Pizza Express. Your ordered items will be ready and delivered in 30 minutes. Do you want to order some more?"
-- [ ] Dialog presents Yes / No options
-- [ ] Confirmation dialog only appears when payment has been validated (change >= 0)
+- [x]A dialog box is shown after clicking "Confirm Order"
+- [x]The message reads: "Thanks for ordering at Pizza Express. Your ordered items will be ready and delivered in 30 minutes. Do you want to order some more?"
+- [x]Dialog presents Yes / No options
+- [x]Confirmation dialog only appears when payment has been validated (change >= 0)
 
 ---
 
@@ -529,15 +530,15 @@ As a customer, I want to receive a confirmation message when my order is placed,
 As a customer, I want to place another order immediately after confirming, so that I can reorder without restarting the application.
 
 **Acceptance Criteria**
-- [ ] Selecting "Yes" in the confirmation dialog resets the entire application state
-- [ ] All checkboxes (toppings, drinks, sides, dips) are unchecked
-- [ ] All drink quantity fields are cleared
-- [ ] Order list is cleared
-- [ ] All totals (subtotal, HST, total due) are cleared
-- [ ] All customer/payment fields are cleared
-- [ ] Province and payment method dropdowns are reset
-- [ ] The app navigates back to Tab 1 (Order Selection)
-- [ ] Default pizza size (Small) and crust (Normal) are re-selected
+- [x]Selecting "Yes" in the confirmation dialog resets the entire application state
+- [x]All checkboxes (toppings, drinks, sides, dips) are unchecked
+- [x]All drink quantity fields are cleared
+- [x]Order list is cleared
+- [x]All totals (subtotal, HST, total due) are cleared
+- [x]All customer/payment fields are cleared
+- [x]Province and payment method dropdowns are reset
+- [x]The app navigates back to Tab 1 (Order Selection)
+- [x]Default pizza size (Small) and crust (Normal) are re-selected
 
 **Notes**
 - Reset also restores default radio button selections (Small size, Normal crust), disables the Confirm button, and disables the card number field — fully resolved by FIX-06.
@@ -557,9 +558,9 @@ As a customer, I want to place another order immediately after confirming, so th
 As a customer, I want to exit the application after my order is confirmed if I choose not to order again, so that I can close the system cleanly.
 
 **Acceptance Criteria**
-- [ ] Selecting "No" in the confirmation dialog closes the application
-- [ ] No unsaved state warnings are shown
-- [ ] The application terminates gracefully
+- [x]Selecting "No" in the confirmation dialog closes the application
+- [x]No unsaved state warnings are shown
+- [x]The application terminates gracefully
 
 ---
 
@@ -580,10 +581,10 @@ As a customer, I want to exit the application after my order is confirmed if I c
 As the system, I want to pre-select Small size and Normal crust by default on startup, so that the form is always in a valid state when the customer begins ordering.
 
 **Acceptance Criteria**
-- [ ] On application load, radioButton1 (Small) is checked
-- [ ] On application load, radioButton5 (Normal Crust) is checked
-- [ ] No other size or crust radio buttons are pre-selected
-- [ ] This ensures clicking "Next" without changing anything produces a valid order item
+- [x]On application load, radioButton1 (Small) is checked
+- [x]On application load, radioButton5 (Normal Crust) is checked
+- [x]No other size or crust radio buttons are pre-selected
+- [x]This ensures clicking "Next" without changing anything produces a valid order item
 
 ---
 
@@ -600,11 +601,11 @@ As the system, I want to pre-select Small size and Normal crust by default on st
 As the system, I want calculated fields to be non-editable, so that totals and change values cannot be manually altered by the user.
 
 **Acceptance Criteria**
-- [ ] Subtotal field (textBox8) is disabled/read-only
-- [ ] HST field (textBox9) is disabled/read-only
-- [ ] Total Due field (textBox10) is disabled/read-only
-- [ ] Change field (textBox21) is disabled/read-only
-- [ ] These fields are set as disabled on Form Load
+- [x]Subtotal field (textBox8) is disabled/read-only
+- [x]HST field (textBox9) is disabled/read-only
+- [x]Total Due field (textBox10) is disabled/read-only
+- [x]Change field (textBox21) is disabled/read-only
+- [x]These fields are set as disabled on Form Load
 
 ---
 
@@ -621,14 +622,14 @@ As the system, I want calculated fields to be non-editable, so that totals and c
 As the system, I want to reset all UI fields when the customer chooses to order again, so that the next order starts with a completely clean state.
 
 **Acceptance Criteria**
-- [ ] All 28 checkboxes are unchecked
-- [ ] All 7 drink quantity textboxes are cleared
-- [ ] Order list (ListView) is cleared
-- [ ] Subtotal, HST, Total Due fields are cleared
-- [ ] All customer info fields (textBox11–textBox18) are cleared
-- [ ] Amount Paid and Change fields are cleared
-- [ ] Province and payment method dropdowns are reset to empty
-- [ ] Navigation returns to Tab 1
+- [x]All 28 checkboxes are unchecked
+- [x]All 7 drink quantity textboxes are cleared
+- [x]Order list (ListView) is cleared
+- [x]Subtotal, HST, Total Due fields are cleared
+- [x]All customer info fields (textBox11–textBox18) are cleared
+- [x]Amount Paid and Change fields are cleared
+- [x]Province and payment method dropdowns are reset to empty
+- [x]Navigation returns to Tab 1
 
 ---
 
@@ -645,9 +646,9 @@ As the system, I want to reset all UI fields when the customer chooses to order 
 As the system, I want to disable the card number field when "Cash" is selected as the payment method, so that irrelevant fields are hidden contextually and the form stays clean.
 
 **Acceptance Criteria**
-- [ ] When payment method dropdown changes to "Cash", textBox18 (card number) is disabled
-- [ ] For all other payment methods, the card number field remains enabled
-- [ ] This behaviour is triggered on the comboBox SelectedIndexChanged event
+- [x]When payment method dropdown changes to "Cash", textBox18 (card number) is disabled
+- [x]For all other payment methods, the card number field remains enabled
+- [x]This behaviour is triggered on the comboBox SelectedIndexChanged event
 
 ---
 
@@ -664,10 +665,10 @@ As the system, I want to disable the card number field when "Cash" is selected a
 As the system, I want to keep the "Confirm Order" button disabled until payment is successfully validated, so that orders cannot be finalized before payment is verified.
 
 **Acceptance Criteria**
-- [ ] "Confirm Order" button (button8) is disabled on application load
-- [ ] It remains disabled until "Pay" is clicked and change >= 0
-- [ ] If the customer re-enters a lower amount causing change < 0, the button is disabled again — resolved by FIX-04
-- [ ] Button becomes enabled only after successful payment validation
+- [x]"Confirm Order" button (button8) is disabled on application load
+- [x]It remains disabled until "Pay" is clicked and change >= 0
+- [x]If the customer re-enters a lower amount causing change < 0, the button is disabled again — resolved by FIX-04
+- [x]Button becomes enabled only after successful payment validation
 
 ---
 
