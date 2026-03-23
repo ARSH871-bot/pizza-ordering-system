@@ -7,10 +7,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-### Planned Features
+---
 
-- **US-30** — Pizza Quantity Selection: allow ordering more than 1 of the same pizza per order
-- **US-31** — Order Multiple Different Pizzas: add multiple size/crust configurations to a single order
+## [1.3.0] — 2026-03-23
+
+### Added
+
+- **US-30** — Pizza Quantity Selection: a `NumericUpDown` control (min 1, max 20, default 1) is now displayed in the Pizza Size groupbox. The pizza ListView row shows the chosen quantity and the price reflects `unit price × qty`. Qty resets to 1 on "Order Again".
+- **US-31** — Order Multiple Different Pizzas: a new "Add Pizza to Cart" button stages the current pizza (size + crust + qty + toppings), resets those fields to defaults, and allows the customer to configure another pizza before clicking "Confirm Order". All staged pizzas are flushed into the order list when "Confirm Order" is clicked. Staged list clears on "Order Again".
 
 ---
 

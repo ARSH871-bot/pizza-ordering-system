@@ -125,6 +125,57 @@ As a customer, I want to see the price of each topping, so that I know how much 
 
 ---
 
+### US-30 — Pizza Quantity Selection
+
+| Field | Detail |
+|---|---|
+| **ID** | US-30 |
+| **Priority** | High |
+| **Status** | Implemented |
+| **Story Points** | 3 |
+
+**User Story**
+As a customer, I want to specify how many of the same pizza I want, so that I can order multiple identical pizzas without having to go back and re-configure the same pizza again.
+
+**Acceptance Criteria**
+- [x]A numeric quantity input (min 1, max 20, default 1) is displayed in the Pizza Size group
+- [x]The quantity input accepts only positive integers (1–20)
+- [x]The default quantity is 1 on load and after "Order Again"
+- [x]When qty > 1, the ListView shows the correct quantity (e.g., "3") in the Quantity column
+- [x]The Price column for the pizza row reflects the full cost (unit price × quantity) rounded to 2 decimal places
+- [x]A qty of 1 behaves identically to the previous single-pizza flow
+
+**Notes**
+- Implemented as a `NumericUpDown` control inside the Pizza Size groupbox
+
+---
+
+### US-31 — Order Multiple Different Pizzas
+
+| Field | Detail |
+|---|---|
+| **ID** | US-31 |
+| **Priority** | High |
+| **Status** | Implemented |
+| **Story Points** | 5 |
+
+**User Story**
+As a customer, I want to add multiple different pizzas to a single order, so that I can order a variety of sizes and crust types for a group without placing separate orders.
+
+**Acceptance Criteria**
+- [x]An "Add Pizza to Cart" button is available on the Order Selection tab
+- [x]Clicking "Add Pizza to Cart" stages the current pizza (size + crust + qty + selected toppings) to an internal cart list and shows a confirmation message
+- [x]After staging, size/crust radio buttons reset to defaults (Small, Normal) and all topping checkboxes are cleared, allowing a new pizza to be configured
+- [x]The quantity field resets to 1 after each "Add Pizza to Cart"
+- [x]"Confirm Order" processes all staged pizzas plus the current selection (if any) along with drinks and sides
+- [x]If no pizza has been staged and no pizza size/crust is selected, "Confirm Order" shows an appropriate error
+- [x]The staged pizza list is cleared on "Order Again" and on application load
+
+**Notes**
+- Staged pizzas are held in a `List<ListViewItem>` field (`_stagedPizzas`) that is flushed into `listView1` at the start of `button1_Click`
+
+---
+
 ## Drinks
 
 ---
@@ -705,7 +756,9 @@ As the system, I want to keep the "Confirm Order" button disabled until payment 
 | US-27 | Full State Reset on New Order | Medium | Implemented | 2 |
 | US-28 | Contextual Card Number Field | Low | Implemented | 1 |
 | US-29 | Confirm Button Gated on Payment | High | Implemented | 1 |
+| US-30 | Pizza Quantity Selection | High | Implemented | 3 |
+| US-31 | Order Multiple Different Pizzas | High | Implemented | 5 |
 
-**Total Story Points: 49**
+**Total Story Points: 57**
 **Total User Stories: 29**
 **All stories: Implemented**

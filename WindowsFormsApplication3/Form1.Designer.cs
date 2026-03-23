@@ -31,6 +31,9 @@
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.label20 = new System.Windows.Forms.Label();
+            this.numericUpDown1 = new System.Windows.Forms.NumericUpDown();
+            this.label22 = new System.Windows.Forms.Label();
+            this.button9 = new System.Windows.Forms.Button();
             this.button5 = new System.Windows.Forms.Button();
             this.groupBox5 = new System.Windows.Forms.GroupBox();
             this.radioButton7 = new System.Windows.Forms.RadioButton();
@@ -141,6 +144,7 @@
             this.groupBox1.SuspendLayout();
             this.tabPage2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
             this.tabPage3.SuspendLayout();
             this.groupBox7.SuspendLayout();
             this.groupBox6.SuspendLayout();
@@ -156,13 +160,14 @@
             this.tabControl1.Location = new System.Drawing.Point(32, 130);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(694, 853);
+            this.tabControl1.Size = new System.Drawing.Size(694, 882);
             this.tabControl1.TabIndex = 0;
             // 
             // tabPage1
             // 
             this.tabPage1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(64)))), ((int)(((byte)(0)))));
             this.tabPage1.Controls.Add(this.label20);
+            this.tabPage1.Controls.Add(this.button9);
             this.tabPage1.Controls.Add(this.button5);
             this.tabPage1.Controls.Add(this.groupBox5);
             this.tabPage1.Controls.Add(this.groupBox4);
@@ -173,7 +178,7 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 35);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(686, 814);
+            this.tabPage1.Size = new System.Drawing.Size(686, 843);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Place Your Order";
             // 
@@ -182,7 +187,7 @@
             this.label20.AutoSize = true;
             this.label20.Font = new System.Drawing.Font("Calibri", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label20.ForeColor = System.Drawing.Color.White;
-            this.label20.Location = new System.Drawing.Point(30, 771);
+            this.label20.Location = new System.Drawing.Point(30, 800);
             this.label20.Name = "label20";
             this.label20.Size = new System.Drawing.Size(229, 19);
             this.label20.TabIndex = 9;
@@ -190,14 +195,24 @@
             // 
             // button5
             // 
-            this.button5.Location = new System.Drawing.Point(358, 758);
+            this.button5.Location = new System.Drawing.Point(358, 787);
             this.button5.Name = "button5";
             this.button5.Size = new System.Drawing.Size(148, 36);
             this.button5.TabIndex = 8;
             this.button5.Text = "Exit";
             this.button5.UseVisualStyleBackColor = true;
             this.button5.Click += new System.EventHandler(this.button5_Click);
-            // 
+            //
+            // button9
+            //
+            this.button9.Location = new System.Drawing.Point(195, 787);
+            this.button9.Name = "button9";
+            this.button9.Size = new System.Drawing.Size(148, 36);
+            this.button9.TabIndex = 9;
+            this.button9.Text = "Add Pizza to Cart";
+            this.button9.UseVisualStyleBackColor = true;
+            this.button9.Click += new System.EventHandler(this.button9_Click);
+            //
             // groupBox5
             // 
             this.groupBox5.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
@@ -205,7 +220,7 @@
             this.groupBox5.Controls.Add(this.radioButton6);
             this.groupBox5.Controls.Add(this.radioButton5);
             this.groupBox5.Font = new System.Drawing.Font("Calibri", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.groupBox5.Location = new System.Drawing.Point(34, 91);
+            this.groupBox5.Location = new System.Drawing.Point(34, 120);
             this.groupBox5.Name = "groupBox5";
             this.groupBox5.Size = new System.Drawing.Size(626, 63);
             this.groupBox5.TabIndex = 7;
@@ -259,7 +274,7 @@
             this.groupBox4.Controls.Add(this.checkBox23);
             this.groupBox4.Controls.Add(this.checkBox22);
             this.groupBox4.Font = new System.Drawing.Font("Calibri", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.groupBox4.Location = new System.Drawing.Point(338, 462);
+            this.groupBox4.Location = new System.Drawing.Point(338, 491);
             this.groupBox4.Name = "groupBox4";
             this.groupBox4.Size = new System.Drawing.Size(322, 284);
             this.groupBox4.TabIndex = 6;
@@ -362,7 +377,7 @@
             this.groupBox3.Controls.Add(this.checkBox16);
             this.groupBox3.Controls.Add(this.checkBox15);
             this.groupBox3.Font = new System.Drawing.Font("Calibri", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.groupBox3.Location = new System.Drawing.Point(34, 462);
+            this.groupBox3.Location = new System.Drawing.Point(34, 491);
             this.groupBox3.Name = "groupBox3";
             this.groupBox3.Size = new System.Drawing.Size(294, 284);
             this.groupBox3.TabIndex = 5;
@@ -520,7 +535,7 @@
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(512, 758);
+            this.button1.Location = new System.Drawing.Point(512, 787);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(148, 36);
             this.button1.TabIndex = 2;
@@ -547,7 +562,7 @@
             this.groupBox2.Controls.Add(this.checkBox1);
             this.groupBox2.Font = new System.Drawing.Font("Calibri", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.groupBox2.ForeColor = System.Drawing.Color.Black;
-            this.groupBox2.Location = new System.Drawing.Point(34, 170);
+            this.groupBox2.Location = new System.Drawing.Point(34, 199);
             this.groupBox2.Name = "groupBox2";
             this.groupBox2.Size = new System.Drawing.Size(626, 277);
             this.groupBox2.TabIndex = 4;
@@ -715,10 +730,12 @@
             this.groupBox1.Controls.Add(this.radioButton3);
             this.groupBox1.Controls.Add(this.radioButton2);
             this.groupBox1.Controls.Add(this.radioButton1);
+            this.groupBox1.Controls.Add(this.numericUpDown1);
+            this.groupBox1.Controls.Add(this.label22);
             this.groupBox1.Font = new System.Drawing.Font("Calibri", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.groupBox1.Location = new System.Drawing.Point(34, 20);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(626, 56);
+            this.groupBox1.Size = new System.Drawing.Size(626, 85);
             this.groupBox1.TabIndex = 3;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Pizza Size";
@@ -770,7 +787,28 @@
             this.radioButton1.TabStop = true;
             this.radioButton1.Text = "Small ($4.00)";
             this.radioButton1.UseVisualStyleBackColor = true;
-            // 
+            //
+            // label22
+            //
+            this.label22.AutoSize = true;
+            this.label22.Font = new System.Drawing.Font("Calibri", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label22.Location = new System.Drawing.Point(25, 59);
+            this.label22.Name = "label22";
+            this.label22.Size = new System.Drawing.Size(37, 19);
+            this.label22.TabIndex = 5;
+            this.label22.Text = "Qty:";
+            //
+            // numericUpDown1
+            //
+            this.numericUpDown1.Font = new System.Drawing.Font("Calibri", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.numericUpDown1.Location = new System.Drawing.Point(75, 56);
+            this.numericUpDown1.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
+            this.numericUpDown1.Maximum = new decimal(new int[] { 20, 0, 0, 0 });
+            this.numericUpDown1.Value = new decimal(new int[] { 1, 0, 0, 0 });
+            this.numericUpDown1.Name = "numericUpDown1";
+            this.numericUpDown1.Size = new System.Drawing.Size(65, 27);
+            this.numericUpDown1.TabIndex = 6;
+            //
             // tabPage2
             // 
             this.tabPage2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(64)))), ((int)(((byte)(0)))));
@@ -1313,6 +1351,7 @@
             this.groupBox3.PerformLayout();
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).EndInit();
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.tabPage2.ResumeLayout(false);
@@ -1435,6 +1474,9 @@
         private System.Windows.Forms.Label label21;
         private System.Windows.Forms.Label label20;
         private System.Windows.Forms.PictureBox pictureBox2;
+        private System.Windows.Forms.NumericUpDown numericUpDown1;
+        private System.Windows.Forms.Label label22;
+        private System.Windows.Forms.Button button9;
     }
 }
 

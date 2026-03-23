@@ -87,11 +87,10 @@ PizzaOrderingSystemC#/
 - Export Order Receipt to timestamped `.txt` file (US-35)
 - Full details in [CHANGELOG.md](CHANGELOG.md)
 
-### v1.3.0 — Planned
-| # | Story | Priority |
-|---|---|---|
-| US-30 | [Pizza Quantity Selection](https://github.com/ARSH871-bot/pizza-ordering-system/issues/30) — order more than 1 of the same pizza | High |
-| US-31 | [Order Multiple Different Pizzas](https://github.com/ARSH871-bot/pizza-ordering-system/issues/31) — different size/crust combos in one order | High |
+### v1.3.0 — Released
+- Pizza Quantity Selection — NumericUpDown (1–20) in Pizza Size group (US-30)
+- Order Multiple Different Pizzas — "Add Pizza to Cart" button for multi-pizza orders (US-31)
+- Full details in [CHANGELOG.md](CHANGELOG.md)
 
 ## Contributing
 

@@ -14,9 +14,87 @@ namespace WindowsFormsApplication3
 {
     public partial class Form1 : Form
     {
+        // US-31: staged pizzas from "Add Pizza to Cart" clicks
+        private List<ListViewItem> _stagedPizzas = new List<ListViewItem>();
+
         public Form1()
         {
             InitializeComponent();
+        }
+
+        // US-30/31: build pizza+topping ListViewItems for the current UI selection
+        private List<ListViewItem> BuildCurrentPizzaItems()
+        {
+            var items = new List<ListViewItem>();
+            int qty = (int)numericUpDown1.Value;
+
+            string pizzaName = null;
+            double pizzaUnitPrice = 0;
+
+            if (radioButton1.Checked)      { pizzaName = "Small";       pizzaUnitPrice = 4.00; }
+            else if (radioButton2.Checked) { pizzaName = "Medium";      pizzaUnitPrice = 7.00; }
+            else if (radioButton3.Checked) { pizzaName = "Large";       pizzaUnitPrice = 10.00; }
+            else if (radioButton4.Checked) { pizzaName = "Extra Large"; pizzaUnitPrice = 13.00; }
+
+            string crustName = null;
+            if (radioButton5.Checked)      crustName = "Normal Crust";
+            else if (radioButton6.Checked) crustName = "Cheesy Crust";
+            else if (radioButton7.Checked) crustName = "Sausage Crust";
+
+            if (pizzaName != null && crustName != null)
+            {
+                double pizzaTotalPrice = pizzaUnitPrice * qty;
+                ListViewItem pizzaItem = new ListViewItem(crustName + " " + pizzaName + " Pizza");
+                pizzaItem.SubItems.Add(qty.ToString());
+                pizzaItem.SubItems.Add(pizzaTotalPrice.ToString("F2"));
+                items.Add(pizzaItem);
+            }
+
+            // Toppings (one per topping regardless of qty — same as original behaviour)
+            if (checkBox1.Checked)  { var i = new ListViewItem("  Pepperoni Toppings");        i.SubItems.Add(""); i.SubItems.Add("0.75"); items.Add(i); }
+            if (checkBox2.Checked)  { var i = new ListViewItem("  Extra Cheese Toppings");     i.SubItems.Add(""); i.SubItems.Add("0.75"); items.Add(i); }
+            if (checkBox3.Checked)  { var i = new ListViewItem("  Mushroom Toppings");         i.SubItems.Add(""); i.SubItems.Add("0.75"); items.Add(i); }
+            if (checkBox4.Checked)  { var i = new ListViewItem("  Ham Toppings");              i.SubItems.Add(""); i.SubItems.Add("0.75"); items.Add(i); }
+            if (checkBox5.Checked)  { var i = new ListViewItem("  Bacon Toppings");            i.SubItems.Add(""); i.SubItems.Add("0.75"); items.Add(i); }
+            if (checkBox6.Checked)  { var i = new ListViewItem("  Ground Beef Toppings");      i.SubItems.Add(""); i.SubItems.Add("0.75"); items.Add(i); }
+            if (checkBox7.Checked)  { var i = new ListViewItem("  Jalapeno Toppings");         i.SubItems.Add(""); i.SubItems.Add("0.75"); items.Add(i); }
+            if (checkBox8.Checked)  { var i = new ListViewItem("  Pineapple Toppings");        i.SubItems.Add(""); i.SubItems.Add("0.75"); items.Add(i); }
+            if (checkBox9.Checked)  { var i = new ListViewItem("  Dried Shrimps Toppings");    i.SubItems.Add(""); i.SubItems.Add("0.75"); items.Add(i); }
+            if (checkBox10.Checked) { var i = new ListViewItem("  Anchovies Toppings");        i.SubItems.Add(""); i.SubItems.Add("0.75"); items.Add(i); }
+            if (checkBox11.Checked) { var i = new ListViewItem("  Sun Dried Tomatoes Toppings"); i.SubItems.Add(""); i.SubItems.Add("0.75"); items.Add(i); }
+            if (checkBox12.Checked) { var i = new ListViewItem("  Spinach Toppings");          i.SubItems.Add(""); i.SubItems.Add("0.75"); items.Add(i); }
+            if (checkBox13.Checked) { var i = new ListViewItem("  Roasted Garlic Toppings");   i.SubItems.Add(""); i.SubItems.Add("0.75"); items.Add(i); }
+            if (checkBox14.Checked) { var i = new ListViewItem("  Shredded Chicken Toppings"); i.SubItems.Add(""); i.SubItems.Add("0.75"); items.Add(i); }
+
+            return items;
+        }
+
+        // US-31: reset pizza size, crust, toppings, and qty to defaults
+        private void ResetPizzaAndToppings()
+        {
+            radioButton1.Checked = true;
+            radioButton5.Checked = true;
+            numericUpDown1.Value = 1;
+            for (int i = 1; i <= 14; i++)
+            {
+                var cb = this.Controls.Find("checkBox" + i, true);
+                if (cb.Length > 0) ((CheckBox)cb[0]).Checked = false;
+            }
+        }
+
+        // US-31: "Add Pizza to Cart" button handler
+        private void button9_Click(object sender, EventArgs e)
+        {
+            var pizzaItems = BuildCurrentPizzaItems();
+            if (pizzaItems.Count == 0 || pizzaItems[0].SubItems[2].Text == null)
+            {
+                MessageBox.Show("Please select a pizza size and crust before adding to cart.");
+                return;
+            }
+            _stagedPizzas.AddRange(pizzaItems);
+            int qty = (int)numericUpDown1.Value;
+            MessageBox.Show("Pizza added to cart! You can now configure another pizza or click Confirm Order when ready.", "Pizza Added");
+            ResetPizzaAndToppings();
         }
 
 
@@ -42,222 +120,14 @@ namespace WindowsFormsApplication3
             // FIX-03: Clear list before adding to prevent duplicate items on repeated clicks
             listView1.Items.Clear();
 
-            //Pizza Type Selection
+            // US-31: flush all staged pizzas from previous "Add Pizza to Cart" clicks
+            foreach (var staged in _stagedPizzas)
+                listView1.Items.Add(staged);
 
-            if (radioButton1.Checked == true)
-            {
-                if (radioButton5.Checked == true)
-                {
-                    ListViewItem item = new ListViewItem("Normal Crust Small Pizza");
-                    item.SubItems.Add("1");
-                    item.SubItems.Add("4.00");
-                    listView1.Items.Add(item);
-                }
-                else if (radioButton6.Checked == true)
-                {
-                    ListViewItem item = new ListViewItem("Cheesy Crust Small Pizza");
-                    item.SubItems.Add("1");
-                    item.SubItems.Add("4.00");
-                    listView1.Items.Add(item);
-                }
-                else if (radioButton7.Checked == true)
-                {
-                    ListViewItem item = new ListViewItem("Sausage Crust Small Pizza");
-                    item.SubItems.Add("1");
-                    item.SubItems.Add("4.00");
-                    listView1.Items.Add(item);
-                }
-            }
-
-            else if (radioButton2.Checked == true)
-            {
-                if (radioButton5.Checked == true)
-                {
-                    ListViewItem item = new ListViewItem("Normal Crust Medium Pizza");
-                    item.SubItems.Add("1");
-                    item.SubItems.Add("7.00");
-                    listView1.Items.Add(item);
-                }
-                else if (radioButton6.Checked == true)
-                {
-                    ListViewItem item = new ListViewItem("Cheesy Crust Medium Pizza");
-                    item.SubItems.Add("1");
-                    item.SubItems.Add("7.00");
-                    listView1.Items.Add(item);
-                }
-                else if (radioButton7.Checked == true)
-                {
-                    ListViewItem item = new ListViewItem("Sausage Crust Medium Pizza");
-                    item.SubItems.Add("1");
-                    item.SubItems.Add("7.00");
-                    listView1.Items.Add(item);
-                }
-            }
-
-            else if (radioButton3.Checked == true)
-            {
-                if (radioButton5.Checked == true)
-                {
-                    ListViewItem item = new ListViewItem("Normal Crust Large Pizza");
-                    item.SubItems.Add("1");
-                    item.SubItems.Add("10.00");
-                    listView1.Items.Add(item);
-                }
-                else if (radioButton6.Checked == true)
-                {
-                    ListViewItem item = new ListViewItem("Cheesy Crust Large Pizza");
-                    item.SubItems.Add("1");
-                    item.SubItems.Add("10.00");
-                    listView1.Items.Add(item);
-                }
-                else if (radioButton7.Checked == true)
-                {
-                    ListViewItem item = new ListViewItem("Sausage Crust Large Pizza");
-                    item.SubItems.Add("1");
-                    item.SubItems.Add("10.00");
-                    listView1.Items.Add(item);
-                }
-            }
-
-            else if (radioButton4.Checked == true)
-            {
-                if (radioButton5.Checked == true)
-                {
-                    ListViewItem item = new ListViewItem("Normal Crust Extra Large Pizza");
-                    item.SubItems.Add("1");
-                    item.SubItems.Add("13.00");
-                    listView1.Items.Add(item);
-                }
-                else if (radioButton6.Checked == true)
-                {
-                    ListViewItem item = new ListViewItem("Cheesy Crust Extra Large Pizza");
-                    item.SubItems.Add("1");
-                    item.SubItems.Add("13.00");
-                    listView1.Items.Add(item);
-                }
-                else if (radioButton7.Checked == true)
-                {
-                    ListViewItem item = new ListViewItem("Sausage Crust Extra Large Pizza");
-                    item.SubItems.Add("1");
-                    item.SubItems.Add("13.00");
-                    listView1.Items.Add(item);
-                }
-            }
-
-
-            //Pizza Topping Selection
-
-            if (checkBox1.Checked == true)
-            {
-                ListViewItem item = new ListViewItem("  Pepperoni Toppings");
-                item.SubItems.Add("");
-                item.SubItems.Add("0.75");
+            // US-30/31: build the current pizza selection (may be empty if user only staged via button9)
+            var currentPizzaItems = BuildCurrentPizzaItems();
+            foreach (var item in currentPizzaItems)
                 listView1.Items.Add(item);
-            }
-
-            if (checkBox2.Checked == true)
-            {
-                ListViewItem item = new ListViewItem("  Extra Cheese Toppings");
-                item.SubItems.Add("");
-                item.SubItems.Add("0.75");
-                listView1.Items.Add(item);
-            }
-
-            if (checkBox3.Checked == true)
-            {
-                ListViewItem item = new ListViewItem("  Mushroom Toppings");
-                item.SubItems.Add("");
-                item.SubItems.Add("0.75");
-                listView1.Items.Add(item);
-            }
-
-            if (checkBox4.Checked == true)
-            {
-                ListViewItem item = new ListViewItem("  Ham Toppings");
-                item.SubItems.Add("");
-                item.SubItems.Add("0.75");
-                listView1.Items.Add(item);
-            }
-
-            if (checkBox5.Checked == true)
-            {
-                ListViewItem item = new ListViewItem("  Bacon Toppings");
-                item.SubItems.Add("");
-                item.SubItems.Add("0.75");
-                listView1.Items.Add(item);
-            }
-
-            if (checkBox6.Checked == true)
-            {
-                ListViewItem item = new ListViewItem("  Ground Beef Toppings");
-                item.SubItems.Add("");
-                item.SubItems.Add("0.75");
-                listView1.Items.Add(item);
-            }
-
-            if (checkBox7.Checked == true)
-            {
-                ListViewItem item = new ListViewItem("  Jalapeno Toppings");
-                item.SubItems.Add("");
-                item.SubItems.Add("0.75");
-                listView1.Items.Add(item);
-            }
-
-            if (checkBox8.Checked == true)
-            {
-                ListViewItem item = new ListViewItem("  Pineapple Toppings");
-                item.SubItems.Add("");
-                item.SubItems.Add("0.75");
-                listView1.Items.Add(item);
-            }
-
-            if (checkBox9.Checked == true)
-            {
-                ListViewItem item = new ListViewItem("  Dried Shrimps Toppings");
-                item.SubItems.Add("");
-                item.SubItems.Add("0.75");
-                listView1.Items.Add(item);
-            }
-
-            if (checkBox10.Checked == true)
-            {
-                ListViewItem item = new ListViewItem("  Anchovies Toppings");
-                item.SubItems.Add("");
-                item.SubItems.Add("0.75");
-                listView1.Items.Add(item);
-            }
-
-            if (checkBox11.Checked == true)
-            {
-                ListViewItem item = new ListViewItem("  Sun Dried Tomatoes Toppings");
-                item.SubItems.Add("");
-                item.SubItems.Add("0.75");
-                listView1.Items.Add(item);
-            }
-
-            if (checkBox12.Checked == true)
-            {
-                ListViewItem item = new ListViewItem("  Spinach Toppings");
-                item.SubItems.Add("");
-                item.SubItems.Add("0.75");
-                listView1.Items.Add(item);
-            }
-
-            if (checkBox13.Checked == true)
-            {
-                ListViewItem item = new ListViewItem("  Roasted Garlic Toppings");
-                item.SubItems.Add("");
-                item.SubItems.Add("0.75");
-                listView1.Items.Add(item);
-            }
-
-            if (checkBox14.Checked == true)
-            {
-                ListViewItem item = new ListViewItem("  Shredded Chicken Toppings");
-                item.SubItems.Add("");
-                item.SubItems.Add("0.75");
-                listView1.Items.Add(item);
-            }
 
             //Drink Selection
 
@@ -417,7 +287,16 @@ namespace WindowsFormsApplication3
                 listView1.Items.Add(item);
             }
 
-            // FIX-09: Block empty order from proceeding
+            // FIX-09 / US-31: block if no pizza was configured at all (neither staged nor current)
+            bool hasPizza = listView1.Items.Cast<ListViewItem>()
+                .Any(i => i.Text.EndsWith("Pizza"));
+            if (!hasPizza)
+            {
+                MessageBox.Show("Please configure at least one pizza before proceeding.");
+                return;
+            }
+
+            // FIX-09: Block empty order from proceeding (no items at all)
             if (listView1.Items.Count == 0)
             {
                 MessageBox.Show("Please select at least one item before proceeding.");
@@ -464,6 +343,7 @@ namespace WindowsFormsApplication3
         {
             radioButton1.Checked = true;
             radioButton5.Checked = true;
+            numericUpDown1.Value = 1;
             textBox8.Enabled = false;
             textBox9.Enabled = false;
             textBox10.Enabled = false;
@@ -824,6 +704,8 @@ namespace WindowsFormsApplication3
                 // FIX-06: restore default pizza selections and reset payment state
                 radioButton1.Checked = true;
                 radioButton5.Checked = true;
+                numericUpDown1.Value = 1;   // US-30: reset pizza qty
+                _stagedPizzas.Clear();       // US-31: clear any staged pizzas
                 button8.Enabled = false;
                 textBox18.Enabled = false;
                 label15.Text = "*Card No:"; // US-34: reset label after promo card use
