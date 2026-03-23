@@ -540,7 +540,7 @@ As a customer, I want to place another order immediately after confirming, so th
 - [ ] Default pizza size (Small) and crust (Normal) are re-selected
 
 **Notes**
-- Current implementation clears fields manually; default radio button re-selection is not re-applied on reset (minor gap)
+- Reset also restores default radio button selections (Small size, Normal crust), disables the Confirm button, and disables the card number field — fully resolved by FIX-06.
 
 ---
 
@@ -666,7 +666,7 @@ As the system, I want to keep the "Confirm Order" button disabled until payment 
 **Acceptance Criteria**
 - [ ] "Confirm Order" button (button8) is disabled on application load
 - [ ] It remains disabled until "Pay" is clicked and change >= 0
-- [ ] If the customer re-enters a lower amount causing change < 0, the button should not re-enable (current implementation enables it on first valid payment only)
+- [ ] If the customer re-enters a lower amount causing change < 0, the button is disabled again — resolved by FIX-04
 - [ ] Button becomes enabled only after successful payment validation
 
 ---
