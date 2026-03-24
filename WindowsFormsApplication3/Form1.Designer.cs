@@ -191,7 +191,7 @@
             this.label20.Name = "label20";
             this.label20.Size = new System.Drawing.Size(229, 19);
             this.label20.TabIndex = 9;
-            this.label20.Text = "Brought To You By Sourcecodester";
+            this.label20.Text = "Pizza Express — New Zealand";
             // 
             // button5
             // 
@@ -877,7 +877,7 @@
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(45, 26);
             this.label4.TabIndex = 8;
-            this.label4.Text = "HST";
+            this.label4.Text = "GST";
             // 
             // textBox9
             // 
@@ -949,7 +949,7 @@
             // 
             // columnHeader3
             // 
-            this.columnHeader3.Text = "Price CAD";
+            this.columnHeader3.Text = "Price NZD";
             this.columnHeader3.Width = 161;
             // 
             // label2
@@ -1247,7 +1247,7 @@
             this.label9.Name = "label9";
             this.label9.Size = new System.Drawing.Size(73, 19);
             this.label9.TabIndex = 6;
-            this.label9.Text = "Province:";
+            this.label9.Text = "Region:";
             // 
             // textBox13
             // 
@@ -1335,8 +1335,9 @@
             this.Controls.Add(this.pictureBox1);
             this.Controls.Add(this.tabControl1);
             this.ForeColor = System.Drawing.Color.Black;
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
-            this.MaximizeBox = false;
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Sizable;
+            this.MaximizeBox = true;
+            this.MinimumSize = new System.Drawing.Size(784, 732);
             this.Name = "Form1";
             this.Text = "Pizza Express";
             this.Load += new System.EventHandler(this.Form1_Load);
