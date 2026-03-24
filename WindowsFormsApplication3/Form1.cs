@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
@@ -29,66 +29,66 @@ namespace WindowsFormsApplication3
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            radioButton1.Checked = true;
-            radioButton5.Checked = true;
-            numericUpDown1.Value = 1;
+            rbSizeSmall.Checked = true;
+            rbCrustNormal.Checked = true;
+            nudPizzaQty.Value = 1;
 
-            textBox8.Enabled  = false;
-            textBox9.Enabled  = false;
-            textBox10.Enabled = false;
-            textBox19.Enabled = false;
-            textBox21.Enabled = false;
-            textBox18.Enabled = false;
+            txtSubtotal.Enabled  = false;
+            txtTax.Enabled  = false;
+            txtTotalDue.Enabled = false;
+            txtAmountDue.Enabled = false;
+            txtChange.Enabled = false;
+            txtCardOrPromo.Enabled = false;
 
             foreach (string region in AppConfig.NZRegions)
-                comboBox1.Items.Add(region);
+                cboRegion.Items.Add(region);
 
             foreach (string method in AppConfig.PaymentMethods)
-                comboBox2.Items.Add(method);
+                cboPaymentMethod.Items.Add(method);
 
-            button8.Enabled = false;
+            btnSubmitOrder.Enabled = false;
         }
 
         // =====================================================================
         // Tab 1 — Order Selection
         // =====================================================================
 
-        private void button1_Click_1(object sender, EventArgs e)
+        private void btnConfirmOrder_Click(object sender, EventArgs e)
         {
             // Validate drink quantities
             if (!ValidateDrinkQuantities()) return;
 
-            listView1.Items.Clear();
+            lvOrder.Items.Clear();
 
             // Flush staged pizzas
             foreach (var staged in _stagedPizzas)
-                listView1.Items.Add(staged);
+                lvOrder.Items.Add(staged);
 
             // Build current pizza + toppings
             foreach (var item in BuildCurrentPizzaItems())
-                listView1.Items.Add(item);
+                lvOrder.Items.Add(item);
 
             // Add drinks
-            AddDrinkIfChecked(checkBox15, textBox1,  "Coke - Can",        AppConfig.DrinkCanPrice);
-            AddDrinkIfChecked(checkBox16, textBox2,  "Diet Coke - Can",   AppConfig.DrinkCanPrice);
-            AddDrinkIfChecked(checkBox17, textBox3,  "Iced Tea - Can",    AppConfig.DrinkCanPrice);
-            AddDrinkIfChecked(checkBox18, textBox4,  "Ginger Ale - Can",  AppConfig.DrinkCanPrice);
-            AddDrinkIfChecked(checkBox19, textBox5,  "Sprite - Can",      AppConfig.DrinkCanPrice);
-            AddDrinkIfChecked(checkBox20, textBox6,  "Root Beer - Can",   AppConfig.DrinkCanPrice);
-            AddDrinkIfChecked(checkBox21, textBox7,  "Bottled Water",     AppConfig.WaterPrice);
+            AddDrinkIfChecked(cbCoke, txtQtyCoke,  "Coke - Can",        AppConfig.DrinkCanPrice);
+            AddDrinkIfChecked(cbDietCoke, txtQtyDietCoke,  "Diet Coke - Can",   AppConfig.DrinkCanPrice);
+            AddDrinkIfChecked(cbIcedTea, txtQtyIcedTea,  "Iced Tea - Can",    AppConfig.DrinkCanPrice);
+            AddDrinkIfChecked(cbGingerAle, txtQtyGingerAle,  "Ginger Ale - Can",  AppConfig.DrinkCanPrice);
+            AddDrinkIfChecked(cbSprite, txtQtySprite,  "Sprite - Can",      AppConfig.DrinkCanPrice);
+            AddDrinkIfChecked(cbRootBeer, txtQtyRootBeer,  "Root Beer - Can",   AppConfig.DrinkCanPrice);
+            AddDrinkIfChecked(cbWater, txtQtyWater,  "Bottled Water",     AppConfig.WaterPrice);
 
             // Add sides / dips
-            AddSideIfChecked(checkBox22, "Chicken Wings",      AppConfig.SidePrice);
-            AddSideIfChecked(checkBox23, "Poutine",            AppConfig.SidePrice);
-            AddSideIfChecked(checkBox24, "Onion Rings",        AppConfig.SidePrice);
-            AddSideIfChecked(checkBox25, "Cheesy Garlic Bread",AppConfig.SidePrice);
-            AddSideIfChecked(checkBox26, "Garlic Dip",         0m);
-            AddSideIfChecked(checkBox27, "BBQ Dip",            0m);
-            AddSideIfChecked(checkBox28, "Sour Cream Dip",     0m);
+            AddSideIfChecked(cbChickenWings, "Chicken Wings",      AppConfig.SidePrice);
+            AddSideIfChecked(cbPoutine, "Poutine",            AppConfig.SidePrice);
+            AddSideIfChecked(cbOnionRings, "Onion Rings",        AppConfig.SidePrice);
+            AddSideIfChecked(cbCheesyGarlicBread, "Cheesy Garlic Bread",AppConfig.SidePrice);
+            AddSideIfChecked(cbGarlicDip, "Garlic Dip",         0m);
+            AddSideIfChecked(cbBBQDip, "BBQ Dip",            0m);
+            AddSideIfChecked(cbSourCreamDip, "Sour Cream Dip",     0m);
 
             // Validate the assembled order
             var items = new List<OrderItem>();
-            foreach (ListViewItem lvi in listView1.Items)
+            foreach (ListViewItem lvi in lvOrder.Items)
             {
                 decimal price;
                 decimal.TryParse(lvi.SubItems[2].Text, out price);
@@ -100,14 +100,14 @@ namespace WindowsFormsApplication3
             var orderResult = _validator.ValidateOrder(items);
             if (!orderResult.IsValid)
             {
-                listView1.Items.Clear();
+                lvOrder.Items.Clear();
                 MessageBox.Show(orderResult.ErrorMessage);
                 return;
             }
 
             // Compute totals using AppConfig tax rate
             decimal subtotal = 0m;
-            foreach (ListViewItem lvi in listView1.Items)
+            foreach (ListViewItem lvi in lvOrder.Items)
             {
                 decimal p;
                 decimal.TryParse(lvi.SubItems[2].Text, out p);
@@ -117,15 +117,15 @@ namespace WindowsFormsApplication3
             decimal tax      = Math.Round(subtotal * AppConfig.TaxRate, 2);
             decimal totalDue = subtotal + tax;
 
-            textBox8.Text  = subtotal.ToString("C2");
-            textBox9.Text  = tax.ToString("C2");
-            textBox10.Text = totalDue.ToString("C2");
+            txtSubtotal.Text  = subtotal.ToString("C2");
+            txtTax.Text  = tax.ToString("C2");
+            txtTotalDue.Text = totalDue.ToString("C2");
 
             tabControl1.SelectTab("tabPage2");
         }
 
         // ── "Add Pizza to Cart" ───────────────────────────────────────────────
-        private void button9_Click(object sender, EventArgs e)
+        private void btnAddPizzaToCart_Click(object sender, EventArgs e)
         {
             var pizzaItems = BuildCurrentPizzaItems();
             if (pizzaItems.Count == 0)
@@ -144,37 +144,37 @@ namespace WindowsFormsApplication3
         // Tab 2 — Order Review
         // =====================================================================
 
-        private void button2_Click(object sender, EventArgs e)
+        private void btnOrderAgain_Click(object sender, EventArgs e)
         {
-            button8.Enabled = false;
+            btnSubmitOrder.Enabled = false;
             tabControl1.SelectTab("tabPage1");
         }
 
-        private void button3_Click(object sender, EventArgs e)
+        private void btnCheckOut_Click(object sender, EventArgs e)
         {
             tabControl1.SelectTab("tabPage3");
-            textBox19.Text = textBox10.Text;
+            txtAmountDue.Text = txtTotalDue.Text;
         }
 
-        private void button4_Click(object sender, EventArgs e)
+        private void btnClearOrder_Click(object sender, EventArgs e)
         {
-            listView1.Items.Clear();
-            textBox8.Text  = "";
-            textBox9.Text  = "";
-            textBox10.Text = "";
-            button8.Enabled = false;
+            lvOrder.Items.Clear();
+            txtSubtotal.Text  = "";
+            txtTax.Text  = "";
+            txtTotalDue.Text = "";
+            btnSubmitOrder.Enabled = false;
         }
 
         // =====================================================================
         // Tab 3 — Checkout
         // =====================================================================
 
-        private void button6_Click(object sender, EventArgs e)
+        private void btnGoBack_Click(object sender, EventArgs e)
         {
             tabControl1.SelectTab("tabPage2");
         }
 
-        private void button7_Click(object sender, EventArgs e)
+        private void btnPay_Click(object sender, EventArgs e)
         {
             var customer = BuildCustomer();
 
@@ -182,47 +182,47 @@ namespace WindowsFormsApplication3
             var customerResult = _validator.ValidateCustomer(customer);
             if (!customerResult.IsValid) { MessageBox.Show(customerResult.ErrorMessage); return; }
 
-            if (comboBox2.Text == "Promo Card")
+            if (cboPaymentMethod.Text == "Promo Card")
             {
-                string code = textBox18.Text.Trim();
+                string code = txtCardOrPromo.Text.Trim();
                 char[] dollar = { '$' };
-                decimal originalTotal = Convert.ToDecimal(textBox10.Text.TrimStart(dollar));
+                decimal originalTotal = Convert.ToDecimal(txtTotalDue.Text.TrimStart(dollar));
 
                 var promoResult = _promoEngine.Apply(code, originalTotal);
                 if (!promoResult.Success) { MessageBox.Show(promoResult.Message); return; }
 
-                textBox19.Text = promoResult.DiscountedTotal.ToString("C2");
-                textBox20.Text = promoResult.DiscountedTotal.ToString("F2");
-                textBox21.Text = "$0.00";
+                txtAmountDue.Text = promoResult.DiscountedTotal.ToString("C2");
+                txtAmountPaid.Text = promoResult.DiscountedTotal.ToString("F2");
+                txtChange.Text = "$0.00";
                 MessageBox.Show(promoResult.Message, "Promo Applied");
-                button8.Enabled = true;
+                btnSubmitOrder.Enabled = true;
                 return;
             }
 
             // Standard payment flow
-            if (string.IsNullOrWhiteSpace(comboBox2.Text) || string.IsNullOrWhiteSpace(textBox20.Text))
+            if (string.IsNullOrWhiteSpace(cboPaymentMethod.Text) || string.IsNullOrWhiteSpace(txtAmountPaid.Text))
             {
                 MessageBox.Show("Please fill in all required fields.");
                 return;
             }
 
             char[] dollarSign = { '$' };
-            decimal totalDue   = Convert.ToDecimal(textBox19.Text.TrimStart(dollarSign));
+            decimal totalDue   = Convert.ToDecimal(txtAmountDue.Text.TrimStart(dollarSign));
             decimal amountPaid;
-            if (!decimal.TryParse(textBox20.Text, out amountPaid))
+            if (!decimal.TryParse(txtAmountPaid.Text, out amountPaid))
             {
                 MessageBox.Show("Please enter a valid payment amount.");
                 return;
             }
 
-            var payResult = _validator.ValidatePayment(comboBox2.Text, amountPaid, totalDue);
-            if (!payResult.IsValid) { MessageBox.Show(payResult.ErrorMessage); button8.Enabled = false; return; }
+            var payResult = _validator.ValidatePayment(cboPaymentMethod.Text, amountPaid, totalDue);
+            if (!payResult.IsValid) { MessageBox.Show(payResult.ErrorMessage); btnSubmitOrder.Enabled = false; return; }
 
-            textBox21.Text  = (amountPaid - totalDue).ToString("C2");
-            button8.Enabled = true;
+            txtChange.Text  = (amountPaid - totalDue).ToString("C2");
+            btnSubmitOrder.Enabled = true;
         }
 
-        private void button8_Click(object sender, EventArgs e)
+        private void btnSubmitOrder_Click(object sender, EventArgs e)
         {
             // Build the Order object for the receipt service
             var order = BuildOrderForReceipt();
@@ -260,36 +260,36 @@ namespace WindowsFormsApplication3
             }
         }
 
-        private void comboBox2_SelectedIndexChanged(object sender, EventArgs e)
+        private void cboPaymentMethod_SelectedIndexChanged(object sender, EventArgs e)
         {
-            bool isPromo = comboBox2.Text == "Promo Card";
-            bool isCash  = comboBox2.Text == "Cash";
+            bool isPromo = cboPaymentMethod.Text == "Promo Card";
+            bool isCash  = cboPaymentMethod.Text == "Cash";
 
-            textBox18.Enabled = !isCash;
-            label15.Text      = isPromo ? "*Promo Code:" : "*Card No:";
+            txtCardOrPromo.Enabled = !isCash;
+            lblCardOrPromo.Text      = isPromo ? "*Promo Code:" : "*Card No:";
         }
 
         // =====================================================================
         // Drink quantity key-press guards (digits only)
         // =====================================================================
 
-        private void textBox1_KeyPress(object sender, KeyPressEventArgs e)  => AllowDigitsOnly(e);
-        private void textBox2_KeyPress(object sender, KeyPressEventArgs e)  => AllowDigitsOnly(e);
-        private void textBox3_KeyPress(object sender, KeyPressEventArgs e)  => AllowDigitsOnly(e);
-        private void textBox4_KeyPress(object sender, KeyPressEventArgs e)  => AllowDigitsOnly(e);
-        private void textBox5_KeyPress(object sender, KeyPressEventArgs e)  => AllowDigitsOnly(e);
-        private void textBox6_KeyPress(object sender, KeyPressEventArgs e)  => AllowDigitsOnly(e);
-        private void textBox7_KeyPress(object sender, KeyPressEventArgs e)  => AllowDigitsOnly(e);
+        private void txtQtyCoke_KeyPress(object sender, KeyPressEventArgs e)  => AllowDigitsOnly(e);
+        private void txtQtyDietCoke_KeyPress(object sender, KeyPressEventArgs e)  => AllowDigitsOnly(e);
+        private void txtQtyIcedTea_KeyPress(object sender, KeyPressEventArgs e)  => AllowDigitsOnly(e);
+        private void txtQtyGingerAle_KeyPress(object sender, KeyPressEventArgs e)  => AllowDigitsOnly(e);
+        private void txtQtySprite_KeyPress(object sender, KeyPressEventArgs e)  => AllowDigitsOnly(e);
+        private void txtQtyRootBeer_KeyPress(object sender, KeyPressEventArgs e)  => AllowDigitsOnly(e);
+        private void txtQtyWater_KeyPress(object sender, KeyPressEventArgs e)  => AllowDigitsOnly(e);
 
-        private void textBox20_KeyPress(object sender, KeyPressEventArgs e)
+        private void txtAmountPaid_KeyPress(object sender, KeyPressEventArgs e)
         {
-            if (e.KeyChar == '.' && textBox20.Text.Contains(".")) { e.Handled = true; return; }
+            if (e.KeyChar == '.' && txtAmountPaid.Text.Contains(".")) { e.Handled = true; return; }
             if (!char.IsDigit(e.KeyChar) && e.KeyChar != '\b' && e.KeyChar != '.') e.Handled = true;
         }
 
-        private void listView1_SelectedIndexChanged(object sender, EventArgs e) { }
+        private void lvOrder_SelectedIndexChanged(object sender, EventArgs e) { }
 
-        private void button5_Click(object sender, EventArgs e)
+        private void btnExit_Click(object sender, EventArgs e)
         {
             if (MessageBox.Show("Are you sure you want to exit?", "Exit", MessageBoxButtons.YesNo)
                 == DialogResult.Yes)
@@ -309,13 +309,13 @@ namespace WindowsFormsApplication3
         {
             var checks = new (CheckBox cb, TextBox tb, string name)[]
             {
-                (checkBox15, textBox1, "Coke"),
-                (checkBox16, textBox2, "Diet Coke"),
-                (checkBox17, textBox3, "Iced Tea"),
-                (checkBox18, textBox4, "Ginger Ale"),
-                (checkBox19, textBox5, "Sprite"),
-                (checkBox20, textBox6, "Root Beer"),
-                (checkBox21, textBox7, "Bottled Water"),
+                (cbCoke, txtQtyCoke, "Coke"),
+                (cbDietCoke, txtQtyDietCoke, "Diet Coke"),
+                (cbIcedTea, txtQtyIcedTea, "Iced Tea"),
+                (cbGingerAle, txtQtyGingerAle, "Ginger Ale"),
+                (cbSprite, txtQtySprite, "Sprite"),
+                (cbRootBeer, txtQtyRootBeer, "Root Beer"),
+                (cbWater, txtQtyWater, "Bottled Water"),
             };
 
             foreach (var (cb, tb, name) in checks)
@@ -333,19 +333,19 @@ namespace WindowsFormsApplication3
         private List<ListViewItem> BuildCurrentPizzaItems()
         {
             var items = new List<ListViewItem>();
-            int qty   = (int)numericUpDown1.Value;
+            int qty   = (int)nudPizzaQty.Value;
 
             PizzaSize? size  = null;
             CrustType? crust = null;
 
-            if (radioButton1.Checked) size  = PizzaSize.Small;
-            else if (radioButton2.Checked) size = PizzaSize.Medium;
-            else if (radioButton3.Checked) size = PizzaSize.Large;
-            else if (radioButton4.Checked) size = PizzaSize.ExtraLarge;
+            if (rbSizeSmall.Checked) size  = PizzaSize.Small;
+            else if (rbSizeMedium.Checked) size = PizzaSize.Medium;
+            else if (rbSizeLarge.Checked) size = PizzaSize.Large;
+            else if (rbSizeExtraLarge.Checked) size = PizzaSize.ExtraLarge;
 
-            if (radioButton5.Checked) crust  = CrustType.Normal;
-            else if (radioButton6.Checked) crust = CrustType.Cheesy;
-            else if (radioButton7.Checked) crust = CrustType.Sausage;
+            if (rbCrustNormal.Checked) crust  = CrustType.Normal;
+            else if (rbCrustCheesy.Checked) crust = CrustType.Cheesy;
+            else if (rbCrustSausage.Checked) crust = CrustType.Sausage;
 
             if (size.HasValue && crust.HasValue)
             {
@@ -363,20 +363,20 @@ namespace WindowsFormsApplication3
             // Toppings
             var toppingMap = new (CheckBox cb, string name)[]
             {
-                (checkBox1,  "  Pepperoni Toppings"),
-                (checkBox2,  "  Extra Cheese Toppings"),
-                (checkBox3,  "  Mushroom Toppings"),
-                (checkBox4,  "  Ham Toppings"),
-                (checkBox5,  "  Bacon Toppings"),
-                (checkBox6,  "  Ground Beef Toppings"),
-                (checkBox7,  "  Jalapeno Toppings"),
-                (checkBox8,  "  Pineapple Toppings"),
-                (checkBox9,  "  Dried Shrimps Toppings"),
-                (checkBox10, "  Anchovies Toppings"),
-                (checkBox11, "  Sun Dried Tomatoes Toppings"),
-                (checkBox12, "  Spinach Toppings"),
-                (checkBox13, "  Roasted Garlic Toppings"),
-                (checkBox14, "  Shredded Chicken Toppings"),
+                (cbPepperoni,  "  Pepperoni Toppings"),
+                (cbExtraCheese,  "  Extra Cheese Toppings"),
+                (cbMushroom,  "  Mushroom Toppings"),
+                (cbHam,  "  Ham Toppings"),
+                (cbBacon,  "  Bacon Toppings"),
+                (cbGroundBeef,  "  Ground Beef Toppings"),
+                (cbJalapeno,  "  Jalapeno Toppings"),
+                (cbPineapple,  "  Pineapple Toppings"),
+                (cbDriedShrimps,  "  Dried Shrimps Toppings"),
+                (cbAnchovies, "  Anchovies Toppings"),
+                (cbSunDriedTomatoes, "  Sun Dried Tomatoes Toppings"),
+                (cbSpinach, "  Spinach Toppings"),
+                (cbRoastedGarlic, "  Roasted Garlic Toppings"),
+                (cbShreddedChicken, "  Shredded Chicken Toppings"),
             };
 
             foreach (var (cb, name) in toppingMap)
@@ -398,7 +398,7 @@ namespace WindowsFormsApplication3
             var item = new ListViewItem(name);
             item.SubItems.Add(qty.ToString());
             item.SubItems.Add((qty * unitPrice).ToString("F2"));
-            listView1.Items.Add(item);
+            lvOrder.Items.Add(item);
         }
 
         private void AddSideIfChecked(CheckBox cb, string name, decimal price)
@@ -407,19 +407,19 @@ namespace WindowsFormsApplication3
             var item = new ListViewItem(name);
             item.SubItems.Add("");
             item.SubItems.Add(price.ToString("F2"));
-            listView1.Items.Add(item);
+            lvOrder.Items.Add(item);
         }
 
         private Customer BuildCustomer() => new Customer
         {
-            FirstName  = textBox11.Text.Trim(),
-            LastName   = textBox12.Text.Trim(),
-            Address    = textBox13.Text.Trim(),
-            City       = textBox14.Text.Trim(),
-            Region     = comboBox1.Text,
-            PostalCode = textBox15.Text.Trim(),
-            ContactNo  = textBox16.Text.Trim(),
-            Email      = textBox17.Text.Trim(),
+            FirstName  = txtFirstName.Text.Trim(),
+            LastName   = txtLastName.Text.Trim(),
+            Address    = txtAddress.Text.Trim(),
+            City       = txtCity.Text.Trim(),
+            Region     = cboRegion.Text,
+            PostalCode = txtPostalCode.Text.Trim(),
+            ContactNo  = txtContactNo.Text.Trim(),
+            Email      = txtEmail.Text.Trim(),
         };
 
         private Order BuildOrderForReceipt()
@@ -427,14 +427,14 @@ namespace WindowsFormsApplication3
             var order = new Order
             {
                 Customer      = BuildCustomer(),
-                PaymentMethod = comboBox2.Text,
+                PaymentMethod = cboPaymentMethod.Text,
             };
 
             char[] dollar = { '$' };
-            decimal.TryParse(textBox20.Text, out decimal paid);
+            decimal.TryParse(txtAmountPaid.Text, out decimal paid);
             order.AmountPaid = paid;
 
-            foreach (ListViewItem lvi in listView1.Items)
+            foreach (ListViewItem lvi in lvOrder.Items)
             {
                 decimal price;
                 decimal.TryParse(lvi.SubItems[2].Text, out price);
@@ -448,56 +448,71 @@ namespace WindowsFormsApplication3
 
         private void ResetPizzaAndToppings()
         {
-            radioButton1.Checked = true;
-            radioButton5.Checked = true;
-            numericUpDown1.Value = 1;
+            rbSizeSmall.Checked   = true;
+            rbCrustNormal.Checked = true;
+            nudPizzaQty.Value     = 1;
 
-            for (int i = 1; i <= 14; i++)
-            {
-                var found = this.Controls.Find("checkBox" + i, true);
-                if (found.Length > 0) ((CheckBox)found[0]).Checked = false;
-            }
+            // Toppings
+            cbPepperoni.Checked = false;       cbExtraCheese.Checked = false;
+            cbMushroom.Checked  = false;       cbHam.Checked         = false;
+            cbBacon.Checked     = false;       cbGroundBeef.Checked  = false;
+            cbJalapeno.Checked  = false;       cbPineapple.Checked   = false;
+            cbDriedShrimps.Checked = false;    cbAnchovies.Checked   = false;
+            cbSunDriedTomatoes.Checked = false; cbSpinach.Checked    = false;
+            cbRoastedGarlic.Checked = false;   cbShreddedChicken.Checked = false;
         }
 
         private void ResetFullForm()
         {
-            // Toppings, drinks, sides
-            for (int i = 1; i <= 28; i++)
-            {
-                var found = this.Controls.Find("checkBox" + i, true);
-                if (found.Length > 0) ((CheckBox)found[0]).Checked = false;
-            }
+            // Toppings
+            cbPepperoni.Checked = false;       cbExtraCheese.Checked = false;
+            cbMushroom.Checked  = false;       cbHam.Checked         = false;
+            cbBacon.Checked     = false;       cbGroundBeef.Checked  = false;
+            cbJalapeno.Checked  = false;       cbPineapple.Checked   = false;
+            cbDriedShrimps.Checked = false;    cbAnchovies.Checked   = false;
+            cbSunDriedTomatoes.Checked = false; cbSpinach.Checked    = false;
+            cbRoastedGarlic.Checked = false;   cbShreddedChicken.Checked = false;
+
+            // Drinks
+            cbCoke.Checked = false;    cbDietCoke.Checked = false;
+            cbIcedTea.Checked = false; cbGingerAle.Checked = false;
+            cbSprite.Checked = false;  cbRootBeer.Checked = false;
+            cbWater.Checked = false;
+
+            // Sides / dips
+            cbChickenWings.Checked = false;    cbPoutine.Checked = false;
+            cbOnionRings.Checked = false;      cbCheesyGarlicBread.Checked = false;
+            cbGarlicDip.Checked = false;       cbBBQDip.Checked = false;
+            cbSourCreamDip.Checked = false;
 
             // Drink qty boxes
-            for (int i = 1; i <= 7; i++)
-            {
-                var found = this.Controls.Find("textBox" + i, true);
-                if (found.Length > 0) ((TextBox)found[0]).Text = "";
-            }
+            txtQtyCoke.Text = ""; txtQtyDietCoke.Text = ""; txtQtyIcedTea.Text = "";
+            txtQtyGingerAle.Text = ""; txtQtySprite.Text = "";
+            txtQtyRootBeer.Text = ""; txtQtyWater.Text = "";
 
             // Order summary
-            listView1.Items.Clear();
-            textBox8.Text  = "";
-            textBox9.Text  = "";
-            textBox10.Text = "";
+            lvOrder.Items.Clear();
+            txtSubtotal.Text  = "";
+            txtTax.Text  = "";
+            txtTotalDue.Text = "";
 
             // Customer / payment
-            textBox11.Text = ""; textBox12.Text = ""; textBox13.Text = "";
-            textBox14.Text = ""; textBox15.Text = ""; textBox16.Text = "";
-            textBox17.Text = ""; textBox18.Text = ""; textBox19.Text = "";
-            textBox20.Text = ""; textBox21.Text = "";
-            comboBox1.Text = ""; comboBox2.Text = "";
+            txtFirstName.Text = ""; txtLastName.Text = ""; txtAddress.Text = "";
+            txtCity.Text = ""; txtPostalCode.Text = ""; txtContactNo.Text = "";
+            txtEmail.Text = ""; txtCardOrPromo.Text = ""; txtAmountDue.Text = "";
+            txtAmountPaid.Text = ""; txtChange.Text = "";
+            cboRegion.Text = ""; cboPaymentMethod.Text = "";
 
             // Pizza defaults
-            radioButton1.Checked  = true;
-            radioButton5.Checked  = true;
-            numericUpDown1.Value  = 1;
+            rbSizeSmall.Checked  = true;
+            rbCrustNormal.Checked  = true;
+            nudPizzaQty.Value  = 1;
             _stagedPizzas.Clear();
 
             // Payment state
-            button8.Enabled   = false;
-            textBox18.Enabled = false;
-            label15.Text      = "*Card No:";
+            btnSubmitOrder.Enabled   = false;
+            txtCardOrPromo.Enabled = false;
+            lblCardOrPromo.Text      = "*Card No:";
         }
     }
 }

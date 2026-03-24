@@ -22,6 +22,18 @@ packages/
 project.lock.json
 project.fragment.lock.json
 artifacts/
+nuget.exe
+
+# Test results
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+
+# Compiled binaries
+*.exe
+*.dll
+*.pdb
 
 # Rider
 .idea/

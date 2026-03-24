@@ -1,9 +1,11 @@
 # Pizza Ordering System
 
-![Version](https://img.shields.io/badge/version-1.3.0-brightgreen)
+![Build and Test](https://github.com/ARSH871-bot/pizza-ordering-system/actions/workflows/build-and-test.yml/badge.svg)
+![Version](https://img.shields.io/badge/version-2.0.0-brightgreen)
+![Tests](https://img.shields.io/badge/tests-79%20passing-success)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Platform](https://img.shields.io/badge/platform-Windows-lightgrey)
-![Framework](https://img.shields.io/badge/.NET-4.5-purple)
+![Framework](https://img.shields.io/badge/.NET-4.8-purple)
 
 A Windows Forms desktop application built in C# (.NET Framework 4.5) that simulates a pizza restaurant point-of-sale (POS) ordering system for **Pizza Express**.
 
