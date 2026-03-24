@@ -9,6 +9,48 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.1.0] — 2026-03-24
+
+### Added
+
+- **Order History persistence** — every submitted order is automatically saved to `%APPDATA%\PizzaExpress\orders.json` using `System.Web.Script.Serialization.JavaScriptSerializer` (built-in, no extra NuGet packages). Records include a short unique ID, timestamp, customer details, itemised lines, and totals.
+- **Order History viewer** — a new "Order History" button on the Order Review tab opens a resizable dialog listing all past orders (most-recent first) with Date/Time, Customer, Region, Payment, and Total columns. Double-clicking or pressing "View Details" shows the full formatted receipt in a message box.
+- **Inline field validation with visual feedback** — the Postal Code and Contact Number fields now colour their background on `Leave`:
+  - Green (Honeydew) when the value passes validation
+  - Red (MistyRose) when it fails
+  - Background resets to the system default on "Order Again"
+- **`OrderRecord` / `OrderLineRecord` models** — lightweight, serialisable snapshots decoupled from the live `Order` domain model.
+- **`OrderRepository` service** — encapsulates all JSON read/write logic; creates the data directory on first use; gracefully returns an empty list if the file is missing or corrupt.
+- **`OrderHistoryForm`** — fully code-constructed WinForms dialog (no `.Designer.cs`).
+
+---
+
+## [2.0.0] — 2026-03-24
+
+### Added
+
+- Three-layer architecture: domain **Models** (`Order`, `OrderItem`, `Customer`, `PizzaSize`, `CrustType`), **Config** (`AppConfig`), and **Services** (`PromoEngine`, `OrderValidator`, `ReceiptWriter`, `ValidationResult`, `PromoResult`).
+- `AppConfig` as single source of truth for all constants (tax rate, prices, regions, promo codes, payment methods, delivery time).
+- **MSTest unit-test project** (`PizzaExpress.Tests`) — 79 tests covering all service classes and models, 100% passing.
+- **GitHub Actions CI pipeline** (`build-and-test.yml`) — builds on `windows-latest` and runs all 79 tests on every push and pull request to master.
+- **NZ localisation** — GST 15%, 16 NZ regions (Province dropdown), 4-digit NZ postal code validation, "Price NZD" column header, NZD currency formatting throughout.
+- **Resizable window** — `FormBorderStyle.Sizable` + `MaximizeBox = true` with enforced `MinimumSize`.
+- **Descriptive control names** — all 60+ generic control names (`textBox1`, `checkBox1`, `button1`, …) renamed to meaningful identifiers (`txtFirstName`, `cbPepperoni`, `btnConfirmOrder`, …) via a PowerShell word-boundary regex script.
+- **`System.Web.Extensions` assembly reference** for built-in JSON serialisation.
+
+### Changed
+
+- `TargetFrameworkVersion` upgraded from `v4.5` to `v4.8`.
+- Replaced hard-coded magic numbers/strings with `AppConfig` constants across all handlers.
+- Replaced `Controls.Find` loops (broken after rename) with direct typed field references.
+
+### Removed
+
+- Sourcecodester attribution from UI footer.
+- All Canadian localisation (provinces, HST 13%, CAD currency, Canadian postal code format).
+
+---
+
 ## [1.3.0] — 2026-03-23
 
 ### Added

@@ -11,12 +11,17 @@ namespace WindowsFormsApplication3
     public partial class Form1 : Form
     {
         // ── Services (injected via constructor / field initialiser) ───────────
-        private readonly PromoEngine    _promoEngine    = new PromoEngine();
-        private readonly OrderValidator _validator      = new OrderValidator();
-        private readonly ReceiptWriter  _receiptWriter  = new ReceiptWriter();
+        private readonly PromoEngine      _promoEngine    = new PromoEngine();
+        private readonly OrderValidator   _validator      = new OrderValidator();
+        private readonly ReceiptWriter    _receiptWriter  = new ReceiptWriter();
+        private readonly OrderRepository  _repo           = new OrderRepository();
 
         // ── State ─────────────────────────────────────────────────────────────
         private readonly List<ListViewItem> _stagedPizzas = new List<ListViewItem>();
+
+        // Validation colours
+        private static readonly System.Drawing.Color ColourValid   = System.Drawing.Color.Honeydew;
+        private static readonly System.Drawing.Color ColourInvalid = System.Drawing.Color.MistyRose;
 
         public Form1()
         {
@@ -47,6 +52,28 @@ namespace WindowsFormsApplication3
                 cboPaymentMethod.Items.Add(method);
 
             btnSubmitOrder.Enabled = false;
+
+            // ── Inline validation wiring ───────────────────────────────────────
+            txtPostalCode.Leave += txtPostalCode_Leave;
+            txtContactNo.Leave  += txtContactNo_Leave;
+
+            // ── Order History button (programmatic, bottom-right of Tab 2) ────
+            var btnHistory = new System.Windows.Forms.Button
+            {
+                Text     = "Order History",
+                Width    = 110,
+                Height   = 26,
+                Location = new System.Drawing.Point(
+                    btnCheckOut.Left - 120,
+                    btnCheckOut.Top),
+                Parent   = btnCheckOut.Parent,
+            };
+            btnHistory.Click += (s, ev) =>
+            {
+                using (var f = new OrderHistoryForm(_repo))
+                    f.ShowDialog(this);
+            };
+            btnCheckOut.Parent.Controls.Add(btnHistory);
         }
 
         // =====================================================================
@@ -227,6 +254,16 @@ namespace WindowsFormsApplication3
             // Build the Order object for the receipt service
             var order = BuildOrderForReceipt();
 
+            // Persist order to JSON history
+            try
+            {
+                _repo.Save(BuildOrderRecord(order));
+            }
+            catch
+            {
+                // History persistence is non-critical — never block the user
+            }
+
             // Offer to save receipt
             if (MessageBox.Show("Would you like to save a receipt of this order?",
                     "Save Receipt", MessageBoxButtons.YesNo) == DialogResult.Yes)
@@ -288,6 +325,27 @@ namespace WindowsFormsApplication3
         }
 
         private void lvOrder_SelectedIndexChanged(object sender, EventArgs e) { }
+
+        // =====================================================================
+        // Inline field validation (Leave events)
+        // =====================================================================
+
+        private void txtPostalCode_Leave(object sender, EventArgs e)
+        {
+            var result = _validator.ValidatePostalCode(txtPostalCode.Text);
+            txtPostalCode.BackColor = result.IsValid ? ColourValid : ColourInvalid;
+        }
+
+        private void txtContactNo_Leave(object sender, EventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(txtContactNo.Text))
+            {
+                txtContactNo.BackColor = System.Drawing.SystemColors.Window;
+                return;
+            }
+            var result = _validator.ValidateContactNo(txtContactNo.Text);
+            txtContactNo.BackColor = result.IsValid ? ColourValid : ColourInvalid;
+        }
 
         private void btnExit_Click(object sender, EventArgs e)
         {
@@ -422,6 +480,32 @@ namespace WindowsFormsApplication3
             Email      = txtEmail.Text.Trim(),
         };
 
+        private OrderRecord BuildOrderRecord(Order order)
+        {
+            var record = new OrderRecord
+            {
+                Id            = Guid.NewGuid().ToString("N").Substring(0, 8).ToUpper(),
+                OrderDate     = order.OrderDate,
+                CustomerName  = order.Customer.FullName,
+                Address       = order.Customer.Address,
+                City          = order.Customer.City,
+                Region        = order.Customer.Region,
+                PostalCode    = order.Customer.PostalCode,
+                PaymentMethod = order.PaymentMethod,
+                Subtotal      = order.Subtotal,
+                Tax           = order.Tax,
+                Total         = order.Total,
+            };
+            foreach (var item in order.Items)
+                record.Lines.Add(new OrderLineRecord
+                {
+                    Item     = item.Name,
+                    Quantity = item.Quantity,
+                    Price    = item.TotalPrice,
+                });
+            return record;
+        }
+
         private Order BuildOrderForReceipt()
         {
             var order = new Order
@@ -513,6 +597,10 @@ namespace WindowsFormsApplication3
             btnSubmitOrder.Enabled   = false;
             txtCardOrPromo.Enabled = false;
             lblCardOrPromo.Text      = "*Card No:";
+
+            // Reset inline-validation colours
+            txtPostalCode.BackColor = System.Drawing.SystemColors.Window;
+            txtContactNo.BackColor  = System.Drawing.SystemColors.Window;
         }
     }
 }
