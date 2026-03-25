@@ -43,6 +43,9 @@ namespace WindowsFormsApplication3
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            // Show version in title bar
+            this.Text = $"Pizza Express New Zealand  —  v{Application.ProductVersion}";
+
             rbSizeSmall.Checked = true;
             rbCrustNormal.Checked = true;
             nudPizzaQty.Value = 1;
@@ -62,9 +65,22 @@ namespace WindowsFormsApplication3
 
             btnSubmitOrder.Enabled = false;
 
+            // ── Postal code input masking (digits only, max 4 chars) ──────────
+            txtPostalCode.KeyPress += (s, ev) =>
+            {
+                if (!char.IsDigit(ev.KeyChar) && ev.KeyChar != '\b') ev.Handled = true;
+            };
+            txtPostalCode.TextChanged += (s, ev) =>
+            {
+                if (txtPostalCode.Text.Length > 4)
+                    txtPostalCode.Text = txtPostalCode.Text.Substring(0, 4);
+                txtPostalCode.SelectionStart = txtPostalCode.Text.Length;
+            };
+
             // ── Inline validation wiring ───────────────────────────────────────
             txtPostalCode.Leave += txtPostalCode_Leave;
             txtContactNo.Leave  += txtContactNo_Leave;
+            txtEmail.Leave      += txtEmail_Leave;
 
             // ── Status bar ─────────────────────────────────────────────────────
             var statusStrip = new StatusStrip { SizingGrip = false };
@@ -119,6 +135,33 @@ namespace WindowsFormsApplication3
                     f.ShowDialog(this);
             };
             btnCheckOut.Parent.Controls.Add(btnHistory);
+
+            // ── About button (far right, same row as History) ─────────────────
+            var btnAbout = new Button
+            {
+                Text     = "About",
+                Width    = 70,
+                Height   = 26,
+                Location = new Point(btnCheckOut.Right + 8, btnCheckOut.Top),
+                Parent   = btnCheckOut.Parent,
+            };
+            btnAbout.Click += (s, ev) => ShowAboutDialog();
+            btnCheckOut.Parent.Controls.Add(btnAbout);
+        }
+
+        private void ShowAboutDialog()
+        {
+            string msg =
+                $"Pizza Express New Zealand\n" +
+                $"Version {Application.ProductVersion}\n\n" +
+                $"A Windows Forms POS system built in C# (.NET Framework 4.8).\n\n" +
+                $"Architecture: 3-layer (Models / Services / UI)\n" +
+                $"Test suite:   95 unit + integration tests\n" +
+                $"CI/CD:        GitHub Actions\n\n" +
+                $"Data saved to: {Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\PizzaExpress\\";
+
+            MessageBox.Show(msg, "About Pizza Express NZ",
+                MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         // =====================================================================
@@ -469,11 +512,22 @@ namespace WindowsFormsApplication3
         {
             if (string.IsNullOrWhiteSpace(txtContactNo.Text))
             {
-                txtContactNo.BackColor = System.Drawing.SystemColors.Window;
+                txtContactNo.BackColor = SystemColors.Window;
                 return;
             }
             var result = _validator.ValidateContactNo(txtContactNo.Text);
             txtContactNo.BackColor = result.IsValid ? ColourValid : ColourInvalid;
+        }
+
+        private void txtEmail_Leave(object sender, EventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(txtEmail.Text))
+            {
+                txtEmail.BackColor = SystemColors.Window;
+                return;
+            }
+            var result = _validator.ValidateEmail(txtEmail.Text);
+            txtEmail.BackColor = result.IsValid ? ColourValid : ColourInvalid;
         }
 
         private void btnExit_Click(object sender, EventArgs e)
@@ -750,6 +804,7 @@ namespace WindowsFormsApplication3
             // Reset inline-validation colours
             txtPostalCode.BackColor = SystemColors.Window;
             txtContactNo.BackColor  = SystemColors.Window;
+            txtEmail.BackColor      = SystemColors.Window;
 
             // Reset status bar
             UpdateStatusBar();

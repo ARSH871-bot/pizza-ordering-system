@@ -21,6 +21,9 @@ namespace WindowsFormsApplication3.Services
         /// <summary>Validates that a payment method is selected and the amount paid covers the total.</summary>
         ValidationResult ValidatePayment(string paymentMethod, decimal amountPaid, decimal totalDue);
 
+        /// <summary>Validates an optional email address format.</summary>
+        ValidationResult ValidateEmail(string email);
+
         /// <summary>Validates that the order contains at least one pizza item.</summary>
         ValidationResult ValidateOrder(List<OrderItem> items);
     }

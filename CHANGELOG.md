@@ -9,6 +9,22 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.3.0] — 2026-03-25
+
+### Added
+
+- **Email validation** — `IOrderValidator.ValidateEmail()` and `OrderValidator.ValidateEmail()` validate optional email format (`local@domain.tld`). `ValidateCustomer()` now also checks email. Inline green/red feedback on the Email field `Leave` event.
+- **9 new email validation tests** — null, empty, whitespace (all valid/optional), standard address, subdomain address, missing `@`, missing domain, missing TLD, error message content. **Total tests: 95 → 104**.
+- **Postal code input masking** — `txtPostalCode` now accepts digits only (non-digit keys silently blocked) and is capped at 4 characters, making invalid input impossible to type.
+- **Global unhandled exception handler** in `Program.cs` — catches exceptions on both the UI thread (`Application.ThreadException`) and background threads (`AppDomain.UnhandledException`). Writes a timestamped crash log to `%APPDATA%\PizzaExpress\Logs\crash_*.log` and shows a user-friendly error dialog instead of a raw .NET crash box.
+- **Version in title bar** — title now shows `Pizza Express New Zealand — v2.3.0` using `Application.ProductVersion` (reads from `AssemblyFileVersion`).
+- **About dialog** — new "About" button on Tab 2 shows version, architecture summary, test count, CI note, and the local data directory path.
+- **Column header sorting in Order History** — clicking any column header sorts by that column; clicking again toggles ascending/descending. Sort direction indicated by ▲/▼ arrow in the header text.
+- **`AssemblyInfo.cs` updated** — `AssemblyTitle`, `AssemblyProduct`, `AssemblyCompany`, `AssemblyCopyright`, `AssemblyVersion`, and `AssemblyFileVersion` all set to reflect Pizza Express NZ v2.3.0.
+- **`CONTRIBUTING.md` rewritten** — reflects current 104-test suite, interface-first architecture rule, StyleCop/Roslyn zero-warning requirement, and conventional commit format table.
+
+---
+
 ## [2.2.0] — 2026-03-25
 
 ### Added

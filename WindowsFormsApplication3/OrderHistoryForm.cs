@@ -12,13 +12,17 @@ namespace WindowsFormsApplication3
 {
     /// <summary>
     /// Displays all past orders loaded from the JSON store.
-    /// Supports live text search, date range filtering, and CSV export.
+    /// Supports live text search, date range filtering, column sorting, and CSV export.
     /// Built entirely in code — no Designer file.
     /// </summary>
     public class OrderHistoryForm : Form
     {
         private readonly IOrderRepository _repo;
         private List<OrderRecord> _allOrders = new List<OrderRecord>();
+
+        // Sort state
+        private int  _sortColumn    = 0;   // default: Date
+        private bool _sortAscending = false; // default: newest first
 
         // UI controls
         private ListView         _listView;
@@ -117,12 +121,13 @@ namespace WindowsFormsApplication3
                 GridLines     = true,
                 MultiSelect   = false,
             };
-            _listView.Columns.Add("Date / Time",   150);
+            _listView.Columns.Add("Date / Time ▼",  150);
             _listView.Columns.Add("Customer",       170);
             _listView.Columns.Add("Region",         120);
             _listView.Columns.Add("Payment",        110);
             _listView.Columns.Add("Total (NZD)",    100);
-            _listView.DoubleClick += (s, e) => ShowDetails();
+            _listView.DoubleClick      += (s, e) => ShowDetails();
+            _listView.ColumnClick      += ListView_ColumnClick;
 
             // ── Button bar ────────────────────────────────────────────────────
             _btnDetails = new Button { Text = "View Details", Width = 110, Height = 30 };
@@ -150,16 +155,59 @@ namespace WindowsFormsApplication3
             Controls.Add(btnPanel);
         }
 
+        // ── Column-header click sorting ───────────────────────────────────────
+        private void ListView_ColumnClick(object sender, ColumnClickEventArgs e)
+        {
+            if (_sortColumn == e.Column)
+                _sortAscending = !_sortAscending;
+            else
+            {
+                _sortColumn    = e.Column;
+                _sortAscending = true;
+            }
+
+            // Update column header arrows
+            for (int i = 0; i < _listView.Columns.Count; i++)
+            {
+                string baseName = _listView.Columns[i].Text
+                    .Replace(" ▲", string.Empty)
+                    .Replace(" ▼", string.Empty);
+                _listView.Columns[i].Text = i == _sortColumn
+                    ? baseName + (_sortAscending ? " ▲" : " ▼")
+                    : baseName;
+            }
+
+            SortOrders();
+            ApplyFilter();
+        }
+
+        private void SortOrders()
+        {
+            int dir = _sortAscending ? 1 : -1;
+            _allOrders.Sort((a, b) =>
+            {
+                switch (_sortColumn)
+                {
+                    case 0: return dir * a.OrderDate.CompareTo(b.OrderDate);
+                    case 1: return dir * string.Compare(a.CustomerName,  b.CustomerName,  StringComparison.OrdinalIgnoreCase);
+                    case 2: return dir * string.Compare(a.Region,        b.Region,        StringComparison.OrdinalIgnoreCase);
+                    case 3: return dir * string.Compare(a.PaymentMethod, b.PaymentMethod, StringComparison.OrdinalIgnoreCase);
+                    case 4: return dir * a.Total.CompareTo(b.Total);
+                    default: return 0;
+                }
+            });
+        }
+
         // ── Data loading ──────────────────────────────────────────────────────
         private void LoadOrders()
         {
             _allOrders = _repo.LoadAll();
-            _allOrders.Sort((a, b) => b.OrderDate.CompareTo(a.OrderDate));
+            SortOrders();  // apply default sort (newest first)
             ApplyFilter();
         }
 
         // ── Filtering ─────────────────────────────────────────────────────────
-        private void ApplyFilter()
+        private void ApplyFilter() // order already sorted by SortOrders()
         {
             string search = (_txtSearch?.Text ?? string.Empty).Trim().ToLowerInvariant();
             bool   useDate = _chkDateFilter?.Checked ?? false;

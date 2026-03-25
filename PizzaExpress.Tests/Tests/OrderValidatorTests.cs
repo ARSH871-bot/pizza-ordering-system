@@ -145,5 +145,47 @@ namespace PizzaExpress.Tests
             var items = new List<OrderItem> { new OrderItem("Coke - Can", 2, 2.90m) };
             Assert.IsFalse(_validator.ValidateOrder(items).IsValid);
         }
+
+        // ── Email ─────────────────────────────────────────────────────────────
+
+        [TestMethod]
+        public void Email_Null_IsOk()
+            => Assert.IsTrue(_validator.ValidateEmail(null).IsValid);
+
+        [TestMethod]
+        public void Email_Empty_IsOk()
+            => Assert.IsTrue(_validator.ValidateEmail(string.Empty).IsValid);
+
+        [TestMethod]
+        public void Email_WhitespaceOnly_IsOk()
+            => Assert.IsTrue(_validator.ValidateEmail("   ").IsValid);
+
+        [TestMethod]
+        public void Email_ValidAddress_IsOk()
+            => Assert.IsTrue(_validator.ValidateEmail("customer@example.com").IsValid);
+
+        [TestMethod]
+        public void Email_ValidAddressWithSubdomain_IsOk()
+            => Assert.IsTrue(_validator.ValidateEmail("user@mail.co.nz").IsValid);
+
+        [TestMethod]
+        public void Email_MissingAtSymbol_Fails()
+            => Assert.IsFalse(_validator.ValidateEmail("notanemail.com").IsValid);
+
+        [TestMethod]
+        public void Email_MissingDomain_Fails()
+            => Assert.IsFalse(_validator.ValidateEmail("user@").IsValid);
+
+        [TestMethod]
+        public void Email_MissingTld_Fails()
+            => Assert.IsFalse(_validator.ValidateEmail("user@domain").IsValid);
+
+        [TestMethod]
+        public void Email_Invalid_ReturnsHelpfulMessage()
+        {
+            var result = _validator.ValidateEmail("bademail");
+            Assert.IsFalse(result.IsValid);
+            Assert.IsTrue(result.ErrorMessage.Contains("email"));
+        }
     }
 }

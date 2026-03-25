@@ -1,132 +1,53 @@
-# Contributing to Pizza Ordering System
+# Contributing to Pizza Express NZ
 
-Thank you for your interest in contributing. This document explains how to get started, what conventions to follow, and how to submit changes.
-
----
-
-## Table of Contents
-
-1. [Getting Started](#getting-started)
-2. [Development Setup](#development-setup)
-3. [Branching Strategy](#branching-strategy)
-4. [Commit Message Convention](#commit-message-convention)
-5. [Submitting a Pull Request](#submitting-a-pull-request)
-6. [Reporting Bugs](#reporting-bugs)
-7. [Requesting Features](#requesting-features)
-8. [Code Style](#code-style)
+Thank you for your interest in contributing!
 
 ---
 
-## Getting Started
+## Workflow
 
-1. **Fork** the repository on GitHub
-2. **Clone** your fork locally:
-   ```bash
-   git clone https://github.com/YOUR-USERNAME/pizza-ordering-system.git
+1. **Fork** the repository and create a branch from `master`.
+2. Name your branch: `feature/short-description` or `fix/short-description`.
+3. Make your changes, keeping each commit focused and atomic.
+4. **Run the tests** before pushing — all 95 tests must pass:
+   ```powershell
+   msbuild WindowsFormsApplication3.sln /p:Configuration=Debug
+   vstest.console.exe PizzaExpress.Tests\bin\Debug\PizzaExpress.Tests.dll
    ```
-3. Open `WindowsFormsApplication3.sln` in Visual Studio 2015 or later
-4. Build the solution (`Ctrl+Shift+B`) to verify everything compiles
+5. **Update `CHANGELOG.md`** under `[Unreleased]` with a brief description of the change.
+6. Open a Pull Request using the provided template. CI (GitHub Actions) must be green before merge.
 
 ---
 
-## Development Setup
+## Code Standards
 
-| Requirement | Version |
-|---|---|
-| Visual Studio | 2015 or later |
-| .NET Framework | 4.5 |
-| OS | Windows |
-
-No external packages or NuGet dependencies are required.
+- **No magic strings or numbers** — use `AppConfig` constants.
+- **New service methods** must have a corresponding interface method in `Services/I*.cs`.
+- **Business logic** belongs in `Services/` — never in `Form1.cs`.
+- **New public methods** must have an XML `<summary>` doc comment.
+- **Zero new build warnings** — Roslyn NetAnalyzers and StyleCop are active on both projects.
 
 ---
 
-## Branching Strategy
-
-| Branch | Purpose |
-|---|---|
-| `master` | Stable, release-ready code |
-| `feature/US-XX-short-description` | New user story or feature |
-| `fix/short-description` | Bug fix |
-| `docs/short-description` | Documentation changes only |
-
-Always branch off `master` and target `master` in your pull request.
-
-```bash
-git checkout master
-git pull origin master
-git checkout -b feature/US-30-your-feature-name
-```
-
----
-
-## Commit Message Convention
-
-Follow this format:
+## Commit Messages
 
 ```
-type: short description (max 72 chars)
-
-Optional longer explanation if needed.
+type: short imperative description
 ```
 
 | Type | When to use |
 |---|---|
-| `feat` | A new feature or user story |
-| `fix` | A bug fix |
-| `docs` | Documentation only changes |
-| `refactor` | Code change that neither fixes a bug nor adds a feature |
-| `chore` | Build process, config, or tooling changes |
-
-**Examples:**
-```
-feat: add order history screen (US-30)
-fix: prevent crash when no payment method selected
-docs: update README with screenshot
-```
+| `feat` | New feature |
+| `fix` | Bug fix |
+| `refactor` | Code restructure, no behaviour change |
+| `test` | Adding or fixing tests |
+| `docs` | Documentation only |
+| `ci` | CI/CD pipeline changes |
 
 ---
 
-## Submitting a Pull Request
+## Reporting Issues
 
-1. Push your branch to your fork:
-   ```bash
-   git push origin feature/US-XX-your-feature
-   ```
-2. Open a Pull Request against `master` on the main repository
-3. Fill in the PR template completely
-4. Link the relevant GitHub Issue in the PR description (e.g. `Closes #30`)
-5. Ensure the project builds successfully before submitting
-6. Wait for review — do not merge your own PR
-
----
-
-## Reporting Bugs
-
-Open a GitHub Issue using the **Bug Report** template. Include:
-
-- Steps to reproduce the bug exactly
-- What you expected to happen
-- What actually happened
-- Your Visual Studio and Windows version
-
----
-
-## Requesting Features
-
-Open a GitHub Issue using the **Feature Request** template. Include:
-
-- A clear description of the feature
-- The problem it solves or the user story it satisfies
-- Any mockups or examples if applicable
-
----
-
-## Code Style
-
-- Follow existing C# naming and formatting conventions already in the codebase
-- Use `int.TryParse` instead of `Convert.ToInt32` for any user input parsing
-- Use `.ToString("F2")` for monetary values stored in list columns
-- Use `.ToString("c2")` for monetary values displayed to the user
-- Do not commit build artifacts (`bin/`, `obj/`, `.vs/`) — they are in `.gitignore`
-- Keep event handlers small; extract logic into named methods if a handler exceeds ~20 lines
+Use the GitHub Issue Templates in `.github/ISSUE_TEMPLATE/`:
+- **Bug Report** — steps to reproduce, expected vs actual behaviour, environment details
+- **Feature Request** — problem statement and acceptance criteria

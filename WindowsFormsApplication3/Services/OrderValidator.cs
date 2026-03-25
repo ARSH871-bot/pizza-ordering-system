@@ -30,6 +30,18 @@ namespace WindowsFormsApplication3.Services
             return ValidationResult.Ok();
         }
 
+        public ValidationResult ValidateEmail(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return ValidationResult.Ok();   // optional field
+
+            // Basic RFC-5322-inspired check: local@domain.tld
+            if (!Regex.IsMatch(email.Trim(), @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+                return ValidationResult.Fail("Please enter a valid email address (e.g. name@example.com).");
+
+            return ValidationResult.Ok();
+        }
+
         // ── Aggregate validators ─────────────────────────────────────────────
 
         public ValidationResult ValidateCustomer(Customer customer)
@@ -43,10 +55,13 @@ namespace WindowsFormsApplication3.Services
             if (string.IsNullOrWhiteSpace(customer.PostalCode))
                 return ValidationResult.Fail("Postal Code is required.");
 
-            var postalResult  = ValidatePostalCode(customer.PostalCode);
+            var postalResult = ValidatePostalCode(customer.PostalCode);
             if (!postalResult.IsValid) return postalResult;
 
-            return ValidateContactNo(customer.ContactNo);
+            var contactResult = ValidateContactNo(customer.ContactNo);
+            if (!contactResult.IsValid) return contactResult;
+
+            return ValidateEmail(customer.Email);
         }
 
         public ValidationResult ValidatePayment(string paymentMethod, decimal amountPaid, decimal totalDue)
