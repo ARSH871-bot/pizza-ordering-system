@@ -8,7 +8,7 @@ on:
 
 jobs:
   build-and-test:
-    name: Build & Run 95 Unit Tests
+    name: Build & Run Tests with Coverage
     runs-on: windows-latest
 
     steps:
@@ -31,13 +31,24 @@ jobs:
             /nologo `
             /verbosity:minimal
 
-      - name: Run unit tests with coverage
+      - name: Run tests with Coverlet coverage
         run: |
-          vstest.console.exe `
+          $vstest = "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe"
+          if (-not (Test-Path $vstest)) {
+            $vstest = (Get-ChildItem "C:\Program Files\Microsoft Visual Studio" -Recurse -Filter "vstest.console.exe" -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty FullName)
+          }
+          & $vstest `
             "PizzaOrderingSystemC#/PizzaExpress.Tests/bin/Debug/PizzaExpress.Tests.dll" `
-            /EnableCodeCoverage `
-            /collect:"Code Coverage" `
+            /collect:"XPlat Code Coverage" `
+            /settings:"PizzaOrderingSystemC#/coverlet.runsettings" `
             /logger:trx
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: "**/coverage.opencover.xml"
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Upload test results
         if: always()
@@ -51,4 +62,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
-          path: "**/*.coverage"
+          path: "**/coverage.opencover.xml"

@@ -1,8 +1,9 @@
 # Pizza Express — New Zealand
 
 [![Build and Test](https://github.com/ARSH871-bot/pizza-ordering-system/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/ARSH871-bot/pizza-ordering-system/actions/workflows/build-and-test.yml)
-![Version](https://img.shields.io/badge/version-2.3.0-brightgreen)
-![Tests](https://img.shields.io/badge/tests-104%20passing-success)
+![Version](https://img.shields.io/badge/version-2.4.0-brightgreen)
+![Tests](https://img.shields.io/badge/tests-123%20passing-success)
+[![codecov](https://codecov.io/gh/ARSH871-bot/pizza-ordering-system/branch/master/graph/badge.svg)](https://codecov.io/gh/ARSH871-bot/pizza-ordering-system)
 ![Coverage](https://img.shields.io/badge/coverage-%3E80%25-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Platform](https://img.shields.io/badge/platform-Windows-lightgrey)
@@ -140,6 +141,7 @@ See [CHANGELOG.md](CHANGELOG.md) for full release history.
 
 | Version | Highlights |
 |---|---|
+| **v2.4.0** | CartService · live running total · input limits · accessibility · NDJSON append-only · ILogger/FileLogger · Codecov · 123 tests |
 | **v2.3.0** | Email validation · postal code masking · column sorting in history · crash logger · version in title bar · About dialog · 104 tests |
 | **v2.2.0** | Service interfaces · Roslyn/StyleCop analyzers · NSubstitute mocks · 95 tests · Coverlet coverage · Dependabot |
 | **v2.0.0** | Full architecture rewrite — Models / Services / AppConfig · 79 unit tests · GitHub Actions CI |

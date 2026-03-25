@@ -55,11 +55,15 @@
     <!-- Config -->
     <Compile Include="Config\AppConfig.cs" />
     <!-- Services — interfaces -->
+    <Compile Include="Services\ICartService.cs" />
+    <Compile Include="Services\ILogger.cs" />
     <Compile Include="Services\IOrderRepository.cs" />
     <Compile Include="Services\IOrderValidator.cs" />
     <Compile Include="Services\IPromoEngine.cs" />
     <Compile Include="Services\IReceiptWriter.cs" />
     <!-- Services — implementations -->
+    <Compile Include="Services\CartService.cs" />
+    <Compile Include="Services\FileLogger.cs" />
     <Compile Include="Services\OrderRepository.cs" />
     <Compile Include="Services\OrderValidator.cs" />
     <Compile Include="Services\PromoEngine.cs" />

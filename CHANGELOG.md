@@ -9,6 +9,32 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.4.0] — 2026-03-25
+
+### Added
+
+- **`ICartService` + `CartService`** — pizza-building and price-calculation logic extracted from `Form1.cs` into a dedicated, WinForms-free service. `Form1` now calls `_cart.BuildPizzaItems()` and `_cart.CalculateTotal()` instead of duplicating math inline. Fully unit-testable.
+- **19 `CartServiceTests`** — cover `BuildPizzaItems` (all sizes, crust types, qty scaling, topping names, empty/null toppings, zero-qty guard), `CalculateSubtotal` (empty, null, multi-item), `CalculateTax` (zero, standard, rounding), `CalculateTotal`. **Total tests: 104 → 123**.
+- **Live running total in status bar** — right side of the status bar updates in real time as the user selects pizza size, crust, quantity, toppings, drinks, and sides on Tab 1. Shows `Live total (incl. GST): $XX.XX`. Updates instantly on every checkbox/radio/NumericUpDown change.
+- **Input length limits** — `MaxLength` set on every `TextBox`: FirstName/LastName 50, Address 100, City 60, PostalCode 4, ContactNo 15, Email 100, CardOrPromo 30, AmountPaid 12.
+- **Accessibility labels** — `AccessibleName` set on 22 interactive controls (text fields, combo boxes, buttons, ListView). Screen readers now announce meaningful names instead of generic "Button" or "TextBox".
+- **`ILogger` interface** — minimal `Info` / `Warn` / `Error(message, ex)` contract; services and UI receive it via field injection.
+- **`FileLogger` implementation** — appends timestamped entries to a daily-rotating file at `%APPDATA%\PizzaExpress\Logs\app_yyyy-MM-dd.log`. Thread-safe. Never throws (all I/O errors swallowed internally).
+- **Structured app logging** — three key events logged: application start (with version), order saved (with ID, customer, total, method), promo applied (with code and discounted amount). Errors during history persistence logged at ERROR level with exception details.
+- **Append-only NDJSON store** — `OrderRepository` switched from full-array JSON (read-whole-file-on-every-save) to Newline-Delimited JSON (one line per order). `Save()` is now O(1) regardless of history size; `LoadAll()` reads line-by-line and silently skips corrupted lines.
+- **Automatic legacy migration** — if `orders.json` (old format) exists but `orders.ndjson` does not, all records are imported on first load and the old file is renamed `orders.json.migrated`. Zero user action required.
+- **2 new `OrderRepositoryTests`** — corrupted-line-is-skipped test and legacy migration test. Total repository tests: 7 → 9.
+- **Coverlet `coverlet.runsettings`** — configures OpenCover format output, excludes test assembly and auto-generated files (`Form1.Designer.cs`, `Program.cs`, `AssemblyInfo.cs`).
+- **CI: Coverlet + Codecov** — `build-and-test.yml` now collects `XPlat Code Coverage` using `coverlet.runsettings`, uploads the `coverage.opencover.xml` report to Codecov, and uploads it as a build artifact. Codecov badge added to README.
+- **Setup note:** add `CODECOV_TOKEN` as a GitHub Actions secret (Settings → Secrets → New repository secret) from [codecov.io](https://codecov.io) to enable the live coverage badge.
+
+### Changed
+
+- `OrderRepository` data file: `orders.json` → `orders.ndjson` (with automatic one-time migration from old format).
+- `Form1.BuildCurrentPizzaItems()` now delegates to `CartService.BuildPizzaItems()` — no duplicate price logic in UI.
+
+---
+
 ## [2.3.0] — 2026-03-25
 
 ### Added

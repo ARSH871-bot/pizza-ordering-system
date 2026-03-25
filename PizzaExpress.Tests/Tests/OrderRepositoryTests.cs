@@ -108,7 +108,7 @@ namespace PizzaExpress.Tests.Tests
         [TestMethod]
         public void LoadAll_WhenFileIsCorrupted_ReturnsEmptyList()
         {
-            File.WriteAllText(Path.Combine(_tempDir, "orders.json"), "{ not valid json [[[");
+            File.WriteAllText(Path.Combine(_tempDir, "orders.ndjson"), "{ not valid json [[[");
 
             var repo   = MakeRepo();
             var result = repo.LoadAll();
@@ -132,6 +132,44 @@ namespace PizzaExpress.Tests.Tests
         public void Save_NullRecord_ThrowsArgumentNullException()
         {
             MakeRepo().Save(null);
+        }
+
+        [TestMethod]
+        public void LoadAll_CorruptedLineSkipped_ValidLinesReturned()
+        {
+            // Write one valid line, one garbage line, another valid line
+            string validLine = "{\"Id\":\"AAA\",\"CustomerName\":\"Alice\",\"OrderDate\":\"\\/Date(0)\\/\",\"Lines\":[]}";
+            File.WriteAllText(Path.Combine(_tempDir, "orders.ndjson"),
+                validLine + "\n" +
+                "{ GARBAGE }\n" +
+                validLine.Replace("AAA", "BBB") + "\n");
+
+            var result = MakeRepo().LoadAll();
+            Assert.AreEqual(2, result.Count);
+        }
+
+        [TestMethod]
+        public void LoadAll_MigratesLegacyJsonArray()
+        {
+            // Write old full-array format to orders.json
+            var repo   = MakeRepo();
+            var record = MakeRecord("LegacyUser");
+
+            // Simulate legacy file directly
+            string legacyJson = "[{\"Id\":\"LEG001\",\"CustomerName\":\"LegacyUser\"," +
+                                "\"OrderDate\":\"\\/Date(0)\\/\",\"Lines\":[]}]";
+            File.WriteAllText(Path.Combine(_tempDir, "orders.json"), legacyJson);
+
+            var result = repo.LoadAll();
+
+            Assert.AreEqual(1, result.Count);
+            Assert.AreEqual("LegacyUser", result[0].CustomerName);
+
+            // Old file should be renamed
+            Assert.IsTrue(File.Exists(Path.Combine(_tempDir, "orders.json.migrated")));
+
+            // New NDJSON file should exist
+            Assert.IsTrue(File.Exists(Path.Combine(_tempDir, "orders.ndjson")));
         }
 
         // ── Helper ────────────────────────────────────────────────────────────

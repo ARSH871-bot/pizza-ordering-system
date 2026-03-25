@@ -78,6 +78,7 @@
     <Compile Include="Tests\OrderValidatorTests.cs" />
     <Compile Include="Tests\ReceiptWriterTests.cs" />
     <Compile Include="Tests\AppConfigTests.cs" />
+    <Compile Include="Tests\CartServiceTests.cs" />
     <Compile Include="Tests\OrderRepositoryTests.cs" />
     <Compile Include="Tests\ServiceInterfaceTests.cs" />
   </ItemGroup>

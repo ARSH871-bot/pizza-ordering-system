@@ -14,6 +14,8 @@ namespace WindowsFormsApplication3
     public partial class Form1 : Form
     {
         // ── Services ─────────────────────────────────────────────────────────
+        private readonly ILogger          _logger         = new FileLogger();
+        private readonly ICartService     _cart           = new CartService();
         private readonly IPromoEngine     _promoEngine    = new PromoEngine();
         private readonly IOrderValidator  _validator      = new OrderValidator();
         private readonly IReceiptWriter   _receiptWriter  = new ReceiptWriter();
@@ -29,6 +31,7 @@ namespace WindowsFormsApplication3
 
         // UI components added programmatically
         private ToolStripStatusLabel _statusLabel;
+        private ToolStripStatusLabel _liveTotalLabel;
         private ContextMenuStrip     _lvContextMenu;
         private ToolTip              _toolTip;
 
@@ -45,6 +48,7 @@ namespace WindowsFormsApplication3
         {
             // Show version in title bar
             this.Text = $"Pizza Express New Zealand  —  v{Application.ProductVersion}";
+            _logger.Info($"Application started  v{Application.ProductVersion}");
 
             rbSizeSmall.Checked = true;
             rbCrustNormal.Checked = true;
@@ -64,6 +68,44 @@ namespace WindowsFormsApplication3
                 cboPaymentMethod.Items.Add(method);
 
             btnSubmitOrder.Enabled = false;
+
+            // ── Input length limits (security + data quality) ─────────────────
+            txtFirstName.MaxLength  = 50;
+            txtLastName.MaxLength   = 50;
+            txtAddress.MaxLength    = 100;
+            txtCity.MaxLength       = 60;
+            txtPostalCode.MaxLength = 4;
+            txtContactNo.MaxLength  = 15;
+            txtEmail.MaxLength      = 100;
+            txtCardOrPromo.MaxLength = 30;
+            txtAmountPaid.MaxLength  = 12;
+
+            // ── Accessibility labels ───────────────────────────────────────────
+            txtFirstName.AccessibleName  = "First Name";
+            txtLastName.AccessibleName   = "Last Name";
+            txtAddress.AccessibleName    = "Delivery Address";
+            txtCity.AccessibleName       = "City";
+            cboRegion.AccessibleName     = "Region";
+            txtPostalCode.AccessibleName = "Postal Code, 4 digits";
+            txtContactNo.AccessibleName  = "Contact Number, optional";
+            txtEmail.AccessibleName      = "Email Address, optional";
+            cboPaymentMethod.AccessibleName = "Payment Method";
+            txtCardOrPromo.AccessibleName   = "Card Number or Promo Code";
+            txtAmountPaid.AccessibleName    = "Amount Paid";
+            txtAmountDue.AccessibleName     = "Amount Due";
+            txtChange.AccessibleName        = "Change";
+            txtSubtotal.AccessibleName      = "Subtotal";
+            txtTax.AccessibleName           = "GST Amount";
+            txtTotalDue.AccessibleName      = "Total Due";
+            nudPizzaQty.AccessibleName      = "Pizza Quantity, 1 to 20";
+            btnConfirmOrder.AccessibleName   = "Confirm Order, Alt C";
+            btnCheckOut.AccessibleName       = "Proceed to Checkout, Alt P";
+            btnGoBack.AccessibleName         = "Go Back, Escape";
+            btnSubmitOrder.AccessibleName    = "Submit and Pay";
+            btnPay.AccessibleName            = "Validate Payment";
+            btnClearOrder.AccessibleName     = "Clear Order";
+            btnAddPizzaToCart.AccessibleName = "Add Pizza to Cart";
+            lvOrder.AccessibleName           = "Order Items. Right-click to remove.";
 
             // ── Postal code input masking (digits only, max 4 chars) ──────────
             txtPostalCode.KeyPress += (s, ev) =>
@@ -90,8 +132,55 @@ namespace WindowsFormsApplication3
                 TextAlign = System.Drawing.ContentAlignment.MiddleLeft,
                 Spring    = true,
             };
+            _liveTotalLabel = new ToolStripStatusLabel
+            {
+                Text      = "Current pizza: $0.00",
+                TextAlign = System.Drawing.ContentAlignment.MiddleRight,
+                ForeColor = Color.DarkGreen,
+                Font      = new Font("Segoe UI", 9f, System.Drawing.FontStyle.Bold),
+            };
             statusStrip.Items.Add(_statusLabel);
+            statusStrip.Items.Add(new ToolStripSeparator());
+            statusStrip.Items.Add(_liveTotalLabel);
             this.Controls.Add(statusStrip);
+
+            // ── Live total: wire all Tab 1 controls ───────────────────────────
+            EventHandler liveUpdate = (s, ev) => RecalculateLiveTotal();
+            KeyEventHandler liveUpdateKey = (s, ev) => RecalculateLiveTotal();
+
+            // Size + crust radio buttons
+            rbSizeSmall.CheckedChanged      += liveUpdate; rbSizeMedium.CheckedChanged   += liveUpdate;
+            rbSizeLarge.CheckedChanged      += liveUpdate; rbSizeExtraLarge.CheckedChanged += liveUpdate;
+            rbCrustNormal.CheckedChanged    += liveUpdate; rbCrustCheesy.CheckedChanged  += liveUpdate;
+            rbCrustSausage.CheckedChanged   += liveUpdate;
+            nudPizzaQty.ValueChanged        += liveUpdate;
+
+            // Toppings
+            cbPepperoni.CheckedChanged      += liveUpdate; cbExtraCheese.CheckedChanged   += liveUpdate;
+            cbMushroom.CheckedChanged       += liveUpdate; cbHam.CheckedChanged           += liveUpdate;
+            cbBacon.CheckedChanged          += liveUpdate; cbGroundBeef.CheckedChanged    += liveUpdate;
+            cbJalapeno.CheckedChanged       += liveUpdate; cbPineapple.CheckedChanged     += liveUpdate;
+            cbDriedShrimps.CheckedChanged   += liveUpdate; cbAnchovies.CheckedChanged     += liveUpdate;
+            cbSunDriedTomatoes.CheckedChanged += liveUpdate; cbSpinach.CheckedChanged     += liveUpdate;
+            cbRoastedGarlic.CheckedChanged  += liveUpdate; cbShreddedChicken.CheckedChanged += liveUpdate;
+
+            // Drinks
+            cbCoke.CheckedChanged     += liveUpdate; cbDietCoke.CheckedChanged  += liveUpdate;
+            cbIcedTea.CheckedChanged  += liveUpdate; cbGingerAle.CheckedChanged += liveUpdate;
+            cbSprite.CheckedChanged   += liveUpdate; cbRootBeer.CheckedChanged  += liveUpdate;
+            cbWater.CheckedChanged    += liveUpdate;
+            txtQtyCoke.TextChanged    += liveUpdate; txtQtyDietCoke.TextChanged  += liveUpdate;
+            txtQtyIcedTea.TextChanged += liveUpdate; txtQtyGingerAle.TextChanged += liveUpdate;
+            txtQtySprite.TextChanged  += liveUpdate; txtQtyRootBeer.TextChanged  += liveUpdate;
+            txtQtyWater.TextChanged   += liveUpdate;
+
+            // Sides / dips
+            cbChickenWings.CheckedChanged   += liveUpdate; cbPoutine.CheckedChanged      += liveUpdate;
+            cbOnionRings.CheckedChanged     += liveUpdate; cbCheesyGarlicBread.CheckedChanged += liveUpdate;
+            cbGarlicDip.CheckedChanged      += liveUpdate; cbBBQDip.CheckedChanged       += liveUpdate;
+            cbSourCreamDip.CheckedChanged   += liveUpdate;
+
+            RecalculateLiveTotal();
 
             // ── ListView right-click: Remove selected item ─────────────────────
             _lvContextMenu = new ContextMenuStrip();
@@ -286,6 +375,7 @@ namespace WindowsFormsApplication3
                 "Pizza added to cart! Configure another pizza or click Confirm Order when ready.",
                 "Pizza Added");
             ResetPizzaAndToppings();
+            RecalculateLiveTotal();
         }
 
         // =====================================================================
@@ -351,6 +441,7 @@ namespace WindowsFormsApplication3
                 txtAmountDue.Text = promoResult.DiscountedTotal.ToString("C2");
                 txtAmountPaid.Text = promoResult.DiscountedTotal.ToString("F2");
                 txtChange.Text = "$0.00";
+                _logger.Info($"Promo applied  code={code}  discount={promoResult.DiscountedTotal:C2}");
                 MessageBox.Show(promoResult.Message, "Promo Applied");
                 btnSubmitOrder.Enabled = true;
                 return;
@@ -388,10 +479,14 @@ namespace WindowsFormsApplication3
             // Persist order to JSON history
             try
             {
-                _repo.Save(BuildOrderRecord(order));
+                var record = BuildOrderRecord(order);
+                _repo.Save(record);
+                _logger.Info($"Order saved  id={record.Id}  customer={order.Customer.FullName}" +
+                             $"  total={order.Total:C2}  method={order.PaymentMethod}");
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.Error("Failed to persist order to history", ex);
                 // History persistence is non-critical — never block the user
             }
 
@@ -541,6 +636,65 @@ namespace WindowsFormsApplication3
         // Private helpers
         // =====================================================================
 
+        private void RecalculateLiveTotal()
+        {
+            if (_liveTotalLabel == null) return;
+
+            decimal running = 0m;
+
+            // Staged pizzas already confirmed
+            foreach (var staged in _stagedPizzas)
+            {
+                decimal p;
+                decimal.TryParse(staged.SubItems[2].Text, out p);
+                running += p;
+            }
+
+            // Current pizza configuration
+            PizzaSize? size  = null;
+            CrustType? crust = null;
+            if (rbSizeSmall.Checked)      size  = PizzaSize.Small;
+            else if (rbSizeMedium.Checked)     size  = PizzaSize.Medium;
+            else if (rbSizeLarge.Checked)      size  = PizzaSize.Large;
+            else if (rbSizeExtraLarge.Checked) size  = PizzaSize.ExtraLarge;
+            if (rbCrustNormal.Checked)    crust = CrustType.Normal;
+            else if (rbCrustCheesy.Checked)    crust = CrustType.Cheesy;
+            else if (rbCrustSausage.Checked)   crust = CrustType.Sausage;
+
+            if (size.HasValue && crust.HasValue)
+            {
+                var toppings = CollectSelectedToppingNames();
+                var items    = _cart.BuildPizzaItems(size.Value, crust.Value, (int)nudPizzaQty.Value, toppings);
+                running += _cart.CalculateSubtotal(items);
+            }
+
+            // Drinks
+            running += DrinkRunning(cbCoke,      txtQtyCoke,      AppConfig.DrinkCanPrice);
+            running += DrinkRunning(cbDietCoke,  txtQtyDietCoke,  AppConfig.DrinkCanPrice);
+            running += DrinkRunning(cbIcedTea,   txtQtyIcedTea,   AppConfig.DrinkCanPrice);
+            running += DrinkRunning(cbGingerAle, txtQtyGingerAle, AppConfig.DrinkCanPrice);
+            running += DrinkRunning(cbSprite,    txtQtySprite,    AppConfig.DrinkCanPrice);
+            running += DrinkRunning(cbRootBeer,  txtQtyRootBeer,  AppConfig.DrinkCanPrice);
+            running += DrinkRunning(cbWater,     txtQtyWater,     AppConfig.WaterPrice);
+
+            // Sides
+            if (cbChickenWings.Checked)    running += AppConfig.SidePrice;
+            if (cbPoutine.Checked)         running += AppConfig.SidePrice;
+            if (cbOnionRings.Checked)      running += AppConfig.SidePrice;
+            if (cbCheesyGarlicBread.Checked) running += AppConfig.SidePrice;
+
+            decimal total = _cart.CalculateTotal(running);
+            _liveTotalLabel.Text = $"Live total (incl. GST):  {total:C2}";
+            _liveTotalLabel.ForeColor = total > 0 ? Color.DarkGreen : Color.Gray;
+        }
+
+        private static decimal DrinkRunning(CheckBox cb, TextBox tb, decimal unitPrice)
+        {
+            if (!cb.Checked) return 0m;
+            int qty;
+            return int.TryParse(tb.Text, out qty) && qty > 0 ? qty * unitPrice : 0m;
+        }
+
         private void UpdateStatusBar()
         {
             int count = lvOrder.Items.Count;
@@ -591,65 +745,59 @@ namespace WindowsFormsApplication3
             return true;
         }
 
+        private List<string> CollectSelectedToppingNames()
+        {
+            var names = new List<string>();
+            var toppingMap = new (CheckBox cb, string name)[]
+            {
+                (cbPepperoni,       "Pepperoni"),
+                (cbExtraCheese,     "Extra Cheese"),
+                (cbMushroom,        "Mushroom"),
+                (cbHam,             "Ham"),
+                (cbBacon,           "Bacon"),
+                (cbGroundBeef,      "Ground Beef"),
+                (cbJalapeno,        "Jalapeno"),
+                (cbPineapple,       "Pineapple"),
+                (cbDriedShrimps,    "Dried Shrimps"),
+                (cbAnchovies,       "Anchovies"),
+                (cbSunDriedTomatoes,"Sun Dried Tomatoes"),
+                (cbSpinach,         "Spinach"),
+                (cbRoastedGarlic,   "Roasted Garlic"),
+                (cbShreddedChicken, "Shredded Chicken"),
+            };
+            foreach (var (cb, name) in toppingMap)
+                if (cb.Checked) names.Add(name);
+            return names;
+        }
+
         private List<ListViewItem> BuildCurrentPizzaItems()
         {
-            var items = new List<ListViewItem>();
-            int qty   = (int)nudPizzaQty.Value;
+            var lvItems = new List<ListViewItem>();
 
             PizzaSize? size  = null;
             CrustType? crust = null;
 
-            if (rbSizeSmall.Checked) size  = PizzaSize.Small;
-            else if (rbSizeMedium.Checked) size = PizzaSize.Medium;
-            else if (rbSizeLarge.Checked) size = PizzaSize.Large;
-            else if (rbSizeExtraLarge.Checked) size = PizzaSize.ExtraLarge;
+            if (rbSizeSmall.Checked)       size  = PizzaSize.Small;
+            else if (rbSizeMedium.Checked)      size  = PizzaSize.Medium;
+            else if (rbSizeLarge.Checked)       size  = PizzaSize.Large;
+            else if (rbSizeExtraLarge.Checked)  size  = PizzaSize.ExtraLarge;
+            if (rbCrustNormal.Checked)     crust = CrustType.Normal;
+            else if (rbCrustCheesy.Checked)     crust = CrustType.Cheesy;
+            else if (rbCrustSausage.Checked)    crust = CrustType.Sausage;
 
-            if (rbCrustNormal.Checked) crust  = CrustType.Normal;
-            else if (rbCrustCheesy.Checked) crust = CrustType.Cheesy;
-            else if (rbCrustSausage.Checked) crust = CrustType.Sausage;
+            if (!size.HasValue || !crust.HasValue) return lvItems;
 
-            if (size.HasValue && crust.HasValue)
+            var orderItems = _cart.BuildPizzaItems(size.Value, crust.Value,
+                                                   (int)nudPizzaQty.Value,
+                                                   CollectSelectedToppingNames());
+            foreach (var oi in orderItems)
             {
-                decimal unitPrice  = AppConfig.PizzaPrices[size.Value];
-                decimal totalPrice = unitPrice * qty;
-                string  sizeName   = size.Value == PizzaSize.ExtraLarge ? "Extra Large" : size.Value.ToString();
-                string  crustName  = crust.Value.ToString();
-
-                var pizzaItem = new ListViewItem($"{crustName} Crust {sizeName} Pizza");
-                pizzaItem.SubItems.Add(qty.ToString());
-                pizzaItem.SubItems.Add(totalPrice.ToString("F2"));
-                items.Add(pizzaItem);
+                var lvi = new ListViewItem(oi.Name);
+                lvi.SubItems.Add(oi.Quantity > 0 ? oi.Quantity.ToString() : "");
+                lvi.SubItems.Add(oi.TotalPrice.ToString("F2"));
+                lvItems.Add(lvi);
             }
-
-            // Toppings
-            var toppingMap = new (CheckBox cb, string name)[]
-            {
-                (cbPepperoni,  "  Pepperoni Toppings"),
-                (cbExtraCheese,  "  Extra Cheese Toppings"),
-                (cbMushroom,  "  Mushroom Toppings"),
-                (cbHam,  "  Ham Toppings"),
-                (cbBacon,  "  Bacon Toppings"),
-                (cbGroundBeef,  "  Ground Beef Toppings"),
-                (cbJalapeno,  "  Jalapeno Toppings"),
-                (cbPineapple,  "  Pineapple Toppings"),
-                (cbDriedShrimps,  "  Dried Shrimps Toppings"),
-                (cbAnchovies, "  Anchovies Toppings"),
-                (cbSunDriedTomatoes, "  Sun Dried Tomatoes Toppings"),
-                (cbSpinach, "  Spinach Toppings"),
-                (cbRoastedGarlic, "  Roasted Garlic Toppings"),
-                (cbShreddedChicken, "  Shredded Chicken Toppings"),
-            };
-
-            foreach (var (cb, name) in toppingMap)
-            {
-                if (!cb.Checked) continue;
-                var t = new ListViewItem(name);
-                t.SubItems.Add("");
-                t.SubItems.Add(AppConfig.ToppingPrice.ToString("F2"));
-                items.Add(t);
-            }
-
-            return items;
+            return lvItems;
         }
 
         private void AddDrinkIfChecked(CheckBox cb, TextBox qtyBox, string name, decimal unitPrice)
