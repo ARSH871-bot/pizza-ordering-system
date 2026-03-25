@@ -9,6 +9,22 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.7.0] — 2026-03-25
+
+### Added
+
+- **SQLite embedded database** — `OrderRepository` now persists orders to `%APPDATA%\PizzaExpress\orders.db` using SQLite 1.0.118.0 via Dapper 2.1.35. Replaces the NDJSON flat-file store. Schema created automatically on first run; both the order header (Orders table) and line items (OrderLines table) are written in a single ACID transaction.
+- **Automatic three-generation migration** — on first launch the repository checks for legacy data files and silently imports them: (1) `orders.ndjson` → SQLite, then renames to `.migrated`; (2) if no NDJSON, `orders.json` (pre-v2.4.0 JSON array) → SQLite, then renames to `.migrated`. Zero user action required.
+- **SDK-style project files** — both `.csproj` files migrated from old-style (`ToolsVersion="4.0"` + `packages.config`) to SDK-style (`Sdk="Microsoft.NET.Sdk"` + `PackageReference`). Enables `dotnet restore`, `dotnet build`, `dotnet test` and lays the groundwork for the planned WPF/.NET 8 migration (Phase 10).
+
+### Changed
+
+- CI workflows (`build-and-test.yml`, `release.yml`) — replaced `setup-msbuild` + `setup-nuget` + `nuget restore` + `msbuild` + `vstest.console.exe` search with `actions/setup-dotnet@v4` + `dotnet restore` + `dotnet build` + `dotnet test`. Simpler, faster, and more portable.
+- `Microsoft.CodeAnalysis.NetAnalyzers` bumped from `8.0.0` → `9.0.0` to match the .NET 9 SDK's built-in analyzer version and eliminate the build warning.
+- `AssemblyInfo.cs` — version bumped to `2.7.0.0`.
+
+---
+
 ## [2.6.0] — 2026-03-25
 
 ### Added

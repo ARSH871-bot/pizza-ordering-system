@@ -1,7 +1,7 @@
 # Pizza Express — New Zealand
 
 [![Build and Test](https://github.com/ARSH871-bot/pizza-ordering-system/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/ARSH871-bot/pizza-ordering-system/actions/workflows/build-and-test.yml)
-![Version](https://img.shields.io/badge/version-2.6.0-brightgreen)
+![Version](https://img.shields.io/badge/version-2.7.0-brightgreen)
 ![Tests](https://img.shields.io/badge/tests-161%20passing-success)
 ![Coverage](https://img.shields.io/badge/coverage-%3E70%25%20gated-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-blue)
@@ -63,8 +63,8 @@ A Windows Forms desktop POS (Point of Sale) application for **Pizza Express New 
 - **Crash logger** — unhandled exceptions written to `%APPDATA%\PizzaExpress\Logs\crash_*.log`
 
 ### Order History
-- All confirmed orders persisted to `%APPDATA%\PizzaExpress\orders.ndjson` (append-only, O(1) write)
-- Automatic one-time migration from legacy `orders.json` format
+- All confirmed orders persisted to `%APPDATA%\PizzaExpress\orders.db` (SQLite, ACID transactions)
+- Automatic migration from legacy `orders.ndjson` and `orders.json` formats on first launch
 - History viewer with Date, Customer, Region, Payment, Total columns
 - Live text search + date range filter
 - Column sorting (click any header)
@@ -79,7 +79,7 @@ A Windows Forms desktop POS (Point of Sale) application for **Pizza Express New 
 |---|---|
 | Language | C# (.NET Framework 4.8) |
 | UI | Windows Forms (WinForms) |
-| Persistence | NDJSON (append-only) via `JavaScriptSerializer` |
+| Persistence | SQLite 1.0.118.0 + Dapper 2.1.35 (embedded, zero-install) |
 | Testing | MSTest 3.3.1 · NSubstitute 5.1.0 · Coverlet 6.0.2 |
 | Static Analysis | Microsoft.CodeAnalysis.NetAnalyzers 8.0 · StyleCop.Analyzers |
 | CI/CD | GitHub Actions (windows-latest) |
@@ -166,6 +166,7 @@ See [CHANGELOG.md](CHANGELOG.md) for full release history.
 
 | Version | Highlights |
 |---|---|
+| **v2.7.0** | SQLite + Dapper replaces NDJSON · SDK-style csproj · dotnet CLI in CI · NetAnalyzers 9.0 · 161 tests |
 | **v2.6.0** | 16 new tests covering null customer, receipt fields, promo messages, empty file, Large pizza price · CONTRIBUTING.md updated · 161 tests |
 | **v2.5.0** | Lifetime-free CI coverage gate · .gitattributes · NullLogger · FileLogger tests · ILogger/ICartService mocks · Release config · 145 tests |
 | **v2.4.0** | CartService · live running total · input limits · accessibility · NDJSON append-only · ILogger/FileLogger · 123 tests |

@@ -151,25 +151,23 @@ namespace PizzaExpress.Tests.Tests
         [TestMethod]
         public void LoadAll_MigratesLegacyJsonArray()
         {
-            // Write old full-array format to orders.json
-            var repo   = MakeRepo();
-            var record = MakeRecord("LegacyUser");
-
-            // Simulate legacy file directly
+            // Write legacy JSON array file BEFORE creating the repository so the
+            // constructor's migration logic picks it up on first run.
             string legacyJson = "[{\"Id\":\"LEG001\",\"CustomerName\":\"LegacyUser\"," +
                                 "\"OrderDate\":\"\\/Date(0)\\/\",\"Lines\":[]}]";
             File.WriteAllText(Path.Combine(_tempDir, "orders.json"), legacyJson);
 
-            var result = repo.LoadAll();
+            // Construction triggers migration: orders.json → SQLite
+            var result = MakeRepo().LoadAll();
 
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual("LegacyUser", result[0].CustomerName);
 
-            // Old file should be renamed
+            // Original file renamed to prevent re-migration
             Assert.IsTrue(File.Exists(Path.Combine(_tempDir, "orders.json.migrated")));
 
-            // New NDJSON file should exist
-            Assert.IsTrue(File.Exists(Path.Combine(_tempDir, "orders.ndjson")));
+            // SQLite database created
+            Assert.IsTrue(File.Exists(Path.Combine(_tempDir, "orders.db")));
         }
 
         [TestMethod]
@@ -184,12 +182,13 @@ namespace PizzaExpress.Tests.Tests
         }
 
         [TestMethod]
-        public void Save_MultipleRecords_PreservesInsertionOrder()
+        public void Save_MultipleRecords_LoadedInChronologicalOrder()
         {
+            // Use explicit dates to guarantee ORDER BY OrderDate is deterministic
             var repo = MakeRepo();
-            repo.Save(MakeRecord("First"));
-            repo.Save(MakeRecord("Second"));
-            repo.Save(MakeRecord("Third"));
+            repo.Save(MakeRecordOnDate("First",  new DateTime(2026, 1, 1)));
+            repo.Save(MakeRecordOnDate("Second", new DateTime(2026, 1, 2)));
+            repo.Save(MakeRecordOnDate("Third",  new DateTime(2026, 1, 3)));
 
             var loaded = repo.LoadAll();
 
@@ -198,12 +197,15 @@ namespace PizzaExpress.Tests.Tests
             Assert.AreEqual("Third",  loaded[2].CustomerName);
         }
 
-        // ── Helper ────────────────────────────────────────────────────────────
+        // ── Helpers ───────────────────────────────────────────────────────────
 
-        private static OrderRecord MakeRecord(string name) => new OrderRecord
+        private static OrderRecord MakeRecord(string name)
+            => MakeRecordOnDate(name, DateTime.Now);
+
+        private static OrderRecord MakeRecordOnDate(string name, DateTime date) => new OrderRecord
         {
             Id            = Guid.NewGuid().ToString("N").Substring(0, 8).ToUpper(),
-            OrderDate     = DateTime.Now,
+            OrderDate     = date,
             CustomerName  = name,
             Address       = "1 Test St",
             City          = "Wellington",
