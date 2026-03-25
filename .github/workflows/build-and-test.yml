@@ -44,7 +44,7 @@ jobs:
             /logger:trx
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           files: "**/coverage.opencover.xml"
           fail_ci_if_error: false
