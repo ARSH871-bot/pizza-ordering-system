@@ -172,6 +172,32 @@ namespace PizzaExpress.Tests.Tests
             Assert.IsTrue(File.Exists(Path.Combine(_tempDir, "orders.ndjson")));
         }
 
+        [TestMethod]
+        public void LoadAll_EmptyFile_ReturnsEmptyList()
+        {
+            // Create the file but write nothing to it
+            File.WriteAllText(Path.Combine(_tempDir, "orders.ndjson"), string.Empty);
+
+            var result = MakeRepo().LoadAll();
+
+            Assert.AreEqual(0, result.Count);
+        }
+
+        [TestMethod]
+        public void Save_MultipleRecords_PreservesInsertionOrder()
+        {
+            var repo = MakeRepo();
+            repo.Save(MakeRecord("First"));
+            repo.Save(MakeRecord("Second"));
+            repo.Save(MakeRecord("Third"));
+
+            var loaded = repo.LoadAll();
+
+            Assert.AreEqual("First",  loaded[0].CustomerName);
+            Assert.AreEqual("Second", loaded[1].CustomerName);
+            Assert.AreEqual("Third",  loaded[2].CustomerName);
+        }
+
         // ── Helper ────────────────────────────────────────────────────────────
 
         private static OrderRecord MakeRecord(string name) => new OrderRecord

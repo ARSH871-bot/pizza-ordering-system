@@ -9,10 +9,10 @@ Thank you for your interest in contributing!
 1. **Fork** the repository and create a branch from `master`.
 2. Name your branch: `feature/short-description` or `fix/short-description`.
 3. Make your changes, keeping each commit focused and atomic.
-4. **Run the tests** before pushing — all 95 tests must pass:
+4. **Run the tests** before pushing — all 145 tests must pass and line coverage must stay ≥ 70%:
    ```powershell
    msbuild WindowsFormsApplication3.sln /p:Configuration=Debug
-   vstest.console.exe PizzaExpress.Tests\bin\Debug\PizzaExpress.Tests.dll
+   vstest.console.exe PizzaExpress.Tests\bin\Debug\PizzaExpress.Tests.dll /Settings:coverlet.runsettings /collect:"XPlat Code Coverage"
    ```
 5. **Update `CHANGELOG.md`** under `[Unreleased]` with a brief description of the change.
 6. Open a Pull Request using the provided template. CI (GitHub Actions) must be green before merge.

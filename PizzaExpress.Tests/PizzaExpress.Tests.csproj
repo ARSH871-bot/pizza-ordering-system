@@ -24,6 +24,15 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -79,6 +88,7 @@
     <Compile Include="Tests\ReceiptWriterTests.cs" />
     <Compile Include="Tests\AppConfigTests.cs" />
     <Compile Include="Tests\CartServiceTests.cs" />
+    <Compile Include="Tests\FileLoggerTests.cs" />
     <Compile Include="Tests\OrderRepositoryTests.cs" />
     <Compile Include="Tests\ServiceInterfaceTests.cs" />
   </ItemGroup>

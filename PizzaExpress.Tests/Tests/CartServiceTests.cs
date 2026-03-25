@@ -79,6 +79,13 @@ namespace PizzaExpress.Tests.Tests
             Assert.AreEqual(2, items.Count);  // pizza + Spinach only
         }
 
+        [TestMethod]
+        public void BuildPizzaItems_LargePizza_PriceIsCorrect()
+        {
+            var items = _cart.BuildPizzaItems(PizzaSize.Large, CrustType.Normal, 1, null);
+            Assert.AreEqual(10.00m, items[0].TotalPrice); // AppConfig.PizzaPrices[Large] = 10.00
+        }
+
         // ── CalculateSubtotal ─────────────────────────────────────────────────
 
         [TestMethod]

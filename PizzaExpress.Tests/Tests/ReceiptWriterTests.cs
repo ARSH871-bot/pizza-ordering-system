@@ -83,6 +83,26 @@ namespace PizzaExpress.Tests
         }
 
         [TestMethod]
+        public void Build_ContainsSubtotalLine()
+            => StringAssert.Contains(_writer.Build(BuildSampleOrder()), "Subtotal:");
+
+        [TestMethod]
+        public void Build_ContainsChangeLine()
+            => StringAssert.Contains(_writer.Build(BuildSampleOrder()), "Change:");
+
+        [TestMethod]
+        public void Build_ContainsContactNo()
+            => StringAssert.Contains(_writer.Build(BuildSampleOrder()), "0211234567");
+
+        [TestMethod]
+        public void Build_ContainsRegion()
+            => StringAssert.Contains(_writer.Build(BuildSampleOrder()), "Auckland");
+
+        [TestMethod]
+        public void Build_ContainsDeliveryTime()
+            => StringAssert.Contains(_writer.Build(BuildSampleOrder()), "30");
+
+        [TestMethod]
         public void SaveToFile_WritesContentToDisk()
         {
             string path = System.IO.Path.GetTempFileName();

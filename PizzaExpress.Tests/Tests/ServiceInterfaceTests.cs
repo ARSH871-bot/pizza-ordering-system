@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -112,6 +113,73 @@ namespace PizzaExpress.Tests.Tests
         {
             IOrderRepository repo = new OrderRepository();
             Assert.IsNotNull(repo);
+        }
+
+        // ── ICartService ──────────────────────────────────────────────────────
+
+        [TestMethod]
+        public void ICartService_MockReturnsPizzaItems()
+        {
+            var cart = Substitute.For<ICartService>();
+            cart.BuildPizzaItems(PizzaSize.Large, CrustType.Cheesy, 2, null)
+                .Returns(new List<OrderItem> { new OrderItem("Test Pizza", 2, 10.00m) });
+
+            var result = cart.BuildPizzaItems(PizzaSize.Large, CrustType.Cheesy, 2, null);
+
+            Assert.AreEqual(1, result.Count);
+            Assert.AreEqual("Test Pizza", result[0].Name);
+        }
+
+        [TestMethod]
+        public void ICartService_MockVerifies_CalculateTotalCalled()
+        {
+            var cart = Substitute.For<ICartService>();
+            cart.CalculateTotal(20.00m).Returns(23.00m);
+
+            decimal result = cart.CalculateTotal(20.00m);
+
+            Assert.AreEqual(23.00m, result);
+            cart.Received(1).CalculateTotal(20.00m);
+        }
+
+        [TestMethod]
+        public void ICartService_RealImpl_ImplementsInterface()
+        {
+            ICartService cart = new CartService();
+            Assert.IsNotNull(cart);
+        }
+
+        // ── ILogger ───────────────────────────────────────────────────────────
+
+        [TestMethod]
+        public void ILogger_MockCapturesInfoCall()
+        {
+            var logger = Substitute.For<ILogger>();
+            logger.Info("test message");
+            logger.Received(1).Info("test message");
+        }
+
+        [TestMethod]
+        public void ILogger_MockCapturesErrorWithException()
+        {
+            var logger = Substitute.For<ILogger>();
+            var ex     = new InvalidOperationException("oops");
+            logger.Error("something failed", ex);
+            logger.Received(1).Error("something failed", ex);
+        }
+
+        [TestMethod]
+        public void ILogger_NullLogger_ImplementsInterface()
+        {
+            ILogger logger = NullLogger.Instance;
+            Assert.IsNotNull(logger);
+        }
+
+        [TestMethod]
+        public void ILogger_FileLogger_ImplementsInterface()
+        {
+            ILogger logger = new FileLogger(System.IO.Path.GetTempPath());
+            Assert.IsNotNull(logger);
         }
     }
 }

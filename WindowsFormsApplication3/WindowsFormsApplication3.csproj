@@ -64,6 +64,7 @@
     <!-- Services — implementations -->
     <Compile Include="Services\CartService.cs" />
     <Compile Include="Services\FileLogger.cs" />
+    <Compile Include="Services\NullLogger.cs" />
     <Compile Include="Services\OrderRepository.cs" />
     <Compile Include="Services\OrderValidator.cs" />
     <Compile Include="Services\PromoEngine.cs" />

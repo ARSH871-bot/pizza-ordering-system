@@ -146,6 +146,52 @@ namespace PizzaExpress.Tests
             Assert.IsFalse(_validator.ValidateOrder(items).IsValid);
         }
 
+        [TestMethod]
+        public void ValidateCustomer_NullCustomer_Fails()
+            => Assert.IsFalse(_validator.ValidateCustomer(null).IsValid);
+
+        [TestMethod]
+        public void ValidateCustomer_MissingLastName_Fails()
+        {
+            var c = new Customer { FirstName = "Jane", Address = "1 Queen St", PostalCode = "1010" };
+            Assert.IsFalse(_validator.ValidateCustomer(c).IsValid);
+        }
+
+        [TestMethod]
+        public void ValidateCustomer_MissingAddress_Fails()
+        {
+            var c = new Customer { FirstName = "Jane", LastName = "Doe", PostalCode = "1010" };
+            Assert.IsFalse(_validator.ValidateCustomer(c).IsValid);
+        }
+
+        [TestMethod]
+        public void ValidateCustomer_WithInvalidEmail_Fails()
+        {
+            var c = new Customer
+            {
+                FirstName = "Jane", LastName = "Doe",
+                Address = "1 Queen St", PostalCode = "1010",
+                Email = "notanemail",
+            };
+            Assert.IsFalse(_validator.ValidateCustomer(c).IsValid);
+        }
+
+        [TestMethod]
+        public void ValidateCustomer_WithInvalidContactNo_Fails()
+        {
+            var c = new Customer
+            {
+                FirstName = "Jane", LastName = "Doe",
+                Address = "1 Queen St", PostalCode = "1010",
+                ContactNo = "123",   // too short
+            };
+            Assert.IsFalse(_validator.ValidateCustomer(c).IsValid);
+        }
+
+        [TestMethod]
+        public void ValidatePayment_NullMethod_Fails()
+            => Assert.IsFalse(_validator.ValidatePayment(null, 20.00m, 20.00m).IsValid);
+
         // ── Email ─────────────────────────────────────────────────────────────
 
         [TestMethod]

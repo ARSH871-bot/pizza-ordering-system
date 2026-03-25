@@ -9,6 +9,42 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.6.0] — 2026-03-25
+
+### Added
+
+- **6 new `OrderValidatorTests`** — `ValidateCustomer` now tested for: `null` customer, missing `LastName`, missing `Address`, customer with invalid email (delegates to `ValidateEmail`), customer with invalid contact number (delegates to `ValidateContactNo`); `ValidatePayment` now tested for `null` method. **Total tests: 145 → 151**.
+- **5 new `ReceiptWriterTests`** — `Build()` now verified to contain: `Subtotal:` label, `Change:` label, customer contact number, customer region, and delivery time (30 min). **Total: 151 → 156**.
+- **2 new `PromoEngineTests`** — `Apply` message verified to contain the percentage string (`"10%"`) for discount codes; verified to contain the discounted total for `PIZZA20`. **Total: 156 → 158**.
+- **2 new `OrderRepositoryTests`** — `LoadAll` with a present-but-empty NDJSON file returns an empty list (not a crash); `Save` of three records round-trips in insertion order. **Total: 158 → 160**.
+- **1 new `CartServiceTest`** — `BuildPizzaItems` for `PizzaSize.Large` verifies the unit price is `$10.00`. **Total: 160 → 161**.
+
+### Changed
+
+- `CONTRIBUTING.md` — updated stale "all 95 tests" reference to "all 145 tests"; added Coverlet collection to the local test command example; added ≥ 70% line-coverage requirement.
+- `AssemblyInfo.cs` — version bumped to `2.6.0.0`.
+- README — version badge, test count badge, description, project structure tree, and contributing section all updated to reflect 161 tests.
+
+---
+
+## [2.5.0] — 2026-03-25
+
+### Added
+
+- **Lifetime-free CI coverage gate** — Codecov (third-party, pricing risk) replaced with a self-contained PowerShell step that parses `coverage.opencover.xml`, writes a formatted table directly to the **GitHub Actions job summary**, and fails the build if line coverage drops below 70%. Zero external services, zero tokens, works forever.
+- **`.gitattributes`** — eliminates the CRLF/LF conversion warnings that appeared on every `git commit`. Sets `text=auto eol=crlf` for C# source files and `eol=lf` for YAML/shell CI files; marks binaries as `binary`.
+- **`NullLogger`** — sealed no-op `ILogger` implementation with a shared `Instance` singleton. Use in tests and anywhere logging output is unwanted without passing `null`.
+- **`FileLoggerTests`** — 14 tests covering `FileLogger` and `NullLogger`: Info/Warn/Error write to file, timestamp format, exception type included, multiple entries appended, directory auto-created, silent failure when path is inaccessible, and all `NullLogger` variants.
+- **ILogger + ICartService mock tests** — 7 new tests added to `ServiceInterfaceTests`: NSubstitute mocks for `ILogger.Info`, `ILogger.Error`, `ICartService.BuildPizzaItems`, `ICartService.CalculateTotal`; real-impl interface checks for `NullLogger`, `FileLogger`, and `CartService`. **Total tests: 123 → 145**.
+- **Release build configuration** for `PizzaExpress.Tests.csproj` — the test project was missing a `Release|AnyCPU` `PropertyGroup`, causing the CI release workflow to fail. Added with `Optimize=true`, `pdbonly` debug symbols, and correct `OutputPath`.
+
+### Changed
+
+- `build-and-test.yml` CI: Codecov upload step removed; replaced with `Parse coverage and write job summary` PowerShell step with a 70% line-coverage gate.
+- README: Codecov badge replaced with static `coverage: >70% gated` badge; test count updated to 145.
+
+---
+
 ## [2.4.0] — 2026-03-25
 
 ### Added

@@ -91,5 +91,20 @@ namespace PizzaExpress.Tests
             var result = _engine.Apply("FREESHIP", 50.00m);
             StringAssert.Contains(result.Message, "Free");
         }
+
+        [TestMethod]
+        public void Apply_Pizza10_MessageContainsPercentOff()
+        {
+            var result = _engine.Apply("PIZZA10", 100.00m);
+            StringAssert.Contains(result.Message, "10%");
+        }
+
+        [TestMethod]
+        public void Apply_Pizza20_MessageContainsNewTotal()
+        {
+            var result = _engine.Apply("PIZZA20", 50.00m);
+            // 50.00 * 0.8 = 40.00
+            StringAssert.Contains(result.Message, "40");
+        }
     }
 }
