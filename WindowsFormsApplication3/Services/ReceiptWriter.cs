@@ -9,7 +9,7 @@ namespace WindowsFormsApplication3.Services
     /// Builds and saves order receipts.
     /// Depends only on domain models — no UI or WinForms references.
     /// </summary>
-    public class ReceiptWriter
+    public class ReceiptWriter : IReceiptWriter
     {
         public string Build(Order order)
         {

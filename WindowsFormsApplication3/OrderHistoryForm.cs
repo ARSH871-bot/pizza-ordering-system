@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
+using System.IO;
 using System.Text;
 using System.Windows.Forms;
 using WindowsFormsApplication3.Models;
@@ -11,16 +12,27 @@ namespace WindowsFormsApplication3
 {
     /// <summary>
     /// Displays all past orders loaded from the JSON store.
+    /// Supports live text search, date range filtering, and CSV export.
     /// Built entirely in code — no Designer file.
     /// </summary>
     public class OrderHistoryForm : Form
     {
-        private readonly OrderRepository _repo;
-        private ListView _listView;
-        private Button   _btnDetails;
-        private Button   _btnClose;
+        private readonly IOrderRepository _repo;
+        private List<OrderRecord> _allOrders = new List<OrderRecord>();
 
-        public OrderHistoryForm(OrderRepository repo)
+        // UI controls
+        private ListView         _listView;
+        private TextBox          _txtSearch;
+        private DateTimePicker   _dtpFrom;
+        private DateTimePicker   _dtpTo;
+        private CheckBox         _chkDateFilter;
+        private Label            _lblResultCount;
+        private Button           _btnDetails;
+        private Button           _btnExport;
+        private Button           _btnClose;
+
+        /// <summary>Initialises the history form backed by the given repository.</summary>
+        public OrderHistoryForm(IOrderRepository repo)
         {
             _repo = repo ?? throw new ArgumentNullException("repo");
             BuildUi();
@@ -31,13 +43,72 @@ namespace WindowsFormsApplication3
         private void BuildUi()
         {
             Text            = "Pizza Express — Order History";
-            Size            = new Size(820, 480);
-            MinimumSize     = new Size(600, 360);
+            Size            = new Size(860, 560);
+            MinimumSize     = new Size(640, 400);
             StartPosition   = FormStartPosition.CenterParent;
             FormBorderStyle = FormBorderStyle.Sizable;
             MaximizeBox     = true;
             Font            = new Font("Segoe UI", 9f);
 
+            // ── Filter bar ────────────────────────────────────────────────────
+            var filterPanel = new Panel { Dock = DockStyle.Top, Height = 78, Padding = new Padding(8, 6, 8, 4) };
+
+            // Row 1: search box
+            var lblSearch = new Label { Text = "Search:", AutoSize = true, Location = new Point(8, 10) };
+            _txtSearch = new TextBox { Location = new Point(60, 7), Width = 280 };
+            _txtSearch.TextChanged += (s, e) => ApplyFilter();
+
+            _lblResultCount = new Label
+            {
+                AutoSize  = true,
+                ForeColor = Color.Gray,
+                Location  = new Point(354, 10),
+            };
+
+            // Row 2: date range
+            _chkDateFilter = new CheckBox
+            {
+                Text     = "Date range:",
+                Location = new Point(8, 44),
+                AutoSize = true,
+                Checked  = false,
+            };
+            _chkDateFilter.CheckedChanged += (s, e) =>
+            {
+                _dtpFrom.Enabled = _chkDateFilter.Checked;
+                _dtpTo.Enabled   = _chkDateFilter.Checked;
+                ApplyFilter();
+            };
+
+            _dtpFrom = new DateTimePicker
+            {
+                Location = new Point(100, 42),
+                Width    = 130,
+                Format   = DateTimePickerFormat.Short,
+                Value    = DateTime.Today.AddMonths(-1),
+                Enabled  = false,
+            };
+            _dtpFrom.ValueChanged += (s, e) => ApplyFilter();
+
+            var lblTo = new Label { Text = "to", AutoSize = true, Location = new Point(238, 46) };
+
+            _dtpTo = new DateTimePicker
+            {
+                Location = new Point(255, 42),
+                Width    = 130,
+                Format   = DateTimePickerFormat.Short,
+                Value    = DateTime.Today,
+                Enabled  = false,
+            };
+            _dtpTo.ValueChanged += (s, e) => ApplyFilter();
+
+            filterPanel.Controls.AddRange(new Control[]
+            {
+                lblSearch, _txtSearch, _lblResultCount,
+                _chkDateFilter, _dtpFrom, lblTo, _dtpTo,
+            });
+
+            // ── Order list ────────────────────────────────────────────────────
             _listView = new ListView
             {
                 Dock          = DockStyle.Fill,
@@ -46,44 +117,73 @@ namespace WindowsFormsApplication3
                 GridLines     = true,
                 MultiSelect   = false,
             };
-            _listView.Columns.Add("Date / Time",    150);
-            _listView.Columns.Add("Customer",        160);
-            _listView.Columns.Add("Region",          120);
-            _listView.Columns.Add("Payment",         110);
-            _listView.Columns.Add("Total (NZD)",     100);
+            _listView.Columns.Add("Date / Time",   150);
+            _listView.Columns.Add("Customer",       170);
+            _listView.Columns.Add("Region",         120);
+            _listView.Columns.Add("Payment",        110);
+            _listView.Columns.Add("Total (NZD)",    100);
             _listView.DoubleClick += (s, e) => ShowDetails();
 
-            _btnDetails = new Button { Text = "View Details", Width = 120, Height = 30 };
+            // ── Button bar ────────────────────────────────────────────────────
+            _btnDetails = new Button { Text = "View Details", Width = 110, Height = 30 };
             _btnDetails.Click += (s, e) => ShowDetails();
+
+            _btnExport = new Button { Text = "Export CSV", Width = 100, Height = 30 };
+            _btnExport.Click += (s, e) => ExportCsv();
 
             _btnClose = new Button { Text = "Close", Width = 80, Height = 30 };
             _btnClose.Click += (s, e) => Close();
 
-            var panel = new FlowLayoutPanel
+            var btnPanel = new FlowLayoutPanel
             {
                 Dock          = DockStyle.Bottom,
                 Height        = 44,
                 FlowDirection = FlowDirection.RightToLeft,
                 Padding       = new Padding(4),
             };
-            panel.Controls.Add(_btnClose);
-            panel.Controls.Add(_btnDetails);
+            btnPanel.Controls.Add(_btnClose);
+            btnPanel.Controls.Add(_btnDetails);
+            btnPanel.Controls.Add(_btnExport);
 
             Controls.Add(_listView);
-            Controls.Add(panel);
+            Controls.Add(filterPanel);
+            Controls.Add(btnPanel);
         }
 
         // ── Data loading ──────────────────────────────────────────────────────
         private void LoadOrders()
         {
+            _allOrders = _repo.LoadAll();
+            _allOrders.Sort((a, b) => b.OrderDate.CompareTo(a.OrderDate));
+            ApplyFilter();
+        }
+
+        // ── Filtering ─────────────────────────────────────────────────────────
+        private void ApplyFilter()
+        {
+            string search = (_txtSearch?.Text ?? string.Empty).Trim().ToLowerInvariant();
+            bool   useDate = _chkDateFilter?.Checked ?? false;
+            DateTime from  = _dtpFrom?.Value.Date ?? DateTime.MinValue;
+            DateTime to    = (_dtpTo?.Value.Date ?? DateTime.MaxValue).AddDays(1); // inclusive
+
             _listView.Items.Clear();
-            List<OrderRecord> orders = _repo.LoadAll();
 
-            // Most-recent first
-            orders.Sort((a, b) => b.OrderDate.CompareTo(a.OrderDate));
-
-            foreach (OrderRecord r in orders)
+            foreach (OrderRecord r in _allOrders)
             {
+                // Date range filter
+                if (useDate && (r.OrderDate < from || r.OrderDate >= to))
+                    continue;
+
+                // Text search (customer, region, payment method)
+                if (!string.IsNullOrEmpty(search))
+                {
+                    bool match = (r.CustomerName  ?? string.Empty).ToLowerInvariant().Contains(search)
+                              || (r.Region        ?? string.Empty).ToLowerInvariant().Contains(search)
+                              || (r.PaymentMethod ?? string.Empty).ToLowerInvariant().Contains(search)
+                              || r.OrderDate.ToString("yyyy-MM-dd").Contains(search);
+                    if (!match) continue;
+                }
+
                 var item = new ListViewItem(r.OrderDate.ToString("yyyy-MM-dd  HH:mm:ss"));
                 item.SubItems.Add(r.CustomerName);
                 item.SubItems.Add(r.Region);
@@ -93,10 +193,16 @@ namespace WindowsFormsApplication3
                 _listView.Items.Add(item);
             }
 
-            if (_listView.Items.Count == 0)
+            int count = _listView.Items.Count;
+            if (count == 0)
             {
-                var placeholder = new ListViewItem("No orders found.");
-                _listView.Items.Add(placeholder);
+                _listView.Items.Add(new ListViewItem("No matching orders found."));
+                if (_lblResultCount != null) _lblResultCount.Text = "0 results";
+            }
+            else
+            {
+                if (_lblResultCount != null)
+                    _lblResultCount.Text = $"{count} order{(count == 1 ? "" : "s")}";
             }
         }
 
@@ -130,6 +236,38 @@ namespace WindowsFormsApplication3
 
             MessageBox.Show(sb.ToString(), "Order Details",
                 MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        // ── CSV export ────────────────────────────────────────────────────────
+        private void ExportCsv()
+        {
+            if (_listView.Items.Count == 0) return;
+
+            using (var sfd = new SaveFileDialog())
+            {
+                sfd.Filter   = "CSV Files (*.csv)|*.csv";
+                sfd.FileName = $"OrderHistory_{DateTime.Today:yyyyMMdd}.csv";
+
+                if (sfd.ShowDialog() != DialogResult.OK) return;
+
+                var sb = new StringBuilder();
+                sb.AppendLine("Date/Time,Customer,Region,Payment,Total NZD");
+
+                foreach (ListViewItem item in _listView.Items)
+                {
+                    if (item.Tag == null) continue;  // skip placeholder rows
+                    var r = (OrderRecord)item.Tag;
+                    sb.AppendLine(
+                        $"\"{r.OrderDate:yyyy-MM-dd HH:mm:ss}\"," +
+                        $"\"{r.CustomerName}\"," +
+                        $"\"{r.Region}\"," +
+                        $"\"{r.PaymentMethod}\"," +
+                        $"{r.Total:F2}");
+                }
+
+                File.WriteAllText(sfd.FileName, sb.ToString(), Encoding.UTF8);
+                MessageBox.Show($"Exported {_listView.Items.Count} orders to CSV.", "Export Complete");
+            }
         }
     }
 }

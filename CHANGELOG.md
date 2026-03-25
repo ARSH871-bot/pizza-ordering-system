@@ -9,6 +9,46 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.2.0] — 2026-03-25
+
+### Added
+
+- **Service interfaces** — `IPromoEngine`, `IOrderValidator`, `IReceiptWriter`, `IOrderRepository` introduced; all service fields in `Form1` and `OrderHistoryForm` now use the interface type. Services are fully swappable without touching UI code.
+- **Roslyn NetAnalyzers 8.0** — ~200 FxCop-style rules run at compile time on both projects (warnings surfaced in Visual Studio Error List).
+- **StyleCop.Analyzers** — enforces consistent C# naming, file layout, and spacing rules across the codebase.
+- **`.editorconfig`** — root-level config: 4-space indent, UTF-8-BOM, trailing-whitespace trimming, `_camelCase` private field convention; analyzer severity overrides tuned for WinForms desktop.
+- **NSubstitute 5.1.0** — mocking library added to test project; Castle.Core 5.1.1 included as required proxy-generation dependency.
+- **`ServiceInterfaceTests.cs`** — 9 new tests confirming every interface is correctly implemented by its concrete class and that NSubstitute can substitute each interface.
+- **`OrderRepositoryTests.cs`** — 7 integration tests for `OrderRepository` using an isolated temp directory (never touches real user data). Covers save, multi-record persistence, field round-trip, missing file, corrupted file, directory auto-creation, and null guard.
+- **Coverlet 6.0.2** — code coverage collector added to test project.
+- **`release.yml`** CI workflow — automatically builds a Release configuration, runs all tests, and publishes the compiled `.exe` as a GitHub Release asset when a `v*.*.*` tag is pushed.
+- **Dependabot** — weekly automated PRs for stale NuGet packages and GitHub Actions versions.
+- **Status bar** — live strip at the bottom of the main window showing cart item count and running total (incl. GST) in real time.
+- **Tooltips** — every non-obvious field now shows a concise hint on hover (postal code format, contact number rules, amount paid, etc.).
+- **Confirm before clearing** — "Clear Order" now shows a warning dialog; cancellable.
+- **Remove item from cart** — right-click any item in the Order Review ListView and choose "Remove selected item"; status bar updates instantly.
+- **Keyboard shortcuts** — `Alt+C` (Confirm Order), `Alt+H` (Order History), `Alt+P` (Proceed to Payment), `Esc` (navigate back a tab).
+- **Print Receipt** — "Print" button in the post-order receipt dialog; opens a full `PrintPreviewDialog` using `Courier New` monospace font.
+- **Copy Receipt to Clipboard** — one-click copy of the full formatted receipt text.
+- **Order History: live search** — text box filters by customer name, region, payment method, or date while typing.
+- **Order History: date range filter** — optional From/To date pickers narrow the history list.
+- **Order History: result count** — label shows how many orders match the current filter.
+- **Order History: CSV export** — "Export CSV" button saves all visible rows to a `.csv` file (UTF-8).
+- **XML `<summary>` doc comments** on all public models, service interfaces, and `OrderHistoryForm`.
+- **GitHub issue templates** (Bug Report + Feature Request) under `.github/ISSUE_TEMPLATE/`.
+- **PR template** — checklist enforcing tests, CHANGELOG update, and zero magic strings.
+- **`SECURITY.md`** — responsible disclosure policy.
+- **`CODE_OF_CONDUCT.md`** — Contributor Covenant v2.1.
+- **`README.md`** completely rewritten — ASCII architecture diagram, full feature list, updated tech stack table, updated test count (95), project structure tree, and all new badges.
+- **`OrderRepository` injectable data path** — constructor overload accepting a custom directory; enables clean integration tests without redirecting `%APPDATA%`.
+
+### Changed
+
+- Total test count: **79 → 95** (16 new tests across 2 new test classes).
+- `OrderRepository` refactored from static file path fields to instance fields; data directory now injectable via constructor.
+
+---
+
 ## [2.1.0] — 2026-03-24
 
 ### Added

@@ -1,35 +1,27 @@
----
+﻿---
 name: Bug Report
-about: Report a bug or unexpected behaviour in the application
-title: "fix: "
-labels: "bug, priority: high"
-assignees: ""
+about: Report a defect in the Pizza Express application
+labels: bug
 ---
 
-## Bug Description
-A clear and concise description of what the bug is.
+## Summary
+<!-- One-sentence description of the bug -->
 
 ## Steps to Reproduce
-1. Open the application
-2. Go to '...'
-3. Click on '...'
-4. See error
+1.
+2.
+3.
 
 ## Expected Behaviour
-A clear description of what you expected to happen.
+<!-- What should have happened -->
 
 ## Actual Behaviour
-A clear description of what actually happened.
-
-## Screenshots
-If applicable, add screenshots to help explain the problem.
+<!-- What actually happened -->
 
 ## Environment
-| Field | Value |
-|---|---|
-| OS | e.g. Windows 11 |
-| Visual Studio Version | e.g. 2019 |
-| .NET Framework | e.g. 4.5 |
+- Windows version:
+- .NET version:
+- App version (shown in title bar):
 
-## Additional Context
-Any other context about the problem here.
+## Screenshots / Logs
+<!-- Attach if relevant -->

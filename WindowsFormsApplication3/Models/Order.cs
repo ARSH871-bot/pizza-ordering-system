@@ -5,6 +5,10 @@ using WindowsFormsApplication3.Config;
 
 namespace WindowsFormsApplication3.Models
 {
+    /// <summary>
+    /// Represents a customer's complete order including all items, delivery details,
+    /// payment information, and computed financial totals.
+    /// </summary>
     public class Order
     {
         public List<OrderItem> Items       { get; }      = new List<OrderItem>();

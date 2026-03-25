@@ -34,6 +34,35 @@
     <Reference Include="Microsoft.VisualStudio.TestPlatform.TestFramework.Extensions">
       <HintPath>packages\MSTest.TestFramework.3.3.1\lib\net462\Microsoft.VisualStudio.TestPlatform.TestFramework.Extensions.dll</HintPath>
     </Reference>
+    <Reference Include="Castle.Core">
+      <HintPath>packages\Castle.Core.5.1.1\lib\net462\Castle.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="NSubstitute">
+      <HintPath>packages\NSubstitute.5.1.0\lib\net462\NSubstitute.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Threading.Tasks.Extensions">
+      <HintPath>packages\System.Threading.Tasks.Extensions.4.3.0\lib\portable-net45+win8+wp8+wpa81\System.Threading.Tasks.Extensions.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <!-- ── Roslyn Analyzers ──────────────────────────────────────────────── -->
+  <ItemGroup>
+    <Analyzer Include="packages\Microsoft.CodeAnalysis.NetAnalyzers.8.0.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.CSharp.NetAnalyzers.dll"
+              Condition="Exists('packages\Microsoft.CodeAnalysis.NetAnalyzers.8.0.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.CSharp.NetAnalyzers.dll')" />
+    <Analyzer Include="packages\Microsoft.CodeAnalysis.NetAnalyzers.8.0.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.NetAnalyzers.dll"
+              Condition="Exists('packages\Microsoft.CodeAnalysis.NetAnalyzers.8.0.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.NetAnalyzers.dll')" />
+    <Analyzer Include="packages\StyleCop.Analyzers.1.2.0-beta.556\analyzers\dotnet\cs\StyleCop.Analyzers.dll"
+              Condition="Exists('packages\StyleCop.Analyzers.1.2.0-beta.556\analyzers\dotnet\cs\StyleCop.Analyzers.dll')" />
+    <Analyzer Include="packages\StyleCop.Analyzers.1.2.0-beta.556\analyzers\dotnet\cs\StyleCop.Analyzers.Unstable.dll"
+              Condition="Exists('packages\StyleCop.Analyzers.1.2.0-beta.556\analyzers\dotnet\cs\StyleCop.Analyzers.Unstable.dll')" />
+  </ItemGroup>
+
+  <!-- ── Coverlet collector ─────────────────────────────────────────────── -->
+  <ItemGroup>
+    <None Include="packages\coverlet.collector.6.0.2\build\netstandard1.0\coverlet.collector.targets"
+          Condition="Exists('packages\coverlet.collector.6.0.2\build\netstandard1.0\coverlet.collector.targets')">
+      <InProject>false</InProject>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\WindowsFormsApplication3\WindowsFormsApplication3.csproj">
@@ -49,6 +78,8 @@
     <Compile Include="Tests\OrderValidatorTests.cs" />
     <Compile Include="Tests\ReceiptWriterTests.cs" />
     <Compile Include="Tests\AppConfigTests.cs" />
+    <Compile Include="Tests\OrderRepositoryTests.cs" />
+    <Compile Include="Tests\ServiceInterfaceTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

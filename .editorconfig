@@ -1,0 +1,40 @@
+root = true
+
+[*.cs]
+# ── General formatting ─────────────────────────────────────────────────────
+indent_style              = space
+indent_size               = 4
+end_of_line               = crlf
+charset                   = utf-8-bom
+trim_trailing_whitespace  = true
+insert_final_newline      = true
+
+# ── .NET naming conventions ────────────────────────────────────────────────
+dotnet_naming_rule.private_fields_underscore.symbols   = private_fields
+dotnet_naming_rule.private_fields_underscore.style     = underscore_prefix
+dotnet_naming_rule.private_fields_underscore.severity  = warning
+
+dotnet_naming_symbols.private_fields.applicable_kinds            = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities  = private
+
+dotnet_naming_style.underscore_prefix.capitalization  = camel_case
+dotnet_naming_style.underscore_prefix.required_prefix = _
+
+# ── Roslyn / FxCop severity overrides ─────────────────────────────────────
+# Disable rules that are inappropriate for a WinForms desktop app
+dotnet_diagnostic.CA1014.severity = none   # Mark assemblies with CLSCompliant
+dotnet_diagnostic.CA1062.severity = none   # Validate arguments (covered by tests)
+dotnet_diagnostic.CA1303.severity = none   # Do not pass literals as localised parameters
+dotnet_diagnostic.CA1305.severity = none   # Specify IFormatProvider
+dotnet_diagnostic.CA1310.severity = none   # Specify StringComparison for correctness
+dotnet_diagnostic.CA2007.severity = none   # ConfigureAwait (no async here)
+dotnet_diagnostic.CA1034.severity = none   # Nested types should not be visible (OrderLineRecord)
+
+# ── StyleCop severity overrides ────────────────────────────────────────────
+dotnet_diagnostic.SA1200.severity = none   # Using directives placement
+dotnet_diagnostic.SA1633.severity = none   # File header
+dotnet_diagnostic.SA1101.severity = none   # Prefix local calls with 'this.'
+dotnet_diagnostic.SA1309.severity = none   # Field names must not begin with underscore (conflicts with our convention)
+dotnet_diagnostic.SA1600.severity = suggestion  # Elements must be documented (suggestion not error)
+dotnet_diagnostic.SA1601.severity = suggestion
+dotnet_diagnostic.SA1602.severity = suggestion

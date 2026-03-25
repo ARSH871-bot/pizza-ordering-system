@@ -7,7 +7,7 @@ namespace WindowsFormsApplication3.Services
     /// <summary>
     /// Pure validation logic — no UI dependency, fully unit-testable.
     /// </summary>
-    public class OrderValidator
+    public class OrderValidator : IOrderValidator
     {
         // ── Field-level validators ────────────────────────────────────────────
 

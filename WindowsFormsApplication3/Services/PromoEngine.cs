@@ -7,7 +7,7 @@ namespace WindowsFormsApplication3.Services
     /// Applies promotional discount codes to an order total.
     /// All valid codes live in AppConfig — never hard-coded here.
     /// </summary>
-    public class PromoEngine
+    public class PromoEngine : IPromoEngine
     {
         public PromoResult Apply(string code, decimal originalTotal)
         {

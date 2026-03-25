@@ -1,5 +1,10 @@
 namespace WindowsFormsApplication3.Models
 {
+    /// <summary>
+    /// Holds a customer's delivery contact information.
+    /// All fields are optional at construction; <see cref="IOrderValidator.ValidateCustomer"/>
+    /// enforces required fields before an order is confirmed.
+    /// </summary>
     public class Customer
     {
         public string FirstName  { get; set; }

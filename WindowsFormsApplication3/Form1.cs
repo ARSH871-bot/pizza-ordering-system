@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Printing;
 using System.IO;
+using System.Text;
 using System.Windows.Forms;
 using WindowsFormsApplication3.Config;
 using WindowsFormsApplication3.Models;
@@ -10,18 +13,24 @@ namespace WindowsFormsApplication3
 {
     public partial class Form1 : Form
     {
-        // ── Services (injected via constructor / field initialiser) ───────────
-        private readonly PromoEngine      _promoEngine    = new PromoEngine();
-        private readonly OrderValidator   _validator      = new OrderValidator();
-        private readonly ReceiptWriter    _receiptWriter  = new ReceiptWriter();
-        private readonly OrderRepository  _repo           = new OrderRepository();
+        // ── Services ─────────────────────────────────────────────────────────
+        private readonly IPromoEngine     _promoEngine    = new PromoEngine();
+        private readonly IOrderValidator  _validator      = new OrderValidator();
+        private readonly IReceiptWriter   _receiptWriter  = new ReceiptWriter();
+        private readonly IOrderRepository _repo           = new OrderRepository();
 
         // ── State ─────────────────────────────────────────────────────────────
         private readonly List<ListViewItem> _stagedPizzas = new List<ListViewItem>();
+        private string _lastReceiptText;   // cached for clipboard / print
 
         // Validation colours
-        private static readonly System.Drawing.Color ColourValid   = System.Drawing.Color.Honeydew;
-        private static readonly System.Drawing.Color ColourInvalid = System.Drawing.Color.MistyRose;
+        private static readonly Color ColourValid   = Color.Honeydew;
+        private static readonly Color ColourInvalid = Color.MistyRose;
+
+        // UI components added programmatically
+        private ToolStripStatusLabel _statusLabel;
+        private ContextMenuStrip     _lvContextMenu;
+        private ToolTip              _toolTip;
 
         public Form1()
         {
@@ -38,11 +47,11 @@ namespace WindowsFormsApplication3
             rbCrustNormal.Checked = true;
             nudPizzaQty.Value = 1;
 
-            txtSubtotal.Enabled  = false;
-            txtTax.Enabled  = false;
-            txtTotalDue.Enabled = false;
-            txtAmountDue.Enabled = false;
-            txtChange.Enabled = false;
+            txtSubtotal.Enabled    = false;
+            txtTax.Enabled         = false;
+            txtTotalDue.Enabled    = false;
+            txtAmountDue.Enabled   = false;
+            txtChange.Enabled      = false;
             txtCardOrPromo.Enabled = false;
 
             foreach (string region in AppConfig.NZRegions)
@@ -57,23 +66,91 @@ namespace WindowsFormsApplication3
             txtPostalCode.Leave += txtPostalCode_Leave;
             txtContactNo.Leave  += txtContactNo_Leave;
 
+            // ── Status bar ─────────────────────────────────────────────────────
+            var statusStrip = new StatusStrip { SizingGrip = false };
+            _statusLabel = new ToolStripStatusLabel
+            {
+                Text      = "Cart is empty",
+                TextAlign = System.Drawing.ContentAlignment.MiddleLeft,
+                Spring    = true,
+            };
+            statusStrip.Items.Add(_statusLabel);
+            this.Controls.Add(statusStrip);
+
+            // ── ListView right-click: Remove selected item ─────────────────────
+            _lvContextMenu = new ContextMenuStrip();
+            var menuRemove = new ToolStripMenuItem("Remove selected item");
+            menuRemove.Click += (s, ev) =>
+            {
+                if (lvOrder.SelectedItems.Count > 0)
+                {
+                    lvOrder.Items.Remove(lvOrder.SelectedItems[0]);
+                    UpdateStatusBar();
+                }
+            };
+            _lvContextMenu.Items.Add(menuRemove);
+            lvOrder.ContextMenuStrip = _lvContextMenu;
+
+            // ── Tooltips ───────────────────────────────────────────────────────
+            _toolTip = new ToolTip { AutoPopDelay = 5000, InitialDelay = 500 };
+            _toolTip.SetToolTip(txtPostalCode,  "Enter your 4-digit NZ postal code (e.g. 1010)");
+            _toolTip.SetToolTip(txtContactNo,   "Optional — digits only, 7–15 characters (e.g. +6421234567)");
+            _toolTip.SetToolTip(txtEmail,       "Optional — used for email receipt in future");
+            _toolTip.SetToolTip(nudPizzaQty,    "Select quantity 1–20. Price scales automatically.");
+            _toolTip.SetToolTip(txtAmountPaid,  "Enter the amount the customer hands over");
+            _toolTip.SetToolTip(btnAddPizzaToCart, "Stage this pizza and configure another. All staged pizzas go into the same order.");
+            _toolTip.SetToolTip(btnConfirmOrder,   "Lock in your order and proceed to review (Alt+C)");
+            _toolTip.SetToolTip(btnCheckOut,       "Proceed to payment (Alt+P)");
+            _toolTip.SetToolTip(btnGoBack,         "Return to order review (Esc)");
+
             // ── Order History button (programmatic, bottom-right of Tab 2) ────
-            var btnHistory = new System.Windows.Forms.Button
+            var btnHistory = new Button
             {
                 Text     = "Order History",
                 Width    = 110,
                 Height   = 26,
-                Location = new System.Drawing.Point(
-                    btnCheckOut.Left - 120,
-                    btnCheckOut.Top),
+                Location = new Point(btnCheckOut.Left - 120, btnCheckOut.Top),
                 Parent   = btnCheckOut.Parent,
             };
+            _toolTip.SetToolTip(btnHistory, "View all past orders (Alt+H)");
             btnHistory.Click += (s, ev) =>
             {
                 using (var f = new OrderHistoryForm(_repo))
                     f.ShowDialog(this);
             };
             btnCheckOut.Parent.Controls.Add(btnHistory);
+        }
+
+        // =====================================================================
+        // Keyboard shortcuts
+        // =====================================================================
+
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            switch (keyData)
+            {
+                case Keys.Alt | Keys.C:
+                    btnConfirmOrder_Click(this, EventArgs.Empty);
+                    return true;
+
+                case Keys.Alt | Keys.H:
+                    using (var f = new OrderHistoryForm(_repo))
+                        f.ShowDialog(this);
+                    return true;
+
+                case Keys.Alt | Keys.P:
+                    if (tabControl1.SelectedTab.Name == "tabPage2")
+                        btnCheckOut_Click(this, EventArgs.Empty);
+                    return true;
+
+                case Keys.Escape:
+                    if (tabControl1.SelectedTab.Name == "tabPage3")
+                        tabControl1.SelectTab("tabPage2");
+                    else if (tabControl1.SelectedTab.Name == "tabPage2")
+                        tabControl1.SelectTab("tabPage1");
+                    return true;
+            }
+            return base.ProcessCmdKey(ref msg, keyData);
         }
 
         // =====================================================================
@@ -144,10 +221,11 @@ namespace WindowsFormsApplication3
             decimal tax      = Math.Round(subtotal * AppConfig.TaxRate, 2);
             decimal totalDue = subtotal + tax;
 
-            txtSubtotal.Text  = subtotal.ToString("C2");
-            txtTax.Text  = tax.ToString("C2");
+            txtSubtotal.Text = subtotal.ToString("C2");
+            txtTax.Text      = tax.ToString("C2");
             txtTotalDue.Text = totalDue.ToString("C2");
 
+            UpdateStatusBar();
             tabControl1.SelectTab("tabPage2");
         }
 
@@ -185,11 +263,20 @@ namespace WindowsFormsApplication3
 
         private void btnClearOrder_Click(object sender, EventArgs e)
         {
+            if (lvOrder.Items.Count == 0) return;
+
+            if (MessageBox.Show(
+                    "This will remove all items from the order. Are you sure?",
+                    "Clear Order", MessageBoxButtons.YesNo, MessageBoxIcon.Warning)
+                != DialogResult.Yes)
+                return;
+
             lvOrder.Items.Clear();
             txtSubtotal.Text  = "";
-            txtTax.Text  = "";
-            txtTotalDue.Text = "";
+            txtTax.Text       = "";
+            txtTotalDue.Text  = "";
             btnSubmitOrder.Enabled = false;
+            UpdateStatusBar();
         }
 
         // =====================================================================
@@ -253,6 +340,7 @@ namespace WindowsFormsApplication3
         {
             // Build the Order object for the receipt service
             var order = BuildOrderForReceipt();
+            _lastReceiptText = _receiptWriter.Build(order);
 
             // Persist order to JSON history
             try
@@ -264,21 +352,47 @@ namespace WindowsFormsApplication3
                 // History persistence is non-critical — never block the user
             }
 
-            // Offer to save receipt
-            if (MessageBox.Show("Would you like to save a receipt of this order?",
-                    "Save Receipt", MessageBoxButtons.YesNo) == DialogResult.Yes)
+            // ── Receipt options dialog ─────────────────────────────────────────
+            using (var dlg = new Form())
             {
-                using (var sfd = new SaveFileDialog())
-                {
-                    sfd.Filter   = "Text Files (*.txt)|*.txt";
-                    sfd.FileName = $"Receipt_{order.OrderDate:yyyyMMdd_HHmmss}.txt";
+                dlg.Text            = "Order Confirmed — Receipt Options";
+                dlg.FormBorderStyle = FormBorderStyle.FixedDialog;
+                dlg.MaximizeBox     = false;
+                dlg.MinimizeBox     = false;
+                dlg.StartPosition  = FormStartPosition.CenterParent;
+                dlg.Size           = new Size(320, 160);
 
-                    if (sfd.ShowDialog() == DialogResult.OK)
+                var btnSave = new Button { Text = "Save to File",     Width = 120, Location = new Point(16,  20) };
+                var btnCopy = new Button { Text = "Copy to Clipboard", Width = 120, Location = new Point(16,  60) };
+                var btnPrint = new Button { Text = "Print",           Width = 120, Location = new Point(16, 100) };
+                var btnSkip = new Button  { Text = "Skip",            Width = 120, Location = new Point(160, 60) };
+
+                btnSave.Click += (s, ev) =>
+                {
+                    using (var sfd = new SaveFileDialog())
                     {
-                        _receiptWriter.SaveToFile(order, sfd.FileName);
-                        MessageBox.Show("Receipt saved successfully.", "Receipt Saved");
+                        sfd.Filter   = "Text Files (*.txt)|*.txt";
+                        sfd.FileName = $"Receipt_{order.OrderDate:yyyyMMdd_HHmmss}.txt";
+                        if (sfd.ShowDialog() == DialogResult.OK)
+                        {
+                            File.WriteAllText(sfd.FileName, _lastReceiptText);
+                            MessageBox.Show("Receipt saved.", "Saved");
+                        }
                     }
-                }
+                };
+
+                btnCopy.Click += (s, ev) =>
+                {
+                    Clipboard.SetText(_lastReceiptText);
+                    MessageBox.Show("Receipt copied to clipboard.", "Copied");
+                };
+
+                btnPrint.Click += (s, ev) => PrintReceipt(order);
+
+                btnSkip.Click  += (s, ev) => dlg.Close();
+
+                dlg.Controls.AddRange(new Control[] { btnSave, btnCopy, btnPrint, btnSkip });
+                dlg.ShowDialog(this);
             }
 
             // Order again or exit
@@ -295,6 +409,21 @@ namespace WindowsFormsApplication3
             {
                 this.Close();
             }
+        }
+
+        private void PrintReceipt(Order order)
+        {
+            var pd = new PrintDocument();
+            pd.PrintPage += (s, ev) =>
+            {
+                var font = new Font("Courier New", 9f);
+                ev.Graphics.DrawString(_lastReceiptText, font, Brushes.Black,
+                    ev.MarginBounds.Left, ev.MarginBounds.Top);
+                font.Dispose();
+            };
+
+            using (var preview = new PrintPreviewDialog { Document = pd, Width = 700, Height = 900 })
+                preview.ShowDialog(this);
         }
 
         private void cboPaymentMethod_SelectedIndexChanged(object sender, EventArgs e)
@@ -357,6 +486,26 @@ namespace WindowsFormsApplication3
         // =====================================================================
         // Private helpers
         // =====================================================================
+
+        private void UpdateStatusBar()
+        {
+            int count = lvOrder.Items.Count;
+            if (count == 0)
+            {
+                _statusLabel.Text = "Cart is empty";
+                return;
+            }
+
+            decimal subtotal = 0m;
+            foreach (ListViewItem lvi in lvOrder.Items)
+            {
+                decimal p;
+                decimal.TryParse(lvi.SubItems[2].Text, out p);
+                subtotal += p;
+            }
+            decimal total = subtotal + Math.Round(subtotal * AppConfig.TaxRate, 2);
+            _statusLabel.Text = $"{count} item{(count == 1 ? "" : "s")} in cart  |  Total (incl. GST): {total:C2}";
+        }
 
         private static void AllowDigitsOnly(KeyPressEventArgs e)
         {
@@ -594,13 +743,16 @@ namespace WindowsFormsApplication3
             _stagedPizzas.Clear();
 
             // Payment state
-            btnSubmitOrder.Enabled   = false;
+            btnSubmitOrder.Enabled = false;
             txtCardOrPromo.Enabled = false;
-            lblCardOrPromo.Text      = "*Card No:";
+            lblCardOrPromo.Text    = "*Card No:";
 
             // Reset inline-validation colours
-            txtPostalCode.BackColor = System.Drawing.SystemColors.Window;
-            txtContactNo.BackColor  = System.Drawing.SystemColors.Window;
+            txtPostalCode.BackColor = SystemColors.Window;
+            txtContactNo.BackColor  = SystemColors.Window;
+
+            // Reset status bar
+            UpdateStatusBar();
         }
     }
 }

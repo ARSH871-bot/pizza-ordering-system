@@ -1,0 +1,154 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using WindowsFormsApplication3.Models;
+using WindowsFormsApplication3.Services;
+
+namespace PizzaExpress.Tests.Tests
+{
+    /// <summary>
+    /// Integration tests for OrderRepository — exercises real file I/O against a temp directory.
+    /// </summary>
+    [TestClass]
+    public class OrderRepositoryTests
+    {
+        private string _tempDir;
+
+        [TestInitialize]
+        public void SetUp()
+        {
+            // Fresh isolated temp directory per test — never touches real user data
+            _tempDir = Path.Combine(Path.GetTempPath(), "PizzaExpressTests_" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(_tempDir);
+        }
+
+        [TestCleanup]
+        public void TearDown()
+        {
+            if (Directory.Exists(_tempDir))
+                Directory.Delete(_tempDir, recursive: true);
+        }
+
+        private OrderRepository MakeRepo() => new OrderRepository(_tempDir);
+
+        // ── Save & Load ───────────────────────────────────────────────────────
+
+        [TestMethod]
+        public void Save_SingleRecord_CanBeLoadedBack()
+        {
+            var repo   = MakeRepo();
+            var record = MakeRecord("John Smith");
+
+            repo.Save(record);
+            List<OrderRecord> loaded = repo.LoadAll();
+
+            Assert.AreEqual(1, loaded.Count);
+            Assert.AreEqual("John Smith", loaded[0].CustomerName);
+        }
+
+        [TestMethod]
+        public void Save_MultipleRecords_AllPersisted()
+        {
+            var repo = MakeRepo();
+            repo.Save(MakeRecord("Alice"));
+            repo.Save(MakeRecord("Bob"));
+            repo.Save(MakeRecord("Charlie"));
+
+            List<OrderRecord> loaded = repo.LoadAll();
+
+            Assert.AreEqual(3, loaded.Count);
+        }
+
+        [TestMethod]
+        public void Save_PreservesAllFields()
+        {
+            var repo = MakeRepo();
+            var record = new OrderRecord
+            {
+                Id            = "ABC123",
+                OrderDate     = new DateTime(2026, 3, 24, 12, 0, 0),
+                CustomerName  = "Jane Doe",
+                Address       = "1 Queen St",
+                City          = "Auckland",
+                Region        = "Auckland",
+                PostalCode    = "1010",
+                PaymentMethod = "Credit Card",
+                Subtotal      = 15.00m,
+                Tax           = 2.25m,
+                Total         = 17.25m,
+            };
+            record.Lines.Add(new OrderLineRecord { Item = "Normal Crust Small Pizza", Quantity = 1, Price = 4.00m });
+
+            repo.Save(record);
+            var loaded = repo.LoadAll()[0];
+
+            Assert.AreEqual("ABC123",      loaded.Id);
+            Assert.AreEqual("Jane Doe",    loaded.CustomerName);
+            Assert.AreEqual("1 Queen St",  loaded.Address);
+            Assert.AreEqual("Auckland",    loaded.City);
+            Assert.AreEqual("Auckland",    loaded.Region);
+            Assert.AreEqual("1010",        loaded.PostalCode);
+            Assert.AreEqual("Credit Card", loaded.PaymentMethod);
+            Assert.AreEqual(15.00m,        loaded.Subtotal);
+            Assert.AreEqual(2.25m,         loaded.Tax);
+            Assert.AreEqual(17.25m,        loaded.Total);
+            Assert.AreEqual(1,             loaded.Lines.Count);
+            Assert.AreEqual("Normal Crust Small Pizza", loaded.Lines[0].Item);
+        }
+
+        [TestMethod]
+        public void LoadAll_WhenFileDoesNotExist_ReturnsEmptyList()
+        {
+            var repo = MakeRepo();
+            List<OrderRecord> result = repo.LoadAll();
+            Assert.AreEqual(0, result.Count);
+        }
+
+        [TestMethod]
+        public void LoadAll_WhenFileIsCorrupted_ReturnsEmptyList()
+        {
+            File.WriteAllText(Path.Combine(_tempDir, "orders.json"), "{ not valid json [[[");
+
+            var repo   = MakeRepo();
+            var result = repo.LoadAll();
+
+            Assert.AreEqual(0, result.Count);
+        }
+
+        [TestMethod]
+        public void Save_CreatesDirectoryIfMissing()
+        {
+            // Use a sub-dir that doesn't yet exist
+            string subDir = Path.Combine(_tempDir, "NewSubDir");
+            var repo = new OrderRepository(subDir);
+            repo.Save(MakeRecord("Test"));
+
+            Assert.IsTrue(Directory.Exists(subDir));
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void Save_NullRecord_ThrowsArgumentNullException()
+        {
+            MakeRepo().Save(null);
+        }
+
+        // ── Helper ────────────────────────────────────────────────────────────
+
+        private static OrderRecord MakeRecord(string name) => new OrderRecord
+        {
+            Id            = Guid.NewGuid().ToString("N").Substring(0, 8).ToUpper(),
+            OrderDate     = DateTime.Now,
+            CustomerName  = name,
+            Address       = "1 Test St",
+            City          = "Wellington",
+            Region        = "Wellington",
+            PostalCode    = "6011",
+            PaymentMethod = "Cash",
+            Subtotal      = 10.00m,
+            Tax           = 1.50m,
+            Total         = 11.50m,
+        };
+    }
+}

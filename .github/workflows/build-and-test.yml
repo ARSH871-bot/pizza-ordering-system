@@ -8,7 +8,7 @@ on:
 
 jobs:
   build-and-test:
-    name: Build & Run 79 Unit Tests
+    name: Build & Run 95 Unit Tests
     runs-on: windows-latest
 
     steps:
@@ -22,7 +22,7 @@ jobs:
         uses: NuGet/setup-nuget@v2
 
       - name: Restore NuGet packages
-        run: nuget restore PizzaOrderingSystemC#/WindowsFormsApplication3.sln
+        run: nuget restore "PizzaOrderingSystemC#/WindowsFormsApplication3.sln"
 
       - name: Build solution (Debug)
         run: |
@@ -31,10 +31,12 @@ jobs:
             /nologo `
             /verbosity:minimal
 
-      - name: Run unit tests
+      - name: Run unit tests with coverage
         run: |
           vstest.console.exe `
             "PizzaOrderingSystemC#/PizzaExpress.Tests/bin/Debug/PizzaExpress.Tests.dll" `
+            /EnableCodeCoverage `
+            /collect:"Code Coverage" `
             /logger:trx
 
       - name: Upload test results
@@ -43,3 +45,10 @@ jobs:
         with:
           name: test-results
           path: "**/*.trx"
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: "**/*.coverage"

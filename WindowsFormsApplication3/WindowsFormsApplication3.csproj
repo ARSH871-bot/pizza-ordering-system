@@ -54,7 +54,12 @@
     <Compile Include="Models\PizzaSize.cs" />
     <!-- Config -->
     <Compile Include="Config\AppConfig.cs" />
-    <!-- Services -->
+    <!-- Services — interfaces -->
+    <Compile Include="Services\IOrderRepository.cs" />
+    <Compile Include="Services\IOrderValidator.cs" />
+    <Compile Include="Services\IPromoEngine.cs" />
+    <Compile Include="Services\IReceiptWriter.cs" />
+    <!-- Services — implementations -->
     <Compile Include="Services\OrderRepository.cs" />
     <Compile Include="Services\OrderValidator.cs" />
     <Compile Include="Services\PromoEngine.cs" />
@@ -104,6 +109,18 @@
     <None Include="images\pizz2.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+
+  <!-- ── Roslyn Analyzers ──────────────────────────────────────────────── -->
+  <ItemGroup>
+    <Analyzer Include="..\PizzaExpress.Tests\packages\Microsoft.CodeAnalysis.NetAnalyzers.8.0.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.CSharp.NetAnalyzers.dll"
+              Condition="Exists('..\PizzaExpress.Tests\packages\Microsoft.CodeAnalysis.NetAnalyzers.8.0.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.CSharp.NetAnalyzers.dll')" />
+    <Analyzer Include="..\PizzaExpress.Tests\packages\Microsoft.CodeAnalysis.NetAnalyzers.8.0.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.NetAnalyzers.dll"
+              Condition="Exists('..\PizzaExpress.Tests\packages\Microsoft.CodeAnalysis.NetAnalyzers.8.0.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.NetAnalyzers.dll')" />
+    <Analyzer Include="..\PizzaExpress.Tests\packages\StyleCop.Analyzers.1.2.0-beta.556\analyzers\dotnet\cs\StyleCop.Analyzers.dll"
+              Condition="Exists('..\PizzaExpress.Tests\packages\StyleCop.Analyzers.1.2.0-beta.556\analyzers\dotnet\cs\StyleCop.Analyzers.dll')" />
+    <Analyzer Include="..\PizzaExpress.Tests\packages\StyleCop.Analyzers.1.2.0-beta.556\analyzers\dotnet\cs\StyleCop.Analyzers.Unstable.dll"
+              Condition="Exists('..\PizzaExpress.Tests\packages\StyleCop.Analyzers.1.2.0-beta.556\analyzers\dotnet\cs\StyleCop.Analyzers.Unstable.dll')" />
+  </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

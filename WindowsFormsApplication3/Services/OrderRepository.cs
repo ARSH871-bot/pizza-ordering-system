@@ -9,14 +9,34 @@ namespace WindowsFormsApplication3.Services
     /// <summary>
     /// Persists and retrieves OrderRecords as JSON in %APPDATA%\PizzaExpress\orders.json.
     /// </summary>
-    public class OrderRepository
+    public class OrderRepository : IOrderRepository
     {
-        private static readonly string DataDir  = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PizzaExpress");
-        private static readonly string FilePath = Path.Combine(DataDir, "orders.json");
-
+        private readonly string _dataDir;
+        private readonly string _filePath;
         private readonly JavaScriptSerializer _serialiser = new JavaScriptSerializer();
 
+        /// <summary>
+        /// Initialises the repository using the default data directory:
+        /// <c>%APPDATA%\PizzaExpress\orders.json</c>.
+        /// </summary>
+        public OrderRepository()
+            : this(Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "PizzaExpress"))
+        {
+        }
+
+        /// <summary>
+        /// Initialises the repository using a custom <paramref name="dataDirectory"/>.
+        /// Primarily used by unit tests to avoid touching real user data.
+        /// </summary>
+        public OrderRepository(string dataDirectory)
+        {
+            _dataDir  = dataDirectory;
+            _filePath = Path.Combine(_dataDir, "orders.json");
+        }
+
+        /// <inheritdoc/>
         public void Save(OrderRecord record)
         {
             if (record == null) throw new ArgumentNullException("record");
@@ -24,18 +44,19 @@ namespace WindowsFormsApplication3.Services
             List<OrderRecord> all = LoadAll();
             all.Add(record);
 
-            Directory.CreateDirectory(DataDir);
-            File.WriteAllText(FilePath, _serialiser.Serialize(all));
+            Directory.CreateDirectory(_dataDir);
+            File.WriteAllText(_filePath, _serialiser.Serialize(all));
         }
 
+        /// <inheritdoc/>
         public List<OrderRecord> LoadAll()
         {
-            if (!File.Exists(FilePath))
+            if (!File.Exists(_filePath))
                 return new List<OrderRecord>();
 
             try
             {
-                string json = File.ReadAllText(FilePath);
+                string json = File.ReadAllText(_filePath);
                 return _serialiser.Deserialize<List<OrderRecord>>(json) ?? new List<OrderRecord>();
             }
             catch

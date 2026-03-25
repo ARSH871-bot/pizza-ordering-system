@@ -1,0 +1,51 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build-and-release:
+    name: Build Release & Publish to GitHub
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Setup NuGet
+        uses: NuGet/setup-nuget@v2
+
+      - name: Restore NuGet packages
+        run: nuget restore "PizzaOrderingSystemC#/WindowsFormsApplication3.sln"
+
+      - name: Build Release
+        run: |
+          msbuild "PizzaOrderingSystemC#/WindowsFormsApplication3.sln" `
+            /p:Configuration=Release `
+            /nologo `
+            /verbosity:minimal
+
+      - name: Run tests (must pass before release)
+        run: |
+          vstest.console.exe `
+            "PizzaOrderingSystemC#/PizzaExpress.Tests/bin/Release/PizzaExpress.Tests.dll"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            PizzaOrderingSystemC#/WindowsFormsApplication3/bin/Release/WindowsFormsApplication3.exe
+          generate_release_notes: true
+          body: |
+            ## Pizza Express New Zealand ${{ github.ref_name }}
+
+            ### Install
+            Download `WindowsFormsApplication3.exe` below — requires Windows 10/11 with .NET Framework 4.8 (pre-installed).
+
+            ### What's new
+            See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/master/PizzaOrderingSystemC%23/CHANGELOG.md) for full details.
