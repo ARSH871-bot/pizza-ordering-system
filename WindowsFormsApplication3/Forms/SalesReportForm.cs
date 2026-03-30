@@ -337,7 +337,7 @@ namespace WindowsFormsApplication3.Forms
                 BorderStyle   = BorderStyle.None,
                 Font          = new Font("Segoe UI", 9f),
             };
-            lv.ColumnHeadersVisible = true;
+            lv.HeaderStyle = ColumnHeaderStyle.Clickable;
             for (int i = 0; i < headers.Length; i++)
                 lv.Columns.Add(headers[i], widths[i]);
 
