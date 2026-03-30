@@ -2,7 +2,7 @@
 
 [![Build and Test](https://github.com/ARSH871-bot/pizza-ordering-system/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/ARSH871-bot/pizza-ordering-system/actions/workflows/build-and-test.yml)
 ![Version](https://img.shields.io/badge/version-2.15.0-brightgreen)
-![Tests](https://img.shields.io/badge/tests-automated-success)
+![Tests](https://img.shields.io/badge/tests-207%20passing-success)
 ![Coverage](https://img.shields.io/badge/coverage-%3E70%25%20gated-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Platform](https://img.shields.io/badge/platform-Windows-lightgrey)
