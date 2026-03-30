@@ -14,12 +14,16 @@ namespace WindowsFormsApplication3.Models
         public List<OrderItem> Items       { get; }      = new List<OrderItem>();
         public Customer        Customer    { get; set; } = new Customer();
         public string          PaymentMethod { get; set; }
+        public decimal         Discount    { get; set; }
+        public string          DiscountDescription { get; set; }
+        public int             DeliveryMinutes { get; set; } = AppConfig.DeliveryMinutes;
         public decimal         AmountPaid  { get; set; }
         public DateTime        OrderDate   { get; set; } = DateTime.Now;
 
         public decimal Subtotal => Items.Sum(i => i.TotalPrice);
         public decimal Tax      => Math.Round(Subtotal * AppConfig.TaxRate, 2);
         public decimal Total    => Subtotal + Tax;
-        public decimal Change   => AmountPaid - Total;
+        public decimal AmountDue => Math.Max(Total - Discount, 0m);
+        public decimal Change   => AmountPaid - AmountDue;
     }
 }

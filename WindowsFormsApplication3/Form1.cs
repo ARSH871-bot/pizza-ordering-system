@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Printing;
 using System.IO;
+using System.Globalization;
 using System.Text;
 using System.Windows.Forms;
 using WindowsFormsApplication3.Config;
@@ -48,10 +49,12 @@ namespace WindowsFormsApplication3
         // ── State ─────────────────────────────────────────────────────────────
         private readonly List<ListViewItem> _stagedPizzas = new List<ListViewItem>();
         private string _lastReceiptText;   // cached for clipboard / print
+        private string _appliedPromoCode;
 
         // Validation colours
         private static readonly Color ColourValid   = Color.Honeydew;
         private static readonly Color ColourInvalid = Color.MistyRose;
+        private static readonly CultureInfo CurrencyCulture = new CultureInfo("en-NZ");
 
         // UI components added programmatically
         private ToolStripStatusLabel _statusLabel;
@@ -79,6 +82,7 @@ namespace WindowsFormsApplication3
             txtAmountDue.Enabled   = false;
             txtChange.Enabled      = false;
             txtCardOrPromo.Enabled = false;
+            lblCardOrPromo.Text    = "Reference:";
 
             foreach (string region in AppConfig.NZRegions)
                 cboRegion.Items.Add(region);
@@ -109,7 +113,7 @@ namespace WindowsFormsApplication3
             txtContactNo.AccessibleName  = "Contact Number, optional";
             txtEmail.AccessibleName      = "Email Address, optional";
             cboPaymentMethod.AccessibleName = "Payment Method";
-            txtCardOrPromo.AccessibleName   = "Card Number or Promo Code";
+            txtCardOrPromo.AccessibleName   = "Payment Reference or Promo Code";
             txtAmountPaid.AccessibleName    = "Amount Paid";
             txtAmountDue.AccessibleName     = "Amount Due";
             txtChange.AccessibleName        = "Change";
@@ -142,6 +146,22 @@ namespace WindowsFormsApplication3
             txtPostalCode.Leave += txtPostalCode_Leave;
             txtContactNo.Leave  += txtContactNo_Leave;
             txtEmail.Leave      += txtEmail_Leave;
+            txtAmountPaid.TextChanged += (s, ev) =>
+            {
+                btnSubmitOrder.Enabled = false;
+                if (cboPaymentMethod.Text != "Promo Card")
+                    txtChange.Text = string.Empty;
+            };
+            txtCardOrPromo.TextChanged += (s, ev) =>
+            {
+                _appliedPromoCode = null;
+                btnSubmitOrder.Enabled = false;
+                if (cboPaymentMethod.Text == "Promo Card")
+                {
+                    txtAmountDue.Text = txtTotalDue.Text;
+                    txtChange.Text = string.Empty;
+                }
+            };
 
             // ── Status bar ─────────────────────────────────────────────────────
             var statusStrip = new StatusStrip { SizingGrip = false };
@@ -481,7 +501,7 @@ namespace WindowsFormsApplication3
                 $"Version {Application.ProductVersion}\n\n" +
                 $"A Windows Forms POS system built in C# (.NET Framework 4.8).\n\n" +
                 $"Architecture: 3-layer (Models / Services / UI)\n" +
-                $"Test suite:   192 unit + integration tests\n" +
+                $"Validation:   Build + automated tests in GitHub Actions\n" +
                 $"CI/CD:        GitHub Actions\n\n" +
                 $"Data saved to: {Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\PizzaExpress\\";
 
@@ -557,19 +577,23 @@ namespace WindowsFormsApplication3
                 lvOrder.Items.Add(item);
 
             // Add drinks
-            AddDrinkIfChecked(cbCoke, txtQtyCoke,  "Coke - Can",        AppConfig.DrinkCanPrice);
-            AddDrinkIfChecked(cbDietCoke, txtQtyDietCoke,  "Diet Coke - Can",   AppConfig.DrinkCanPrice);
-            AddDrinkIfChecked(cbIcedTea, txtQtyIcedTea,  "Iced Tea - Can",    AppConfig.DrinkCanPrice);
-            AddDrinkIfChecked(cbGingerAle, txtQtyGingerAle,  "Ginger Ale - Can",  AppConfig.DrinkCanPrice);
-            AddDrinkIfChecked(cbSprite, txtQtySprite,  "Sprite - Can",      AppConfig.DrinkCanPrice);
-            AddDrinkIfChecked(cbRootBeer, txtQtyRootBeer,  "Root Beer - Can",   AppConfig.DrinkCanPrice);
-            AddDrinkIfChecked(cbWater, txtQtyWater,  "Bottled Water",     AppConfig.WaterPrice);
+            decimal drinkCanPrice = _cart.GetDrinkCanPrice();
+            decimal waterPrice = _cart.GetWaterPrice();
+            decimal sidePrice = _cart.GetSidePrice();
+
+            AddDrinkIfChecked(cbCoke, txtQtyCoke,  "Coke - Can",        drinkCanPrice);
+            AddDrinkIfChecked(cbDietCoke, txtQtyDietCoke,  "Diet Coke - Can",   drinkCanPrice);
+            AddDrinkIfChecked(cbIcedTea, txtQtyIcedTea,  "Iced Tea - Can",    drinkCanPrice);
+            AddDrinkIfChecked(cbGingerAle, txtQtyGingerAle,  "Ginger Ale - Can",  drinkCanPrice);
+            AddDrinkIfChecked(cbSprite, txtQtySprite,  "Sprite - Can",      drinkCanPrice);
+            AddDrinkIfChecked(cbRootBeer, txtQtyRootBeer,  "Root Beer - Can",   drinkCanPrice);
+            AddDrinkIfChecked(cbWater, txtQtyWater,  "Bottled Water",     waterPrice);
 
             // Add sides / dips
-            AddSideIfChecked(cbChickenWings, "Chicken Wings",      AppConfig.SidePrice);
-            AddSideIfChecked(cbPoutine, "Poutine",            AppConfig.SidePrice);
-            AddSideIfChecked(cbOnionRings, "Onion Rings",        AppConfig.SidePrice);
-            AddSideIfChecked(cbCheesyGarlicBread, "Cheesy Garlic Bread",AppConfig.SidePrice);
+            AddSideIfChecked(cbChickenWings, "Chicken Wings",      sidePrice);
+            AddSideIfChecked(cbPoutine, "Poutine",            sidePrice);
+            AddSideIfChecked(cbOnionRings, "Onion Rings",        sidePrice);
+            AddSideIfChecked(cbCheesyGarlicBread, "Cheesy Garlic Bread",sidePrice);
             AddSideIfChecked(cbGarlicDip, "Garlic Dip",         0m);
             AddSideIfChecked(cbBBQDip, "BBQ Dip",            0m);
             AddSideIfChecked(cbSourCreamDip, "Sour Cream Dip",     0m);
@@ -605,9 +629,10 @@ namespace WindowsFormsApplication3
             decimal tax      = Math.Round(subtotal * AppConfig.TaxRate, 2);
             decimal totalDue = subtotal + tax;
 
-            txtSubtotal.Text = subtotal.ToString("C2");
-            txtTax.Text      = tax.ToString("C2");
-            txtTotalDue.Text = totalDue.ToString("C2");
+            txtSubtotal.Text = subtotal.ToString("C2", CurrencyCulture);
+            txtTax.Text      = tax.ToString("C2", CurrencyCulture);
+            txtTotalDue.Text = totalDue.ToString("C2", CurrencyCulture);
+            ResetValidatedPayment(clearAmountPaid: true, resetAmountDue: true);
 
             UpdateStatusBar();
             tabControl1.SelectTab("tabPage2");
@@ -636,14 +661,14 @@ namespace WindowsFormsApplication3
 
         private void btnOrderAgain_Click(object sender, EventArgs e)
         {
-            btnSubmitOrder.Enabled = false;
+            ResetValidatedPayment(clearAmountPaid: true, resetAmountDue: true);
             tabControl1.SelectTab("tabPage1");
         }
 
         private void btnCheckOut_Click(object sender, EventArgs e)
         {
             tabControl1.SelectTab("tabPage3");
-            txtAmountDue.Text = txtTotalDue.Text;
+            ResetValidatedPayment(clearAmountPaid: false, resetAmountDue: true);
         }
 
         private void btnClearOrder_Click(object sender, EventArgs e)
@@ -660,7 +685,7 @@ namespace WindowsFormsApplication3
             txtSubtotal.Text  = "";
             txtTax.Text       = "";
             txtTotalDue.Text  = "";
-            btnSubmitOrder.Enabled = false;
+            ResetValidatedPayment(clearAmountPaid: true, resetAmountDue: true);
             UpdateStatusBar();
         }
 
@@ -684,16 +709,23 @@ namespace WindowsFormsApplication3
             if (cboPaymentMethod.Text == "Promo Card")
             {
                 string code = txtCardOrPromo.Text.Trim();
-                char[] dollar = { '$' };
-                decimal originalTotal = Convert.ToDecimal(txtTotalDue.Text.TrimStart(dollar));
+                decimal originalTotal = ParseCurrencyOrZero(txtTotalDue.Text);
 
                 var promoResult = _promoEngine.Apply(code, originalTotal);
-                if (!promoResult.Success) { MessageBox.Show(promoResult.Message); return; }
+                if (!promoResult.Success)
+                {
+                    _appliedPromoCode = null;
+                    btnSubmitOrder.Enabled = false;
+                    MessageBox.Show(promoResult.Message);
+                    return;
+                }
 
-                txtAmountDue.Text = promoResult.DiscountedTotal.ToString("C2");
-                txtAmountPaid.Text = promoResult.DiscountedTotal.ToString("F2");
-                txtChange.Text = "$0.00";
-                _logger.Info($"Promo applied  code={code}  discount={promoResult.DiscountedTotal:C2}");
+                decimal discountAmount = Math.Max(originalTotal - promoResult.DiscountedTotal, 0m);
+                _appliedPromoCode = code;
+                txtAmountDue.Text = promoResult.DiscountedTotal.ToString("C2", CurrencyCulture);
+                txtAmountPaid.Text = promoResult.DiscountedTotal.ToString("F2", CultureInfo.InvariantCulture);
+                txtChange.Text = 0m.ToString("C2", CurrencyCulture);
+                _logger.Info($"Promo applied  code={code}  savings={discountAmount:C2}");
                 MessageBox.Show(promoResult.Message, "Promo Applied");
                 btnSubmitOrder.Enabled = true;
                 return;
@@ -706,10 +738,10 @@ namespace WindowsFormsApplication3
                 return;
             }
 
-            char[] dollarSign = { '$' };
-            decimal totalDue   = Convert.ToDecimal(txtAmountDue.Text.TrimStart(dollarSign));
+            _appliedPromoCode = null;
+            decimal totalDue = ParseCurrencyOrZero(txtAmountDue.Text);
             decimal amountPaid;
-            if (!decimal.TryParse(txtAmountPaid.Text, out amountPaid))
+            if (!decimal.TryParse(txtAmountPaid.Text, NumberStyles.Number | NumberStyles.AllowCurrencySymbol, CurrencyCulture, out amountPaid))
             {
                 MessageBox.Show("Please enter a valid payment amount.");
                 return;
@@ -718,7 +750,7 @@ namespace WindowsFormsApplication3
             var payResult = _validator.ValidatePayment(cboPaymentMethod.Text, amountPaid, totalDue);
             if (!payResult.IsValid) { MessageBox.Show(payResult.ErrorMessage); btnSubmitOrder.Enabled = false; return; }
 
-            txtChange.Text  = (amountPaid - totalDue).ToString("C2");
+            txtChange.Text  = (amountPaid - totalDue).ToString("C2", CurrencyCulture);
             btnSubmitOrder.Enabled = true;
         }
 
@@ -734,7 +766,7 @@ namespace WindowsFormsApplication3
                 var record = BuildOrderRecord(order);
                 _repo.Save(record);
                 _logger.Info($"Order saved  id={record.Id}  customer={order.Customer.FullName}" +
-                             $"  total={order.Total:C2}  method={order.PaymentMethod}");
+                             $"  total={order.AmountDue:C2}  method={order.PaymentMethod}");
             }
             catch (Exception ex)
             {
@@ -788,7 +820,7 @@ namespace WindowsFormsApplication3
             // Order again or exit
             if (MessageBox.Show(
                     $"Thanks for ordering at Pizza Express!\n" +
-                    $"Your order will be delivered in approx. {(_settings?.Get("DeliveryMinutes", null) ?? AppConfig.DeliveryMinutes.ToString())} minutes.\n\n" +
+                    $"Your order will be delivered in approx. {GetDeliveryMinutes()} minutes.\n\n" +
                     "Would you like to place another order?",
                     "Order Complete", MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
@@ -878,7 +910,9 @@ namespace WindowsFormsApplication3
             bool isCash  = cboPaymentMethod.Text == "Cash";
 
             txtCardOrPromo.Enabled = !isCash;
-            lblCardOrPromo.Text      = isPromo ? "*Promo Code:" : "*Card No:";
+            txtCardOrPromo.AccessibleName = isPromo ? "Promo Code" : "Payment Reference";
+            lblCardOrPromo.Text = isPromo ? "*Promo Code:" : "Reference:";
+            ResetValidatedPayment(clearAmountPaid: true, resetAmountDue: true);
         }
 
         // =====================================================================
@@ -977,19 +1011,23 @@ namespace WindowsFormsApplication3
             }
 
             // Drinks
-            running += DrinkRunning(cbCoke,      txtQtyCoke,      AppConfig.DrinkCanPrice);
-            running += DrinkRunning(cbDietCoke,  txtQtyDietCoke,  AppConfig.DrinkCanPrice);
-            running += DrinkRunning(cbIcedTea,   txtQtyIcedTea,   AppConfig.DrinkCanPrice);
-            running += DrinkRunning(cbGingerAle, txtQtyGingerAle, AppConfig.DrinkCanPrice);
-            running += DrinkRunning(cbSprite,    txtQtySprite,    AppConfig.DrinkCanPrice);
-            running += DrinkRunning(cbRootBeer,  txtQtyRootBeer,  AppConfig.DrinkCanPrice);
-            running += DrinkRunning(cbWater,     txtQtyWater,     AppConfig.WaterPrice);
+            decimal drinkCanPrice = _cart.GetDrinkCanPrice();
+            decimal waterPrice = _cart.GetWaterPrice();
+            decimal sidePrice = _cart.GetSidePrice();
+
+            running += DrinkRunning(cbCoke,      txtQtyCoke,      drinkCanPrice);
+            running += DrinkRunning(cbDietCoke,  txtQtyDietCoke,  drinkCanPrice);
+            running += DrinkRunning(cbIcedTea,   txtQtyIcedTea,   drinkCanPrice);
+            running += DrinkRunning(cbGingerAle, txtQtyGingerAle, drinkCanPrice);
+            running += DrinkRunning(cbSprite,    txtQtySprite,    drinkCanPrice);
+            running += DrinkRunning(cbRootBeer,  txtQtyRootBeer,  drinkCanPrice);
+            running += DrinkRunning(cbWater,     txtQtyWater,     waterPrice);
 
             // Sides
-            if (cbChickenWings.Checked)    running += AppConfig.SidePrice;
-            if (cbPoutine.Checked)         running += AppConfig.SidePrice;
-            if (cbOnionRings.Checked)      running += AppConfig.SidePrice;
-            if (cbCheesyGarlicBread.Checked) running += AppConfig.SidePrice;
+            if (cbChickenWings.Checked)    running += sidePrice;
+            if (cbPoutine.Checked)         running += sidePrice;
+            if (cbOnionRings.Checked)      running += sidePrice;
+            if (cbCheesyGarlicBread.Checked) running += sidePrice;
 
             decimal total = _cart.CalculateTotal(running);
             _liveTotalLabel.Text = $"Live total (incl. GST):  {total:C2}";
@@ -1153,7 +1191,10 @@ namespace WindowsFormsApplication3
                 PaymentMethod = order.PaymentMethod,
                 Subtotal      = order.Subtotal,
                 Tax           = order.Tax,
-                Total         = order.Total,
+                Total         = order.AmountDue,
+                Discount      = order.Discount,
+                DiscountDescription = order.DiscountDescription,
+                Status        = "Active",
             };
             foreach (var item in order.Items)
                 record.Lines.Add(new OrderLineRecord
@@ -1171,11 +1212,15 @@ namespace WindowsFormsApplication3
             {
                 Customer      = BuildCustomer(),
                 PaymentMethod = cboPaymentMethod.Text,
+                DiscountDescription = string.IsNullOrWhiteSpace(_appliedPromoCode) ? null : _appliedPromoCode.Trim(),
+                DeliveryMinutes = GetDeliveryMinutes(),
             };
 
-            char[] dollar = { '$' };
-            decimal.TryParse(txtAmountPaid.Text, out decimal paid);
+            decimal paid = ParseCurrencyOrZero(txtAmountPaid.Text);
             order.AmountPaid = paid;
+            order.Discount = Math.Max(
+                ParseCurrencyOrZero(txtTotalDue.Text) - ParseCurrencyOrZero(txtAmountDue.Text),
+                0m);
 
             foreach (ListViewItem lvi in lvOrder.Items)
             {
@@ -1191,6 +1236,43 @@ namespace WindowsFormsApplication3
             }
 
             return order;
+        }
+
+        private void ResetValidatedPayment(bool clearAmountPaid, bool resetAmountDue)
+        {
+            _appliedPromoCode = null;
+            btnSubmitOrder.Enabled = false;
+            txtChange.Text = string.Empty;
+
+            if (resetAmountDue)
+                txtAmountDue.Text = txtTotalDue.Text;
+
+            if (clearAmountPaid)
+                txtAmountPaid.Text = string.Empty;
+        }
+
+        private int GetDeliveryMinutes()
+        {
+            string raw = _settings?.Get("DeliveryMinutes", AppConfig.DeliveryMinutes.ToString());
+            int minutes;
+            return int.TryParse(raw, out minutes) && minutes > 0
+                ? minutes
+                : AppConfig.DeliveryMinutes;
+        }
+
+        private static decimal ParseCurrencyOrZero(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                return 0m;
+
+            decimal value;
+            if (decimal.TryParse(text, NumberStyles.Currency, CurrencyCulture, out value))
+                return value;
+            if (decimal.TryParse(text, NumberStyles.Currency, CultureInfo.CurrentCulture, out value))
+                return value;
+            if (decimal.TryParse(text, NumberStyles.Number, CultureInfo.InvariantCulture, out value))
+                return value;
+            return 0m;
         }
 
         private void ResetPizzaAndToppings()
@@ -1259,7 +1341,9 @@ namespace WindowsFormsApplication3
             // Payment state
             btnSubmitOrder.Enabled = false;
             txtCardOrPromo.Enabled = false;
-            lblCardOrPromo.Text    = "*Card No:";
+            _appliedPromoCode      = null;
+            lblCardOrPromo.Text    = "Reference:";
+            txtCardOrPromo.AccessibleName = "Payment Reference or Promo Code";
 
             // Reset inline-validation colours
             txtPostalCode.BackColor = SystemColors.Window;

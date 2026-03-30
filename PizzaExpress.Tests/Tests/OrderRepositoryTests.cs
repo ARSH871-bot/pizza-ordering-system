@@ -98,6 +98,42 @@ namespace PizzaExpress.Tests.Tests
         }
 
         [TestMethod]
+        public void Save_PersistsDiscountFields()
+        {
+            var repo = MakeRepo();
+            var record = MakeRecord("Discounted");
+            record.Discount = 2.50m;
+            record.DiscountDescription = "PROMO10";
+            record.Total = 9.00m;
+
+            repo.Save(record);
+            var loaded = repo.LoadAll()[0];
+
+            Assert.AreEqual(2.50m, loaded.Discount);
+            Assert.AreEqual("PROMO10", loaded.DiscountDescription);
+            Assert.AreEqual(9.00m, loaded.Total);
+        }
+
+        [TestMethod]
+        public void Save_SameId_ReplacesExistingLinesInsteadOfDuplicating()
+        {
+            var repo = MakeRepo();
+            var record = MakeRecord("ReplaceLines");
+            record.Id = "REPLACE1";
+            record.Lines.Add(new OrderLineRecord { Item = "Old Item", Quantity = 1, Price = 5.00m });
+            repo.Save(record);
+
+            record.Lines.Clear();
+            record.Lines.Add(new OrderLineRecord { Item = "New Item", Quantity = 2, Price = 7.50m });
+            repo.Save(record);
+
+            var loaded = repo.LoadAll()[0];
+
+            Assert.AreEqual(1, loaded.Lines.Count);
+            Assert.AreEqual("New Item", loaded.Lines[0].Item);
+        }
+
+        [TestMethod]
         public void LoadAll_WhenFileDoesNotExist_ReturnsEmptyList()
         {
             var repo = MakeRepo();
@@ -335,6 +371,22 @@ namespace PizzaExpress.Tests.Tests
             Assert.AreEqual(3,      summary.TotalOrders);
             Assert.AreEqual(34.50m, summary.TotalRevenue);
             Assert.AreEqual(11.50m, summary.AverageOrderValue);
+        }
+
+        [TestMethod]
+        public void GetSummary_VoidedOrdersExcluded()
+        {
+            var repo = MakeRepo();
+            var active = MakeRecord("Active");
+            var voided = MakeRecord("Voided");
+            repo.Save(active);
+            repo.Save(voided);
+            repo.VoidOrder(voided.Id);
+
+            var summary = repo.GetSummary();
+
+            Assert.AreEqual(1, summary.TotalOrders);
+            Assert.AreEqual(11.50m, summary.TotalRevenue);
         }
 
         // ── VoidOrder ─────────────────────────────────────────────────────────

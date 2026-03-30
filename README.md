@@ -2,13 +2,13 @@
 
 [![Build and Test](https://github.com/ARSH871-bot/pizza-ordering-system/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/ARSH871-bot/pizza-ordering-system/actions/workflows/build-and-test.yml)
 ![Version](https://img.shields.io/badge/version-2.15.0-brightgreen)
-![Tests](https://img.shields.io/badge/tests-192%20passing-success)
+![Tests](https://img.shields.io/badge/tests-automated-success)
 ![Coverage](https://img.shields.io/badge/coverage-%3E70%25%20gated-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Platform](https://img.shields.io/badge/platform-Windows-lightgrey)
 ![Framework](https://img.shields.io/badge/.NET-4.8-purple)
 
-A Windows Forms desktop POS (Point of Sale) application for **Pizza Express New Zealand**, built in C# (.NET Framework 4.8) with a clean three-layer architecture, 192 unit + integration tests, and a fully automated CI pipeline.
+A Windows Forms desktop POS (Point of Sale) application for **Pizza Express New Zealand**, built in C# (.NET Framework 4.8) with a clean three-layer architecture, SQLite-backed local persistence, and a fully automated CI pipeline.
 
 ---
 
@@ -56,8 +56,8 @@ A Windows Forms desktop POS (Point of Sale) application for **Pizza Express New 
 - 14 toppings at $0.75 each
 - Quantity selector (1–20) per pizza — price scales automatically
 - **Multi-pizza cart** — stage each pizza independently before checkout
-- Drinks: Coke, Diet Coke, Iced Tea, Ginger Ale, Sprite, Root Beer ($1.45), Bottled Water ($1.25)
-- Extras: Chicken Wings, Poutine, Onion Rings, Cheesy Garlic Bread ($3.00)
+- Drinks: Coke, Diet Coke, Iced Tea, Ginger Ale, Sprite, Root Beer (default $1.45), Bottled Water (default $1.25)
+- Extras: Chicken Wings, Poutine, Onion Rings, Cheesy Garlic Bread (default $3.00)
 
 ### Checkout & Validation
 - **NZ localisation** — GST 15%, 16 NZ regions, 4-digit NZ postal code validation
@@ -65,6 +65,7 @@ A Windows Forms desktop POS (Point of Sale) application for **Pizza Express New 
 - **Live running total** — subtotal + GST updates in real time as items are added
 - Payment methods: Cash, Credit Card, Debit Card, Promo Card
 - **Promo codes**: `PIZZA10` (10% off), `PIZZA20` (20% off), `FREESHIP` (free order)
+- Non-cash payments use a reference field only; the app does not store real card numbers
 - Change calculation; receipt export to `.txt`, copy to clipboard, or print preview
 - Keyboard shortcuts: `Alt+C` confirm, `Alt+H` history, `Esc` back
 - **Crash logger** — unhandled exceptions written to `%APPDATA%\PizzaExpress\Logs\crash_*.log`
@@ -83,7 +84,7 @@ A Windows Forms desktop POS (Point of Sale) application for **Pizza Express New 
 - **End-of-Day Z-Report** (`Alt+E`) — cashier shift-close summary: orders, revenue, GST, average, payment-method reconciliation, top items; printable via print preview
 
 ### Administration
-- **Settings form** (`Alt+W`) — all prices and delivery time stored in SQLite; live edit via DataGridView; changes take effect on the next order, no restart required
+- **Settings form** (`Alt+W`) — pizza prices, topping price, drink prices, side price, and delivery time are stored in SQLite; changes take effect on the next order, no restart required
 - **Staff PIN login** — configurable numeric PIN shown at startup; bypass when blank (single-operator mode); shake animation + keyboard support; set via Settings form
 - **Dynamic delivery estimate** — order confirmation reads delivery minutes from the database setting rather than a compile-time constant
 
@@ -119,7 +120,7 @@ A Windows Forms desktop POS (Point of Sale) application for **Pizza Express New 
 
 ```bash
 git clone https://github.com/ARSH871-bot/pizza-ordering-system.git
-cd pizza-ordering-system/PizzaOrderingSystemC#
+cd pizza-ordering-system
 ```
 
 Open `WindowsFormsApplication3.sln` in Visual Studio, press `F5`.
@@ -127,8 +128,9 @@ Open `WindowsFormsApplication3.sln` in Visual Studio, press `F5`.
 ### Run Tests
 
 ```powershell
-msbuild WindowsFormsApplication3.sln /p:Configuration=Debug
-vstest.console.exe PizzaExpress.Tests\bin\Debug\PizzaExpress.Tests.dll
+dotnet restore WindowsFormsApplication3.sln
+dotnet build WindowsFormsApplication3.sln --configuration Debug
+dotnet test PizzaExpress.Tests\PizzaExpress.Tests.csproj --configuration Debug --settings coverlet.runsettings --collect "XPlat Code Coverage"
 ```
 
 ---
@@ -136,7 +138,7 @@ vstest.console.exe PizzaExpress.Tests\bin\Debug\PizzaExpress.Tests.dll
 ## Project Structure
 
 ```
-PizzaOrderingSystemC#/
+pizza-ordering-system/
 ├── WindowsFormsApplication3/
 │   ├── Config/
 │   │   └── AppConfig.cs              # All prices, tax rate, regions, promo codes
@@ -171,7 +173,7 @@ PizzaOrderingSystemC#/
 │   ├── Form1.cs                      # Main POS form (UI only)
 │   └── OrderHistoryForm.cs           # History viewer — search, filter, void, sort, CSV
 ├── PizzaExpress.Tests/
-│   └── Tests/                        # 175 tests across 11 test classes
+│   └── Tests/                        # automated regression tests
 │       ├── OrderItemTests.cs
 │       ├── OrderTests.cs
 │       ├── CustomerTests.cs
@@ -198,6 +200,30 @@ PizzaOrderingSystemC#/
 ├── .gitattributes                    # CRLF normalisation
 └── coverlet.runsettings              # OpenCover format, excludes test assembly
 ```
+
+---
+
+## Troubleshooting
+
+- `dotnet restore` fails: confirm internet access to `https://api.nuget.org`, then retry from the repository root.
+- Orders or settings look wrong: inspect `%APPDATA%\PizzaExpress\orders.db`; the app stores all local data there.
+- A local build passes but GitHub Actions fails: check `.github/workflows/*.yml` for path drift relative to the repo root.
+
+---
+
+## Known Limitations
+
+- This is a single-workstation, local-first POS; it does not include cloud sync or multi-terminal coordination.
+- Payment handling is reference-based only; there is no payment gateway integration or PCI card storage.
+- Packaging is currently a raw Windows executable release rather than an installer/MSI experience.
+
+---
+
+## Roadmap
+
+- Add backup/export and recovery-friendly flows for local SQLite data.
+- Broaden regression coverage around operator workflows and reporting edge cases.
+- Improve release packaging and contributor automation while staying on free tooling.
 
 ---
 
@@ -230,7 +256,7 @@ See [CHANGELOG.md](CHANGELOG.md) for full release history.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for branching strategy and commit conventions.
 Please use the [issue templates](.github/ISSUE_TEMPLATE/) for bug reports and feature requests.
-All PRs must pass CI (build + 177 tests + ≥70% line coverage) before merging.
+All PRs must pass CI (build + automated tests + ≥70% line coverage) before merging.
 
 ## Security
 

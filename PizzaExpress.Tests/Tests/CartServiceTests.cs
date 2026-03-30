@@ -130,5 +130,80 @@ namespace PizzaExpress.Tests.Tests
         [TestMethod]
         public void CalculateTotal_Zero_ReturnsZero()
             => Assert.AreEqual(0m, _cart.CalculateTotal(0m));
+
+        [TestMethod]
+        public void BuildPizzaItems_WithSettingsRepository_UsesConfiguredPrices()
+        {
+            var settings = new StubSettingsRepository(new Dictionary<string, string>
+            {
+                ["PizzaPrice.Small"] = "5.50",
+                ["ToppingPrice"] = "1.25",
+            });
+            var cart = new CartService(settings);
+
+            var items = cart.BuildPizzaItems(
+                PizzaSize.Small,
+                CrustType.Normal,
+                2,
+                new List<string> { "Pepperoni" });
+
+            Assert.AreEqual(11.00m, items[0].TotalPrice);
+            Assert.AreEqual(1.25m, items[1].TotalPrice);
+        }
+
+        [TestMethod]
+        public void GetDrinkCanPrice_UsesConfiguredSetting()
+        {
+            var cart = new CartService(new StubSettingsRepository(
+                new Dictionary<string, string> { ["DrinkCanPrice"] = "1.95" }));
+
+            Assert.AreEqual(1.95m, cart.GetDrinkCanPrice());
+        }
+
+        [TestMethod]
+        public void GetWaterPrice_UsesConfiguredSetting()
+        {
+            var cart = new CartService(new StubSettingsRepository(
+                new Dictionary<string, string> { ["WaterPrice"] = "1.60" }));
+
+            Assert.AreEqual(1.60m, cart.GetWaterPrice());
+        }
+
+        [TestMethod]
+        public void GetSidePrice_UsesConfiguredSetting()
+        {
+            var cart = new CartService(new StubSettingsRepository(
+                new Dictionary<string, string> { ["SidePrice"] = "4.25" }));
+
+            Assert.AreEqual(4.25m, cart.GetSidePrice());
+        }
+
+        private sealed class StubSettingsRepository : ISettingsRepository
+        {
+            private readonly Dictionary<string, string> _values;
+
+            public StubSettingsRepository(Dictionary<string, string> values)
+            {
+                _values = values ?? new Dictionary<string, string>();
+            }
+
+            public string Get(string key, string defaultValue = null)
+            {
+                return _values.TryGetValue(key, out var value) ? value : defaultValue;
+            }
+
+            public void Set(string key, string value)
+            {
+                _values[key] = value;
+            }
+
+            public IReadOnlyList<SettingRow> GetAll()
+            {
+                var rows = new List<SettingRow>();
+                foreach (var kvp in _values)
+                    rows.Add(new SettingRow { Key = kvp.Key, Value = kvp.Value });
+                return rows;
+            }
+        }
     }
 }

@@ -49,12 +49,40 @@ namespace PizzaExpress.Tests
         }
 
         [TestMethod]
+        public void AmountDue_SubtractsDiscount()
+        {
+            var order = BuildOrder(("Extra Large Pizza", 1, 13.00m));
+            order.Discount = 3.00m;
+
+            Assert.AreEqual(order.Total - 3.00m, order.AmountDue);
+        }
+
+        [TestMethod]
+        public void AmountDue_NeverDropsBelowZero()
+        {
+            var order = BuildOrder(("Small Pizza", 1, 4.00m));
+            order.Discount = 999.00m;
+
+            Assert.AreEqual(0m, order.AmountDue);
+        }
+
+        [TestMethod]
         public void Change_IsAmountPaidMinusTotal()
         {
             var order = BuildOrder(("Small Pizza", 1, 4.00m));
             order.AmountPaid = 10.00m;
             decimal expected = 10.00m - order.Total;
             Assert.AreEqual(expected, order.Change);
+        }
+
+        [TestMethod]
+        public void Change_UsesDiscountedAmountDue()
+        {
+            var order = BuildOrder(("Large Pizza", 1, 10.00m));
+            order.Discount = 2.50m;
+            order.AmountPaid = order.AmountDue;
+
+            Assert.AreEqual(0m, order.Change);
         }
 
         [TestMethod]

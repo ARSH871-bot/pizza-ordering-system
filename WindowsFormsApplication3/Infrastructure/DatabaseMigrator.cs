@@ -3,47 +3,39 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
 using System.IO;
+using System.Linq;
 using Dapper;
 
 namespace WindowsFormsApplication3.Infrastructure
 {
     /// <summary>
     /// Lightweight database migration runner backed by SQLite + Dapper.
-    /// <para>
-    /// Each migration script is stored inline as a constant string and identified by a
-    /// unique name.  Applied scripts are recorded in a <c>SchemaHistory</c> table so
-    /// each script runs exactly once, in declaration order, across all environments and
-    /// upgrade paths — no DbUp or FluentMigrator dependency required.
-    /// </para>
+    /// Safe to call on every startup.
     /// </summary>
     public static class DatabaseMigrator
     {
         private const string TrackingTable = "SchemaHistory";
 
         /// <summary>
-        /// Ensures the target database is up-to-date by applying all pending migrations.
-        /// Safe to call on every application start — already-applied scripts are skipped.
+        /// Ensures the target database exists and all pending migrations are applied.
         /// </summary>
-        /// <param name="dataDirectory">
-        /// Directory that contains (or will contain) <c>orders.db</c>.
-        /// </param>
         public static void Run(string dataDirectory)
         {
             Directory.CreateDirectory(dataDirectory);
             string dbPath = Path.Combine(dataDirectory, "orders.db");
-            string cs     = $"Data Source={dbPath};Version=3;DateTimeFormat=ISO8601;";
+            string cs = $"Data Source={dbPath};Version=3;DateTimeFormat=ISO8601;";
 
             using (var conn = new SQLiteConnection(cs))
             {
                 conn.Open();
+                conn.Execute("PRAGMA foreign_keys = ON;");
                 EnsureTrackingTable(conn);
+                EnsureCoreTables(conn);
 
                 foreach (var migration in Migrations)
-                    ApplyIfNotRun(conn, migration.Key, migration.Value);
+                    ApplyIfNotRun(conn, migration);
             }
         }
-
-        // ── Private helpers ───────────────────────────────────────────────────
 
         private static void EnsureTrackingTable(IDbConnection conn)
         {
@@ -54,48 +46,123 @@ namespace WindowsFormsApplication3.Infrastructure
                 )");
         }
 
-        private static void ApplyIfNotRun(IDbConnection conn, string name, string sql)
+        private static void EnsureCoreTables(IDbConnection conn)
         {
-            bool already = conn.QueryFirstOrDefault<int>(
-                "SELECT COUNT(*) FROM SchemaHistory WHERE Script = @Script",
-                new { Script = name }) > 0;
+            conn.Execute(@"
+                CREATE TABLE IF NOT EXISTS Orders (
+                    Id                  TEXT PRIMARY KEY NOT NULL,
+                    OrderDate           TEXT NOT NULL,
+                    CustomerName        TEXT,
+                    Address             TEXT,
+                    City                TEXT,
+                    Region              TEXT,
+                    PostalCode          TEXT,
+                    PaymentMethod       TEXT,
+                    Subtotal            REAL NOT NULL DEFAULT 0,
+                    Tax                 REAL NOT NULL DEFAULT 0,
+                    Total               REAL NOT NULL DEFAULT 0,
+                    Status              TEXT NOT NULL DEFAULT 'Active',
+                    Discount            REAL NOT NULL DEFAULT 0,
+                    DiscountDescription TEXT
+                );
+                CREATE TABLE IF NOT EXISTS OrderLines (
+                    RowId    INTEGER PRIMARY KEY AUTOINCREMENT,
+                    OrderId  TEXT NOT NULL REFERENCES Orders(Id) ON DELETE CASCADE,
+                    Item     TEXT,
+                    Quantity INTEGER NOT NULL DEFAULT 0,
+                    Price    REAL NOT NULL DEFAULT 0
+                );
+                CREATE TABLE IF NOT EXISTS Settings (
+                    Key   TEXT PRIMARY KEY NOT NULL,
+                    Value TEXT NOT NULL
+                );
+                CREATE INDEX IF NOT EXISTS IX_Orders_OrderDate ON Orders(OrderDate);
+                CREATE INDEX IF NOT EXISTS IX_OrderLines_OrderId ON OrderLines(OrderId);");
 
-            if (already) return;
-
-            conn.Execute(sql);
-            conn.Execute(
-                "INSERT INTO SchemaHistory (Script, AppliedAt) VALUES (@Script, @AppliedAt)",
-                new { Script = name, AppliedAt = DateTime.UtcNow.ToString("o") });
+            SeedDefaultSettings(conn);
         }
 
-        // ── Migration scripts — add new entries at the bottom only ────────────
+        private static void SeedDefaultSettings(IDbConnection conn)
+        {
+            conn.Execute(@"
+                INSERT OR IGNORE INTO Settings (Key, Value) VALUES ('PizzaPrice.Small',      '4.00');
+                INSERT OR IGNORE INTO Settings (Key, Value) VALUES ('PizzaPrice.Medium',     '7.00');
+                INSERT OR IGNORE INTO Settings (Key, Value) VALUES ('PizzaPrice.Large',      '10.00');
+                INSERT OR IGNORE INTO Settings (Key, Value) VALUES ('PizzaPrice.ExtraLarge', '13.00');
+                INSERT OR IGNORE INTO Settings (Key, Value) VALUES ('ToppingPrice',          '0.75');
+                INSERT OR IGNORE INTO Settings (Key, Value) VALUES ('DrinkCanPrice',         '1.45');
+                INSERT OR IGNORE INTO Settings (Key, Value) VALUES ('WaterPrice',            '1.25');
+                INSERT OR IGNORE INTO Settings (Key, Value) VALUES ('SidePrice',             '3.00');
+                INSERT OR IGNORE INTO Settings (Key, Value) VALUES ('DeliveryMinutes',       '30');");
+        }
 
-        private static readonly IReadOnlyList<KeyValuePair<string, string>> Migrations =
-            new List<KeyValuePair<string, string>>
+        private static void ApplyIfNotRun(IDbConnection conn, Migration migration)
+        {
+            bool already = conn.QueryFirstOrDefault<int>(
+                $"SELECT COUNT(*) FROM {TrackingTable} WHERE Script = @Script",
+                new { Script = migration.Name }) > 0;
+
+            if (already)
+                return;
+
+            migration.Apply(conn);
+            conn.Execute(
+                $"INSERT INTO {TrackingTable} (Script, AppliedAt) VALUES (@Script, @AppliedAt)",
+                new { Script = migration.Name, AppliedAt = DateTime.UtcNow.ToString("o") });
+        }
+
+        private static void EnsureColumnExists(IDbConnection conn, string tableName, string columnName, string alterSql)
+        {
+            bool exists = conn.Query<TableInfoRow>($"PRAGMA table_info({tableName})")
+                .Any(row => string.Equals(row.name, columnName, StringComparison.OrdinalIgnoreCase));
+
+            if (!exists)
+                conn.Execute(alterSql);
+        }
+
+        private static readonly IReadOnlyList<Migration> Migrations =
+            new List<Migration>
             {
-                new KeyValuePair<string, string>("0001_AddSettingsTable",       Script0001),
-                new KeyValuePair<string, string>("0002_AddOrderStatusAndPin",   Script0002),
+                new Migration("0001_AddSettingsTable", SeedDefaultSettings),
+                new Migration("0002_AddOrderStatusAndPin", conn =>
+                {
+                    EnsureColumnExists(
+                        conn,
+                        "Orders",
+                        "Status",
+                        "ALTER TABLE Orders ADD COLUMN Status TEXT NOT NULL DEFAULT 'Active';");
+                    conn.Execute("INSERT OR IGNORE INTO Settings (Key, Value) VALUES ('StaffPin', '');");
+                }),
+                new Migration("0003_AddOrderDiscountFields", conn =>
+                {
+                    EnsureColumnExists(
+                        conn,
+                        "Orders",
+                        "Discount",
+                        "ALTER TABLE Orders ADD COLUMN Discount REAL NOT NULL DEFAULT 0;");
+                    EnsureColumnExists(
+                        conn,
+                        "Orders",
+                        "DiscountDescription",
+                        "ALTER TABLE Orders ADD COLUMN DiscountDescription TEXT;");
+                }),
             };
 
-        private const string Script0002 = @"
-            ALTER TABLE Orders ADD COLUMN Status TEXT NOT NULL DEFAULT 'Active';
-            INSERT OR IGNORE INTO Settings (Key, Value) VALUES ('StaffPin', '');
-        ";
+        private sealed class Migration
+        {
+            public Migration(string name, Action<IDbConnection> apply)
+            {
+                Name = name;
+                Apply = apply;
+            }
 
-        private const string Script0001 = @"
-            CREATE TABLE IF NOT EXISTS Settings (
-                Key   TEXT PRIMARY KEY NOT NULL,
-                Value TEXT NOT NULL
-            );
-            INSERT OR IGNORE INTO Settings (Key, Value) VALUES ('PizzaPrice.Small',      '4.00');
-            INSERT OR IGNORE INTO Settings (Key, Value) VALUES ('PizzaPrice.Medium',     '7.00');
-            INSERT OR IGNORE INTO Settings (Key, Value) VALUES ('PizzaPrice.Large',      '10.00');
-            INSERT OR IGNORE INTO Settings (Key, Value) VALUES ('PizzaPrice.ExtraLarge', '13.00');
-            INSERT OR IGNORE INTO Settings (Key, Value) VALUES ('ToppingPrice',          '0.75');
-            INSERT OR IGNORE INTO Settings (Key, Value) VALUES ('DrinkCanPrice',         '1.45');
-            INSERT OR IGNORE INTO Settings (Key, Value) VALUES ('WaterPrice',            '1.25');
-            INSERT OR IGNORE INTO Settings (Key, Value) VALUES ('SidePrice',             '3.00');
-            INSERT OR IGNORE INTO Settings (Key, Value) VALUES ('DeliveryMinutes',       '30');
-        ";
+            public string Name { get; private set; }
+            public Action<IDbConnection> Apply { get; private set; }
+        }
+
+        private sealed class TableInfoRow
+        {
+            public string name { get; set; }
+        }
     }
 }

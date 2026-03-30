@@ -103,6 +103,30 @@ namespace PizzaExpress.Tests
             => StringAssert.Contains(_writer.Build(BuildSampleOrder()), "30");
 
         [TestMethod]
+        public void Build_WithDiscount_IncludesDiscountLineAndDiscountedTotal()
+        {
+            var order = BuildSampleOrder();
+            order.Discount = 2.00m;
+            order.DiscountDescription = "PROMO10";
+
+            string receipt = _writer.Build(order);
+
+            StringAssert.Contains(receipt, "Discount (PROMO10):");
+            StringAssert.Contains(receipt, order.AmountDue.ToString("C2"));
+        }
+
+        [TestMethod]
+        public void Build_UsesOrderDeliveryMinutes()
+        {
+            var order = BuildSampleOrder();
+            order.DeliveryMinutes = 45;
+
+            string receipt = _writer.Build(order);
+
+            StringAssert.Contains(receipt, "45");
+        }
+
+        [TestMethod]
         public void SaveToFile_WritesContentToDisk()
         {
             string path = System.IO.Path.GetTempFileName();

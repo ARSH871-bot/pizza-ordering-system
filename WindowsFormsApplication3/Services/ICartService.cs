@@ -34,5 +34,20 @@ namespace WindowsFormsApplication3.Services
         /// Calculates the total (incl. GST) for the given subtotal.
         /// </summary>
         decimal CalculateTotal(decimal subtotal);
+
+        /// <summary>
+        /// Returns the current configured canned-drink price.
+        /// </summary>
+        decimal GetDrinkCanPrice();
+
+        /// <summary>
+        /// Returns the current configured bottled-water price.
+        /// </summary>
+        decimal GetWaterPrice();
+
+        /// <summary>
+        /// Returns the current configured side-item price.
+        /// </summary>
+        decimal GetSidePrice();
     }
 }

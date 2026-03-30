@@ -13,20 +13,20 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '9.x'
           # .NET Framework 4.8 is pre-installed on windows-latest
 
       - name: Restore NuGet packages
-        run: dotnet restore "PizzaOrderingSystemC#/WindowsFormsApplication3.sln"
+        run: dotnet restore "WindowsFormsApplication3.sln"
 
       - name: Build solution (Debug — zero warnings gate)
         run: |
-          dotnet build "PizzaOrderingSystemC#/WindowsFormsApplication3.sln" `
+          dotnet build "WindowsFormsApplication3.sln" `
             --configuration Debug `
             --no-restore `
             --nologo `
@@ -34,12 +34,12 @@ jobs:
 
       - name: Run tests and collect coverage
         run: |
-          dotnet test "PizzaOrderingSystemC#/PizzaExpress.Tests/PizzaExpress.Tests.csproj" `
+          dotnet test "PizzaExpress.Tests/PizzaExpress.Tests.csproj" `
             --configuration Debug `
             --no-build `
-            --settings "PizzaOrderingSystemC#/coverlet.runsettings" `
+            --settings "coverlet.runsettings" `
             --collect "XPlat Code Coverage" `
-            --results-directory "PizzaOrderingSystemC#/TestResults" `
+            --results-directory "TestResults" `
             --logger "trx;LogFileName=results.trx"
 
       - name: Parse coverage and write job summary
@@ -104,14 +104,14 @@ jobs:
 
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: test-results
           path: "**/*.trx"
 
       - name: Upload coverage report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: coverage-report
           path: "**/coverage.opencover.xml"

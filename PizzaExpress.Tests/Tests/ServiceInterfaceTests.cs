@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using WindowsFormsApplication3.Models;
@@ -146,8 +147,18 @@ namespace PizzaExpress.Tests.Tests
         [TestMethod]
         public void IOrderRepository_RealImpl_ImplementsInterface()
         {
-            IOrderRepository repo = new OrderRepository();
-            Assert.IsNotNull(repo);
+            string tempDir = Path.Combine(Path.GetTempPath(), "PizzaExpressInterfaceTests_" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(tempDir);
+            try
+            {
+                IOrderRepository repo = new OrderRepository(tempDir);
+                Assert.IsNotNull(repo);
+            }
+            finally
+            {
+                if (Directory.Exists(tempDir))
+                    Directory.Delete(tempDir, recursive: true);
+            }
         }
 
         // ── ICartService ──────────────────────────────────────────────────────

@@ -72,24 +72,38 @@ namespace WindowsFormsApplication3.Services
         public decimal CalculateTotal(decimal subtotal)
             => subtotal + CalculateTax(subtotal);
 
+        /// <inheritdoc/>
+        public decimal GetDrinkCanPrice()
+            => GetDecimalSetting("DrinkCanPrice", AppConfig.DrinkCanPrice);
+
+        /// <inheritdoc/>
+        public decimal GetWaterPrice()
+            => GetDecimalSetting("WaterPrice", AppConfig.WaterPrice);
+
+        /// <inheritdoc/>
+        public decimal GetSidePrice()
+            => GetDecimalSetting("SidePrice", AppConfig.SidePrice);
+
         // ── Price resolution: DB setting → AppConfig fallback ────────────────
 
         private decimal GetPizzaPrice(PizzaSize size)
         {
-            if (_settings == null) return AppConfig.PizzaPrices[size];
-            string raw = _settings.Get($"PizzaPrice.{size}");
-            decimal parsed;
-            if (raw != null && decimal.TryParse(raw, out parsed)) return parsed;
-            return AppConfig.PizzaPrices[size];
+            return GetDecimalSetting($"PizzaPrice.{size}", AppConfig.PizzaPrices[size]);
         }
 
         private decimal GetToppingPrice()
         {
-            if (_settings == null) return AppConfig.ToppingPrice;
-            string raw = _settings.Get("ToppingPrice");
+            return GetDecimalSetting("ToppingPrice", AppConfig.ToppingPrice);
+        }
+
+        private decimal GetDecimalSetting(string key, decimal fallback)
+        {
+            if (_settings == null) return fallback;
+
+            string raw = _settings.Get(key);
             decimal parsed;
             if (raw != null && decimal.TryParse(raw, out parsed)) return parsed;
-            return AppConfig.ToppingPrice;
+            return fallback;
         }
     }
 }

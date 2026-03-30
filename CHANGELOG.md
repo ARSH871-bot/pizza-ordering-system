@@ -7,6 +7,26 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- `AGENTS.md` repository guidance covering architecture boundaries, validation commands, safe refactoring rules, docs-sync expectations, and the free-tools-only constraint.
+- Regression tests covering discount-aware totals, settings-backed pricing, idempotent database migration, repository line replacement, and discount persistence.
+
+### Fixed
+
+- Fresh-install database startup now succeeds reliably: migrations create core tables first, seed default settings safely, and add later columns idempotently.
+- Order persistence now replaces existing line items for the same order id instead of duplicating them on re-save.
+- SQLite repository connections now enable foreign keys consistently, and order deletion removes child rows safely.
+- Promo-card checkout now persists discounted totals, writes discount metadata to order history, and prints discount-aware receipts and change correctly.
+- Receipt delivery estimates now use the runtime delivery setting end-to-end.
+- Drink, water, and side pricing now respect SQLite settings in both the live total and the confirmed order flow.
+- CI workflows now use correct repository-root paths and updated free GitHub Action versions, fixing broken automation caused by stale path prefixes.
+
+### Changed
+
+- The About dialog and contributor docs no longer hardcode stale test totals.
+- README, USER_STORIES, SECURITY, and CONTRIBUTING were updated to reflect the current stack, pricing behavior, payment-reference handling, and verification workflow.
+
 ---
 
 ## [2.15.0] — 2026-03-26

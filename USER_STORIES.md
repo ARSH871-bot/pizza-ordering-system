@@ -1,8 +1,8 @@
 # User Stories — Pizza Ordering System
 
 **Project:** Pizza Express Ordering System
-**Platform:** C# Windows Forms (.NET Framework 4.5)
-**Last Updated:** 2026-03-23
+**Platform:** C# Windows Forms (.NET Framework 4.8)
+**Last Updated:** 2026-03-30
 
 ---
 
@@ -146,7 +146,7 @@ As a customer, I want to specify how many of the same pizza I want, so that I ca
 - [x]A qty of 1 behaves identically to the previous single-pizza flow
 
 **Notes**
-- Implemented as a `NumericUpDown` control inside the Pizza Size groupbox
+- Verified in the current WinForms UI via the `nudPizzaQty` quantity selector
 
 ---
 
@@ -172,7 +172,7 @@ As a customer, I want to add multiple different pizzas to a single order, so tha
 - [x]The staged pizza list is cleared on "Order Again" and on application load
 
 **Notes**
-- Staged pizzas are held in a `List<ListViewItem>` field (`_stagedPizzas`) that is flushed into `listView1` at the start of `button1_Click`
+- Staged pizzas are held in a `List<ListViewItem>` field (`_stagedPizzas`) and flushed into `lvOrder` inside `btnConfirmOrder_Click`
 
 ---
 

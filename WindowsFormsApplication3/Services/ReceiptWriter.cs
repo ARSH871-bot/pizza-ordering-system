@@ -45,7 +45,14 @@ namespace WindowsFormsApplication3.Services
             sb.AppendLine(new string('-', 55));
             sb.AppendLine(string.Format("{0,-44} {1,10}", "Subtotal:",                             order.Subtotal.ToString("C2")));
             sb.AppendLine(string.Format("{0,-44} {1,10}", $"{AppConfig.TaxLabel} ({AppConfig.TaxRate:P0}):", order.Tax.ToString("C2")));
-            sb.AppendLine(string.Format("{0,-44} {1,10}", "Total Due:",                            order.Total.ToString("C2")));
+            if (order.Discount > 0)
+            {
+                string label = string.IsNullOrWhiteSpace(order.DiscountDescription)
+                    ? "Discount:"
+                    : $"Discount ({order.DiscountDescription}):";
+                sb.AppendLine(string.Format("{0,-44} {1,10}", label, ("-" + order.Discount.ToString("C2"))));
+            }
+            sb.AppendLine(string.Format("{0,-44} {1,10}", "Total Due:",                            order.AmountDue.ToString("C2")));
             sb.AppendLine();
 
             sb.AppendLine("PAYMENT");
@@ -56,7 +63,7 @@ namespace WindowsFormsApplication3.Services
 
             sb.AppendLine("========================================");
             sb.AppendLine(" Thank you for ordering at Pizza Express!");
-            sb.AppendLine($" Delivery in approx. {AppConfig.DeliveryMinutes} minutes.");
+            sb.AppendLine($" Delivery in approx. {order.DeliveryMinutes} minutes.");
             sb.AppendLine("========================================");
 
             return sb.ToString();
