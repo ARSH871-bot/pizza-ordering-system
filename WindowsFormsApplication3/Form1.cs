@@ -6,6 +6,7 @@ using System.IO;
 using System.Text;
 using System.Windows.Forms;
 using WindowsFormsApplication3.Config;
+using WindowsFormsApplication3.Forms;
 using WindowsFormsApplication3.Models;
 using WindowsFormsApplication3.Services;
 
@@ -14,12 +15,35 @@ namespace WindowsFormsApplication3
     public partial class Form1 : Form
     {
         // ── Services ─────────────────────────────────────────────────────────
-        private readonly ILogger          _logger         = new FileLogger();
-        private readonly ICartService     _cart           = new CartService();
-        private readonly IPromoEngine     _promoEngine    = new PromoEngine();
-        private readonly IOrderValidator  _validator      = new OrderValidator();
-        private readonly IReceiptWriter   _receiptWriter  = new ReceiptWriter();
-        private readonly IOrderRepository _repo           = new OrderRepository();
+        private readonly ILogger            _logger        = new FileLogger();
+        private readonly IPromoEngine       _promoEngine   = new PromoEngine();
+        private readonly IOrderValidator    _validator     = new OrderValidator();
+        private readonly IReceiptWriter     _receiptWriter = new ReceiptWriter();
+        private readonly IOrderRepository   _repo;
+        private readonly ICartService       _cart;
+        private readonly ISettingsRepository _settings;
+
+        /// <summary>
+        /// WinForms Designer constructor — uses default service implementations.
+        /// At runtime, the application always goes through the 3-argument constructor
+        /// wired in <see cref="Program"/>.
+        /// </summary>
+        public Form1() : this(
+            new OrderRepository(Program.DefaultDataDirectory()),
+            new CartService(),
+            null) { }
+
+        /// <summary>
+        /// Production constructor — all three services are injected from
+        /// <see cref="Program"/>'s composition root.
+        /// </summary>
+        public Form1(IOrderRepository repo, ICartService cart, ISettingsRepository settings)
+        {
+            _repo     = repo     ?? throw new ArgumentNullException("repo");
+            _cart     = cart     ?? throw new ArgumentNullException("cart");
+            _settings = settings; // null-safe: used only for SettingsForm
+            InitializeComponent();
+        }
 
         // ── State ─────────────────────────────────────────────────────────────
         private readonly List<ListViewItem> _stagedPizzas = new List<ListViewItem>();
@@ -34,11 +58,6 @@ namespace WindowsFormsApplication3
         private ToolStripStatusLabel _liveTotalLabel;
         private ContextMenuStrip     _lvContextMenu;
         private ToolTip              _toolTip;
-
-        public Form1()
-        {
-            InitializeComponent();
-        }
 
         // =====================================================================
         // Form load
@@ -236,6 +255,223 @@ namespace WindowsFormsApplication3
             };
             btnAbout.Click += (s, ev) => ShowAboutDialog();
             btnCheckOut.Parent.Controls.Add(btnAbout);
+
+            // ── Sales Report button (Tab 2) ────────────────────────────────────
+            var btnSalesReport = new Button
+            {
+                Text     = "Sales Report",
+                Width    = 100,
+                Height   = 26,
+                Location = new Point(btnHistory.Left - 110, btnHistory.Top),
+                Parent   = btnCheckOut.Parent,
+            };
+            StyleButton(btnSalesReport, Color.FromArgb(55, 55, 55), Color.White,
+                new Font("Segoe UI", 9f, FontStyle.Bold));
+            _toolTip.SetToolTip(btnSalesReport, "View period sales report (Alt+R)");
+            btnSalesReport.Click += (s, ev) => OpenSalesReportForm();
+            btnCheckOut.Parent.Controls.Add(btnSalesReport);
+
+            // ── End of Day button (Z-Report) ───────────────────────────────────
+            var btnEod = new Button
+            {
+                Text     = "End of Day",
+                Width    = 95,
+                Height   = 26,
+                Location = new Point(btnSalesReport.Left - 105, btnHistory.Top),
+                Parent   = btnCheckOut.Parent,
+            };
+            StyleButton(btnEod, Color.FromArgb(30, 80, 30), Color.White,
+                new Font("Segoe UI", 9f, FontStyle.Bold));
+            _toolTip.SetToolTip(btnEod, "Z-Report: today's shift summary (Alt+E)");
+            btnEod.Click += (s, ev) => OpenEndOfDayForm();
+            btnCheckOut.Parent.Controls.Add(btnEod);
+
+            // ── Settings button (Admin — Tab 2, left of End of Day) ────────────
+            var btnSettings = new Button
+            {
+                Text   = "\u2699 Settings",
+                Width  = 90,
+                Height = 26,
+                Location = new Point(btnEod.Left - 100, btnHistory.Top),
+                Parent = btnCheckOut.Parent,
+            };
+            StyleButton(btnSettings, Color.FromArgb(55, 55, 55), Color.White,
+                new Font("Segoe UI", 9f, FontStyle.Bold));
+            _toolTip.SetToolTip(btnSettings, "Edit prices and delivery settings (Alt+W)");
+            btnSettings.Click += (s, ev) => OpenSettingsForm();
+            btnCheckOut.Parent.Controls.Add(btnSettings);
+
+            // ── World-class UI polish ──────────────────────────────────────────
+            ApplyUiPolish(btnHistory, btnAbout);
+        }
+
+        private void ApplyUiPolish(Button btnHistory, Button btnAbout)
+        {
+            // ── 1. Launch maximised so tab control fills the screen ────────────
+            //    tabControl1 is 694×882 starting at y=130; form ClientSize is
+            //    768×694 (shorter than the tab!) — maximising eliminates
+            //    the dead space and the need to scroll.
+            this.WindowState = FormWindowState.Maximized;
+
+            // ── 2. Anchor tabControl so it resizes with the window ─────────────
+            tabControl1.Anchor = AnchorStyles.Top | AnchorStyles.Left
+                               | AnchorStyles.Right | AnchorStyles.Bottom;
+
+            // ── 3. Form chrome: replace the DarkGoldenrod strip with the ────────
+            //    brand burnt-orange that matches the tab pages.
+            this.BackColor = Color.FromArgb(192, 64, 0);
+
+            // ── 4. Button colour palette ──────────────────────────────────────
+            //    Primary   — brand orange-red   → main forward-flow actions
+            //    Secondary — charcoal           → backward / neutral actions
+            //    Danger    — crimson            → destructive / exit actions
+            //    Pay       — forest green       → money / confirm payment
+            Color clrPrimary   = Color.FromArgb(200, 60, 0);
+            Color clrSecondary = Color.FromArgb(55, 55, 55);
+            Color clrDanger    = Color.FromArgb(160, 30, 30);
+            Color clrPay       = Color.FromArgb(30, 120, 30);
+            Color clrWhite     = Color.White;
+            Font  btnFont      = new Font("Segoe UI", 10f, FontStyle.Bold);
+
+            StyleButton(btnConfirmOrder, clrPrimary,   clrWhite, btnFont);
+            StyleButton(btnCheckOut,     clrPrimary,   clrWhite, btnFont);
+            StyleButton(btnSubmitOrder,  clrPrimary,   clrWhite, btnFont);
+
+            StyleButton(btnAddPizzaToCart, clrSecondary, clrWhite, btnFont);
+            StyleButton(btnOrderAgain,     clrSecondary, clrWhite, btnFont);
+            StyleButton(btnGoBack,         clrSecondary, clrWhite, btnFont);
+
+            StyleButton(btnClearOrder, clrDanger, clrWhite, btnFont);
+            StyleButton(btnExit,       clrDanger, clrWhite, btnFont);
+
+            StyleButton(btnPay, clrPay, clrWhite, btnFont);
+
+            StyleButton(btnHistory, clrSecondary, clrWhite,
+                new Font("Segoe UI", 9f, FontStyle.Bold));
+            StyleButton(btnAbout, clrSecondary, clrWhite,
+                new Font("Segoe UI", 9f, FontStyle.Bold));
+
+            // ── 5. Fix "Add Pizza to Cart" button — size it so text is never ───
+            //    clipped (was 148×36 with Calibri 15.75pt Bold).
+            btnAddPizzaToCart.AutoSize   = false;
+            btnAddPizzaToCart.Size       = new Size(175, 40);
+            btnAddPizzaToCart.Font       = btnFont;
+
+            // ── 6. Make all Tab-1 action buttons the same height ──────────────
+            btnConfirmOrder.Size = new Size(btnConfirmOrder.Width, 40);
+            btnExit.Size         = new Size(btnExit.Width,         40);
+
+            // ── 7. Modernise the logo PictureBox: centre it horizontally ───────
+            pictureBox1.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+        }
+
+        private static void StyleButton(Button btn, Color backColor, Color foreColor, Font font)
+        {
+            btn.FlatStyle                   = FlatStyle.Flat;
+            btn.FlatAppearance.BorderSize   = 0;
+            btn.BackColor                   = backColor;
+            btn.ForeColor                   = foreColor;
+            btn.Font                        = font;
+            btn.Cursor                      = Cursors.Hand;
+            btn.UseVisualStyleBackColor     = false;
+        }
+
+        private void OpenSalesReportForm()
+        {
+            using (var f = new SalesReportForm(_repo))
+                f.ShowDialog(this);
+        }
+
+        private void OpenEndOfDayForm()
+        {
+            using (var f = new EndOfDayForm(_repo))
+                f.ShowDialog(this);
+        }
+
+        private void OpenSettingsForm()
+        {
+            if (_settings == null)
+            {
+                MessageBox.Show(
+                    "Settings are not available in this mode.\n" +
+                    "Run the application normally to access settings.",
+                    "Settings",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+                return;
+            }
+            using (var f = new SettingsForm(_settings))
+                f.ShowDialog(this);
+        }
+
+        private void ShowKeyboardHelp()
+        {
+            using (var dlg = new Form())
+            {
+                dlg.Text            = "Keyboard Shortcuts — Pizza Express NZ";
+                dlg.Size            = new Size(440, 420);
+                dlg.FormBorderStyle = FormBorderStyle.FixedDialog;
+                dlg.MaximizeBox     = false;
+                dlg.StartPosition   = FormStartPosition.CenterParent;
+                dlg.BackColor       = Color.FromArgb(26, 26, 26);
+                dlg.ForeColor       = Color.FromArgb(240, 240, 240);
+
+                var lv = new ListView
+                {
+                    Dock          = DockStyle.Fill,
+                    View          = View.Details,
+                    FullRowSelect = true,
+                    GridLines     = true,
+                    MultiSelect   = false,
+                    BackColor     = Color.FromArgb(32, 32, 32),
+                    ForeColor     = Color.FromArgb(240, 240, 240),
+                    BorderStyle   = BorderStyle.None,
+                    Font          = new Font("Segoe UI", 9.5f),
+                    HeaderStyle   = ColumnHeaderStyle.Nonclickable,
+                };
+                lv.Columns.Add("Shortcut", 130);
+                lv.Columns.Add("Action",   270);
+
+                var shortcuts = new[]
+                {
+                    new[] { "Alt+C",    "Confirm order (Tab 1 → Tab 2)"         },
+                    new[] { "Alt+P",    "Proceed to checkout (Tab 2 → Tab 3)"   },
+                    new[] { "Escape",   "Navigate back one tab"                  },
+                    new[] { "Alt+H",    "Open Order History"                     },
+                    new[] { "Alt+R",    "Open Sales Report (period)"             },
+                    new[] { "Alt+E",    "Open End-of-Day Z-Report"               },
+                    new[] { "Alt+W",    "Open Settings (admin prices)"           },
+                    new[] { "Del",      "Delete selected order (History)"        },
+                    new[] { "Enter",    "View order details (History)"           },
+                    new[] { "V",        "Void selected order (History)"          },
+                    new[] { "F1",       "Show this help"                         },
+                };
+
+                foreach (var row in shortcuts)
+                {
+                    var item = new ListViewItem(row[0]);
+                    item.ForeColor = Color.FromArgb(255, 200, 140);
+                    item.SubItems.Add(row[1]);
+                    lv.Items.Add(item);
+                }
+
+                var btnClose = new Button
+                {
+                    Text         = "Close",
+                    Dock         = DockStyle.Bottom,
+                    Height       = 36,
+                    DialogResult = DialogResult.OK,
+                    FlatStyle    = FlatStyle.Flat,
+                    BackColor    = Color.FromArgb(55, 55, 55),
+                    ForeColor    = Color.White,
+                    Font         = new Font("Segoe UI", 9.5f, FontStyle.Bold),
+                };
+                btnClose.FlatAppearance.BorderSize = 0;
+
+                dlg.Controls.Add(lv);
+                dlg.Controls.Add(btnClose);
+                dlg.ShowDialog(this);
+            }
         }
 
         private void ShowAboutDialog()
@@ -245,7 +481,7 @@ namespace WindowsFormsApplication3
                 $"Version {Application.ProductVersion}\n\n" +
                 $"A Windows Forms POS system built in C# (.NET Framework 4.8).\n\n" +
                 $"Architecture: 3-layer (Models / Services / UI)\n" +
-                $"Test suite:   95 unit + integration tests\n" +
+                $"Test suite:   192 unit + integration tests\n" +
                 $"CI/CD:        GitHub Actions\n\n" +
                 $"Data saved to: {Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\PizzaExpress\\";
 
@@ -270,6 +506,18 @@ namespace WindowsFormsApplication3
                         f.ShowDialog(this);
                     return true;
 
+                case Keys.Alt | Keys.W:
+                    OpenSettingsForm();
+                    return true;
+
+                case Keys.Alt | Keys.R:
+                    OpenSalesReportForm();
+                    return true;
+
+                case Keys.Alt | Keys.E:
+                    OpenEndOfDayForm();
+                    return true;
+
                 case Keys.Alt | Keys.P:
                     if (tabControl1.SelectedTab.Name == "tabPage2")
                         btnCheckOut_Click(this, EventArgs.Empty);
@@ -280,6 +528,10 @@ namespace WindowsFormsApplication3
                         tabControl1.SelectTab("tabPage2");
                     else if (tabControl1.SelectedTab.Name == "tabPage2")
                         tabControl1.SelectTab("tabPage1");
+                    return true;
+
+                case Keys.F1:
+                    ShowKeyboardHelp();
                     return true;
             }
             return base.ProcessCmdKey(ref msg, keyData);
@@ -536,7 +788,7 @@ namespace WindowsFormsApplication3
             // Order again or exit
             if (MessageBox.Show(
                     $"Thanks for ordering at Pizza Express!\n" +
-                    $"Your order will be delivered in approx. {AppConfig.DeliveryMinutes} minutes.\n\n" +
+                    $"Your order will be delivered in approx. {(_settings?.Get("DeliveryMinutes", null) ?? AppConfig.DeliveryMinutes.ToString())} minutes.\n\n" +
                     "Would you like to place another order?",
                     "Order Complete", MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
@@ -551,17 +803,73 @@ namespace WindowsFormsApplication3
 
         private void PrintReceipt(Order order)
         {
+            // Split the receipt text into lines once; the print handler walks them
+            // across as many pages as needed.
+            string[] receiptLines  = _lastReceiptText.Split('\n');
+            int      nextLineIndex = 0;
+
             var pd = new PrintDocument();
+            pd.DocumentName = $"Receipt_{order.OrderDate:yyyyMMdd_HHmmss}";
             pd.PrintPage += (s, ev) =>
             {
-                var font = new Font("Courier New", 9f);
-                ev.Graphics.DrawString(_lastReceiptText, font, Brushes.Black,
-                    ev.MarginBounds.Left, ev.MarginBounds.Top);
-                font.Dispose();
+                using (var font = new Font("Courier New", 9f))
+                {
+                    float lineH   = font.GetHeight(ev.Graphics) + 1f;
+                    float x       = ev.MarginBounds.Left;
+                    float y       = ev.MarginBounds.Top;
+                    float pageBottom = ev.MarginBounds.Bottom;
+
+                    while (nextLineIndex < receiptLines.Length)
+                    {
+                        string text = receiptLines[nextLineIndex].TrimEnd('\r');
+
+                        // Word-wrap: measure and break if the line is too wide
+                        float maxW = ev.MarginBounds.Width;
+                        SizeF measured = ev.Graphics.MeasureString(text, font);
+                        if (measured.Width > maxW)
+                        {
+                            // Simple char-level truncation for monospaced receipt text
+                            int charsPerLine = (int)(maxW / (measured.Width / Math.Max(text.Length, 1)));
+                            while (text.Length > 0)
+                            {
+                                int take = Math.Min(charsPerLine, text.Length);
+                                ev.Graphics.DrawString(text.Substring(0, take), font, Brushes.Black, x, y);
+                                text = text.Substring(take);
+                                y += lineH;
+                                if (y + lineH > pageBottom && text.Length > 0)
+                                {
+                                    ev.HasMorePages = true;
+                                    return;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            ev.Graphics.DrawString(text, font, Brushes.Black, x, y);
+                            y += lineH;
+                        }
+
+                        nextLineIndex++;
+                        if (y + lineH > pageBottom && nextLineIndex < receiptLines.Length)
+                        {
+                            ev.HasMorePages = true;
+                            return;
+                        }
+                    }
+                }
+                ev.HasMorePages = false;
             };
 
-            using (var preview = new PrintPreviewDialog { Document = pd, Width = 700, Height = 900 })
+            using (var preview = new PrintPreviewDialog
+            {
+                Document = pd,
+                Width    = 700,
+                Height   = 900,
+                Text     = "Print Preview — Order Receipt",
+            })
+            {
                 preview.ShowDialog(this);
+            }
         }
 
         private void cboPaymentMethod_SelectedIndexChanged(object sender, EventArgs e)
@@ -875,7 +1183,11 @@ namespace WindowsFormsApplication3
                 decimal.TryParse(lvi.SubItems[2].Text, out price);
                 int qty;
                 int.TryParse(lvi.SubItems[1].Text, out qty);
-                order.Items.Add(new OrderItem(lvi.Text, qty, price));
+                // lvi.SubItems[2] holds the line total (qty × unit price).
+                // Back-calculate unit price before constructing OrderItem,
+                // which multiplies UnitPrice × max(Quantity, 1) internally.
+                decimal unitPrice = price / Math.Max(qty, 1);
+                order.Items.Add(new OrderItem(lvi.Text, qty, unitPrice));
             }
 
             return order;

@@ -109,6 +109,41 @@ namespace PizzaExpress.Tests.Tests
         }
 
         [TestMethod]
+        public void IOrderRepository_MockReturnsSearchResults()
+        {
+            var repo    = Substitute.For<IOrderRepository>();
+            var records = new List<OrderRecord> { new OrderRecord { CustomerName = "Alice" } };
+            repo.Search("Alice", null, null).Returns(records);
+
+            var result = repo.Search("Alice", null, null);
+
+            Assert.AreEqual(1, result.Count);
+            Assert.AreEqual("Alice", result[0].CustomerName);
+        }
+
+        [TestMethod]
+        public void IOrderRepository_MockReturnsGetSummary()
+        {
+            var repo = Substitute.For<IOrderRepository>();
+            repo.GetSummary().Returns(new OrderSummary { TotalOrders = 5, TotalRevenue = 100m, AverageOrderValue = 20m });
+
+            var summary = repo.GetSummary();
+
+            Assert.AreEqual(5, summary.TotalOrders);
+            Assert.AreEqual(100m, summary.TotalRevenue);
+        }
+
+        [TestMethod]
+        public void IOrderRepository_MockVerifies_DeleteWasCalled()
+        {
+            var repo = Substitute.For<IOrderRepository>();
+
+            repo.Delete("ABC123");
+
+            repo.Received(1).Delete("ABC123");
+        }
+
+        [TestMethod]
         public void IOrderRepository_RealImpl_ImplementsInterface()
         {
             IOrderRepository repo = new OrderRepository();

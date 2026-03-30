@@ -197,6 +197,361 @@ namespace PizzaExpress.Tests.Tests
             Assert.AreEqual("Third",  loaded[2].CustomerName);
         }
 
+        // ── Search ───────────────────────────────────────────────────────────
+
+        [TestMethod]
+        public void Search_NullText_NoDateRange_ReturnsAllOrders()
+        {
+            var repo = MakeRepo();
+            repo.Save(MakeRecordOnDate("Alice",   new DateTime(2026, 1, 1)));
+            repo.Save(MakeRecordOnDate("Bob",     new DateTime(2026, 1, 2)));
+            repo.Save(MakeRecordOnDate("Charlie", new DateTime(2026, 1, 3)));
+
+            var result = repo.Search(null, null, null);
+
+            Assert.AreEqual(3, result.Count);
+        }
+
+        [TestMethod]
+        public void Search_ByCustomerName_ReturnsMatchingOrders()
+        {
+            var repo = MakeRepo();
+            repo.Save(MakeRecord("Alice"));
+            repo.Save(MakeRecord("Bob"));
+            repo.Save(MakeRecord("Bobby"));
+
+            var result = repo.Search("bob", null, null);
+
+            Assert.AreEqual(2, result.Count);
+            Assert.IsTrue(result.TrueForAll(r => r.CustomerName.IndexOf("Bob", StringComparison.OrdinalIgnoreCase) >= 0));
+        }
+
+        [TestMethod]
+        public void Search_ByDateRange_ReturnsOnlyOrdersInRange()
+        {
+            var repo = MakeRepo();
+            repo.Save(MakeRecordOnDate("Jan",  new DateTime(2026, 1, 15)));
+            repo.Save(MakeRecordOnDate("Feb",  new DateTime(2026, 2, 15)));
+            repo.Save(MakeRecordOnDate("Mar",  new DateTime(2026, 3, 15)));
+
+            var result = repo.Search(null, new DateTime(2026, 2, 1), new DateTime(2026, 2, 28, 23, 59, 59));
+
+            Assert.AreEqual(1, result.Count);
+            Assert.AreEqual("Feb", result[0].CustomerName);
+        }
+
+        [TestMethod]
+        public void Search_TextAndDateRange_ReturnsIntersection()
+        {
+            var repo = MakeRepo();
+            repo.Save(MakeRecordOnDate("Alice", new DateTime(2026, 1, 5)));
+            repo.Save(MakeRecordOnDate("Alice", new DateTime(2026, 3, 5)));
+            repo.Save(MakeRecordOnDate("Bob",   new DateTime(2026, 1, 5)));
+
+            // Alice in January only
+            var result = repo.Search("Alice", new DateTime(2026, 1, 1), new DateTime(2026, 1, 31, 23, 59, 59));
+
+            Assert.AreEqual(1, result.Count);
+            Assert.AreEqual("Alice", result[0].CustomerName);
+            Assert.AreEqual(new DateTime(2026, 1, 5), result[0].OrderDate);
+        }
+
+        [TestMethod]
+        public void Search_NoMatch_ReturnsEmptyList()
+        {
+            var repo = MakeRepo();
+            repo.Save(MakeRecord("Alice"));
+
+            var result = repo.Search("zzznomatch", null, null);
+
+            Assert.AreEqual(0, result.Count);
+        }
+
+        // ── Delete ───────────────────────────────────────────────────────────
+
+        [TestMethod]
+        public void Delete_ExistingRecord_RemovesItFromStore()
+        {
+            var repo   = MakeRepo();
+            var record = MakeRecord("ToDelete");
+            repo.Save(record);
+
+            repo.Delete(record.Id);
+
+            Assert.AreEqual(0, repo.LoadAll().Count);
+        }
+
+        [TestMethod]
+        public void Delete_ExistingRecord_RemovesItsLines()
+        {
+            var repo   = MakeRepo();
+            var record = MakeRecord("WithLines");
+            record.Lines.Add(new OrderLineRecord { Item = "Pepperoni Pizza", Quantity = 1, Price = 10.00m });
+            repo.Save(record);
+
+            repo.Delete(record.Id);
+            var remaining = repo.LoadAll();
+
+            Assert.AreEqual(0, remaining.Count);
+        }
+
+        [TestMethod]
+        public void Delete_NonExistentId_DoesNotThrow()
+        {
+            var repo = MakeRepo();
+            repo.Delete("DOES_NOT_EXIST"); // must not throw
+        }
+
+        [TestMethod]
+        public void Delete_NullOrEmptyId_DoesNotThrow()
+        {
+            var repo = MakeRepo();
+            repo.Delete(null);
+            repo.Delete(string.Empty);
+        }
+
+        // ── GetSummary ────────────────────────────────────────────────────────
+
+        [TestMethod]
+        public void GetSummary_NoOrders_ReturnsZeroes()
+        {
+            var summary = MakeRepo().GetSummary();
+
+            Assert.AreEqual(0,    summary.TotalOrders);
+            Assert.AreEqual(0m,   summary.TotalRevenue);
+            Assert.AreEqual(0m,   summary.AverageOrderValue);
+        }
+
+        [TestMethod]
+        public void GetSummary_WithOrders_ReturnsCorrectAggregates()
+        {
+            var repo = MakeRepo();
+            repo.Save(MakeRecord("A"));  // Total = 11.50
+            repo.Save(MakeRecord("B"));  // Total = 11.50
+            repo.Save(MakeRecord("C"));  // Total = 11.50
+
+            var summary = repo.GetSummary();
+
+            Assert.AreEqual(3,      summary.TotalOrders);
+            Assert.AreEqual(34.50m, summary.TotalRevenue);
+            Assert.AreEqual(11.50m, summary.AverageOrderValue);
+        }
+
+        // ── VoidOrder ─────────────────────────────────────────────────────────
+
+        [TestMethod]
+        public void VoidOrder_SetsStatusToVoided()
+        {
+            var repo   = MakeRepo();
+            var record = MakeRecord("VoidMe");
+            repo.Save(record);
+
+            repo.VoidOrder(record.Id);
+
+            var loaded = repo.LoadAll()[0];
+            Assert.AreEqual("Voided", loaded.Status);
+        }
+
+        [TestMethod]
+        public void VoidOrder_OrderRemainsInLoadAll()
+        {
+            var repo   = MakeRepo();
+            var record = MakeRecord("VoidButKeep");
+            repo.Save(record);
+
+            repo.VoidOrder(record.Id);
+
+            Assert.AreEqual(1, repo.LoadAll().Count);
+        }
+
+        [TestMethod]
+        public void VoidOrder_NonExistentId_DoesNotThrow()
+        {
+            MakeRepo().VoidOrder("DOES_NOT_EXIST");
+        }
+
+        [TestMethod]
+        public void VoidOrder_ExcludedFromGetSummaryForPeriod()
+        {
+            var repo = MakeRepo();
+            var active = MakeRecordOnDate("Active", new DateTime(2026, 1, 10));
+            var voided = MakeRecordOnDate("Voided", new DateTime(2026, 1, 10));
+            repo.Save(active);
+            repo.Save(voided);
+            repo.VoidOrder(voided.Id);
+
+            var summary = repo.GetSummaryForPeriod(new DateTime(2026, 1, 1), new DateTime(2026, 1, 31));
+
+            Assert.AreEqual(1,      summary.TotalOrders);
+            Assert.AreEqual(11.50m, summary.TotalRevenue);
+        }
+
+        // ── GetSummaryForPeriod ───────────────────────────────────────────────
+
+        [TestMethod]
+        public void GetSummaryForPeriod_NoOrders_ReturnsZeroes()
+        {
+            var summary = MakeRepo().GetSummaryForPeriod(new DateTime(2026, 1, 1), new DateTime(2026, 1, 31));
+
+            Assert.AreEqual(0,  summary.TotalOrders);
+            Assert.AreEqual(0m, summary.TotalRevenue);
+        }
+
+        [TestMethod]
+        public void GetSummaryForPeriod_OnlyCountsOrdersInRange()
+        {
+            var repo = MakeRepo();
+            repo.Save(MakeRecordOnDate("Jan", new DateTime(2026, 1, 15)));
+            repo.Save(MakeRecordOnDate("Feb", new DateTime(2026, 2, 15)));
+            repo.Save(MakeRecordOnDate("Mar", new DateTime(2026, 3, 15)));
+
+            var summary = repo.GetSummaryForPeriod(new DateTime(2026, 2, 1), new DateTime(2026, 2, 28));
+
+            Assert.AreEqual(1,      summary.TotalOrders);
+            Assert.AreEqual(11.50m, summary.TotalRevenue);
+        }
+
+        [TestMethod]
+        public void GetSummaryForPeriod_NullBounds_AggregatesAllActiveOrders()
+        {
+            var repo = MakeRepo();
+            repo.Save(MakeRecord("A"));
+            repo.Save(MakeRecord("B"));
+
+            var summary = repo.GetSummaryForPeriod(null, null);
+
+            Assert.AreEqual(2,      summary.TotalOrders);
+            Assert.AreEqual(23.00m, summary.TotalRevenue);
+        }
+
+        // ── GetDailySummaries ─────────────────────────────────────────────────
+
+        [TestMethod]
+        public void GetDailySummaries_GroupsOrdersByCalendarDay()
+        {
+            var repo = MakeRepo();
+            repo.Save(MakeRecordOnDate("A1", new DateTime(2026, 1, 5, 10, 0, 0)));
+            repo.Save(MakeRecordOnDate("A2", new DateTime(2026, 1, 5, 14, 0, 0)));
+            repo.Save(MakeRecordOnDate("B1", new DateTime(2026, 1, 6, 11, 0, 0)));
+
+            List<DailySummary> daily = repo.GetDailySummaries(new DateTime(2026, 1, 1), new DateTime(2026, 1, 31));
+
+            Assert.AreEqual(2, daily.Count);
+            Assert.AreEqual(2,      daily[0].OrderCount);
+            Assert.AreEqual(23.00m, daily[0].Revenue);
+            Assert.AreEqual(1,      daily[1].OrderCount);
+        }
+
+        [TestMethod]
+        public void GetDailySummaries_Empty_ReturnsEmptyList()
+        {
+            var result = MakeRepo().GetDailySummaries(new DateTime(2026, 1, 1), new DateTime(2026, 1, 31));
+            Assert.AreEqual(0, result.Count);
+        }
+
+        [TestMethod]
+        public void GetDailySummaries_VoidedOrdersExcluded()
+        {
+            var repo = MakeRepo();
+            var active = MakeRecordOnDate("Active", new DateTime(2026, 1, 5));
+            var voided = MakeRecordOnDate("Voided", new DateTime(2026, 1, 5));
+            repo.Save(active);
+            repo.Save(voided);
+            repo.VoidOrder(voided.Id);
+
+            List<DailySummary> daily = repo.GetDailySummaries(new DateTime(2026, 1, 1), new DateTime(2026, 1, 31));
+
+            Assert.AreEqual(1, daily.Count);
+            Assert.AreEqual(1, daily[0].OrderCount);
+        }
+
+        // ── GetTopItems ───────────────────────────────────────────────────────
+
+        [TestMethod]
+        public void GetTopItems_ReturnsItemsOrderedByRevenue()
+        {
+            var repo   = MakeRepo();
+            var record = MakeRecord("Bob");
+            record.Lines.Add(new OrderLineRecord { Item = "Large Pizza",  Quantity = 1, Price = 10.00m });
+            record.Lines.Add(new OrderLineRecord { Item = "Small Pizza",  Quantity = 2, Price = 4.00m  });
+            record.Lines.Add(new OrderLineRecord { Item = "Coke - Can",   Quantity = 1, Price = 1.45m  });
+            repo.Save(record);
+
+            List<TopItem> items = repo.GetTopItems(null, null, 10);
+
+            // Large Pizza ($10) should come before Small Pizza ($8)
+            Assert.IsTrue(items.Count >= 2);
+            Assert.AreEqual("Large Pizza", items[0].Item);
+        }
+
+        [TestMethod]
+        public void GetTopItems_RespectsLimit()
+        {
+            var repo   = MakeRepo();
+            var record = MakeRecord("Anna");
+            record.Lines.Add(new OrderLineRecord { Item = "Item A", Quantity = 1, Price = 5.00m });
+            record.Lines.Add(new OrderLineRecord { Item = "Item B", Quantity = 1, Price = 4.00m });
+            record.Lines.Add(new OrderLineRecord { Item = "Item C", Quantity = 1, Price = 3.00m });
+            repo.Save(record);
+
+            List<TopItem> items = repo.GetTopItems(null, null, 2);
+
+            Assert.AreEqual(2, items.Count);
+        }
+
+        [TestMethod]
+        public void GetTopItems_Empty_ReturnsEmptyList()
+        {
+            var result = MakeRepo().GetTopItems(null, null, 10);
+            Assert.AreEqual(0, result.Count);
+        }
+
+        // ── GetPaymentBreakdown ───────────────────────────────────────────────
+
+        [TestMethod]
+        public void GetPaymentBreakdown_GroupsByPaymentMethod()
+        {
+            var repo = MakeRepo();
+            var r1 = MakeRecord("A"); r1.PaymentMethod = "Cash";
+            var r2 = MakeRecord("B"); r2.PaymentMethod = "Cash";
+            var r3 = MakeRecord("C"); r3.PaymentMethod = "Credit Card";
+            repo.Save(r1); repo.Save(r2); repo.Save(r3);
+
+            List<PaymentSplit> splits = repo.GetPaymentBreakdown(null, null);
+
+            Assert.AreEqual(2, splits.Count);
+            var cash = splits.Find(s => s.PaymentMethod == "Cash");
+            var card = splits.Find(s => s.PaymentMethod == "Credit Card");
+            Assert.IsNotNull(cash);
+            Assert.AreEqual(2, cash.OrderCount);
+            Assert.AreEqual(23.00m, cash.Revenue);
+            Assert.IsNotNull(card);
+            Assert.AreEqual(1, card.OrderCount);
+        }
+
+        [TestMethod]
+        public void GetPaymentBreakdown_VoidedOrdersExcluded()
+        {
+            var repo = MakeRepo();
+            var active = MakeRecord("Active"); active.PaymentMethod = "Cash";
+            var voided = MakeRecord("Voided"); voided.PaymentMethod = "Cash";
+            repo.Save(active);
+            repo.Save(voided);
+            repo.VoidOrder(voided.Id);
+
+            List<PaymentSplit> splits = repo.GetPaymentBreakdown(null, null);
+
+            Assert.AreEqual(1, splits.Count);
+            Assert.AreEqual(1, splits[0].OrderCount);
+        }
+
+        [TestMethod]
+        public void GetPaymentBreakdown_Empty_ReturnsEmptyList()
+        {
+            var result = MakeRepo().GetPaymentBreakdown(null, null);
+            Assert.AreEqual(0, result.Count);
+        }
+
         // ── Helpers ───────────────────────────────────────────────────────────
 
         private static OrderRecord MakeRecord(string name)

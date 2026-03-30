@@ -1,42 +1,49 @@
 # Pizza Express — New Zealand
 
 [![Build and Test](https://github.com/ARSH871-bot/pizza-ordering-system/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/ARSH871-bot/pizza-ordering-system/actions/workflows/build-and-test.yml)
-![Version](https://img.shields.io/badge/version-2.7.0-brightgreen)
-![Tests](https://img.shields.io/badge/tests-161%20passing-success)
+![Version](https://img.shields.io/badge/version-2.15.0-brightgreen)
+![Tests](https://img.shields.io/badge/tests-192%20passing-success)
 ![Coverage](https://img.shields.io/badge/coverage-%3E70%25%20gated-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Platform](https://img.shields.io/badge/platform-Windows-lightgrey)
 ![Framework](https://img.shields.io/badge/.NET-4.8-purple)
 
-A Windows Forms desktop POS (Point of Sale) application for **Pizza Express New Zealand**, built in C# (.NET Framework 4.8) with a clean three-layer architecture, 161 unit + integration tests, and a fully automated CI pipeline.
+A Windows Forms desktop POS (Point of Sale) application for **Pizza Express New Zealand**, built in C# (.NET Framework 4.8) with a clean three-layer architecture, 192 unit + integration tests, and a fully automated CI pipeline.
 
 ---
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                     UI Layer                        │
-│   Form1.cs  │  OrderHistoryForm.cs                  │
-│             (WinForms — no business logic)          │
-└────────────────────┬────────────────────────────────┘
-                     │ depends on interfaces
-┌────────────────────▼────────────────────────────────┐
-│                  Service Layer                      │
-│  IPromoEngine      →  PromoEngine                   │
-│  IOrderValidator   →  OrderValidator                │
-│  IReceiptWriter    →  ReceiptWriter                 │
-│  IOrderRepository  →  OrderRepository (NDJSON)      │
-│  ICartService      →  CartService                   │
-│  ILogger           →  FileLogger / NullLogger       │
-└────────────────────┬────────────────────────────────┘
-                     │ operates on
-┌────────────────────▼────────────────────────────────┐
-│                  Domain Models                      │
-│  Order  │  OrderItem  │  Customer                   │
-│  OrderRecord  │  OrderLineRecord                    │
-│  AppConfig  (single source of truth for all values) │
-└─────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│                           UI Layer                               │
+│  Form1.cs          OrderHistoryForm.cs   SalesReportForm.cs      │
+│  PinLoginForm.cs   SettingsForm.cs       EndOfDayForm.cs         │
+│                   (WinForms — no business logic)                 │
+└─────────────────────────┬────────────────────────────────────────┘
+                          │ depends on interfaces
+┌─────────────────────────▼────────────────────────────────────────┐
+│                       Service Layer                              │
+│  IPromoEngine       →  PromoEngine                               │
+│  IOrderValidator    →  OrderValidator                            │
+│  IReceiptWriter     →  ReceiptWriter                             │
+│  IOrderRepository   →  OrderRepository (SQLite + Dapper)         │
+│  ICartService       →  CartService (dynamic DB pricing)          │
+│  ISettingsRepository → SettingsRepository (SQLite)               │
+│  ILogger            →  FileLogger / NullLogger                   │
+└─────────────────────────┬────────────────────────────────────────┘
+                          │ operates on
+┌─────────────────────────▼────────────────────────────────────────┐
+│                       Domain Models                              │
+│  Order │ OrderItem │ Customer │ OrderRecord │ OrderLineRecord     │
+│  DailySummary │ TopItem │ PaymentSplit │ OrderSummary             │
+│  AppConfig  (compile-time fallbacks; DB values take precedence)  │
+└──────────────────────────────────────────────────────────────────┘
+                          │ migrated by
+┌─────────────────────────▼────────────────────────────────────────┐
+│                    Infrastructure                                │
+│  DatabaseMigrator  — SchemaHistory table; idempotent; no DbUp    │
+└──────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -62,14 +69,29 @@ A Windows Forms desktop POS (Point of Sale) application for **Pizza Express New 
 - Keyboard shortcuts: `Alt+C` confirm, `Alt+H` history, `Esc` back
 - **Crash logger** — unhandled exceptions written to `%APPDATA%\PizzaExpress\Logs\crash_*.log`
 
-### Order History
+### Order History & Reporting
 - All confirmed orders persisted to `%APPDATA%\PizzaExpress\orders.db` (SQLite, ACID transactions)
 - Automatic migration from legacy `orders.ndjson` and `orders.json` formats on first launch
-- History viewer with Date, Customer, Region, Payment, Total columns
-- Live text search + date range filter
-- Column sorting (click any header)
-- CSV export of filtered results
-- "View Details" shows full order breakdown
+- History viewer with Date, Customer, Region, Payment, Total, **Status** columns
+- **SQL-backed live search** — text filters run a SQL `LIKE` query on CustomerName, Region, PaymentMethod; date range adds a `WHERE OrderDate BETWEEN` clause
+- **Stats bar** — always-visible all-time summary: total orders, total revenue, average order value
+- **Delete Order** — permanent removal with confirmation; **Void Order** — marks as Voided (excluded from revenue, kept for audit); voided rows rendered in italic grey
+- Column sorting (click any header); CSV export of filtered results
+
+### Sales Reports
+- **Period Sales Report** (`Alt+R`) — KPI boxes + daily breakdown + top items + payment split for any date range; Today / This Week / This Month shortcuts; CSV export
+- **End-of-Day Z-Report** (`Alt+E`) — cashier shift-close summary: orders, revenue, GST, average, payment-method reconciliation, top items; printable via print preview
+
+### Administration
+- **Settings form** (`Alt+W`) — all prices and delivery time stored in SQLite; live edit via DataGridView; changes take effect on the next order, no restart required
+- **Staff PIN login** — configurable numeric PIN shown at startup; bypass when blank (single-operator mode); shake animation + keyboard support; set via Settings form
+- **Dynamic delivery estimate** — order confirmation reads delivery minutes from the database setting rather than a compile-time constant
+
+### Keyboard Shortcuts
+- `F1` — keyboard shortcuts help overlay (full shortcut map)
+- `Alt+C` confirm order · `Alt+P` checkout · `Alt+H` history
+- `Alt+R` sales report · `Alt+E` end of day · `Alt+W` settings
+- `Escape` navigate back · `Del` delete order · `V` void order
 
 ---
 
@@ -122,19 +144,34 @@ PizzaOrderingSystemC#/
 │   │   ├── Customer.cs
 │   │   ├── Order.cs
 │   │   ├── OrderItem.cs
-│   │   └── OrderRecord.cs            # Serialisable snapshot for NDJSON persistence
+│   │   ├── OrderRecord.cs            # Serialisable snapshot for SQLite persistence
+│   │   └── OrderSummary.cs           # Aggregate stats (count, revenue, avg)
+│   ├── Forms/
+│   │   ├── SettingsForm.cs           # Admin price/config editor (Alt+W)
+│   │   ├── SalesReportForm.cs        # Period KPI + daily + items + payments (Alt+R)
+│   │   ├── EndOfDayForm.cs           # Z-Report shift summary, printable (Alt+E)
+│   │   └── PinLoginForm.cs           # Staff PIN numpad login dialog
+│   ├── Infrastructure/
+│   │   └── DatabaseMigrator.cs       # Lightweight migration runner (SchemaHistory)
+│   ├── Models/
+│   │   ├── Customer.cs
+│   │   ├── Order.cs / OrderItem.cs
+│   │   ├── OrderRecord.cs            # Serialisable snapshot; Status (Active/Voided)
+│   │   ├── OrderSummary.cs           # Aggregate stats
+│   │   └── ReportModels.cs           # DailySummary, TopItem, PaymentSplit
 │   ├── Services/
 │   │   ├── IPromoEngine.cs           # Interface → PromoEngine.cs
 │   │   ├── IOrderValidator.cs        # Interface → OrderValidator.cs
 │   │   ├── IReceiptWriter.cs         # Interface → ReceiptWriter.cs
-│   │   ├── IOrderRepository.cs       # Interface → OrderRepository.cs (NDJSON)
-│   │   ├── ICartService.cs           # Interface → CartService.cs
+│   │   ├── IOrderRepository.cs       # Interface → OrderRepository.cs (SQLite)
+│   │   ├── ICartService.cs           # Interface → CartService.cs (dynamic pricing)
+│   │   ├── ISettingsRepository.cs    # Interface → SettingsRepository.cs (SQLite)
 │   │   ├── ILogger.cs                # Interface → FileLogger.cs / NullLogger.cs
 │   │   └── ValidationResult.cs
 │   ├── Form1.cs                      # Main POS form (UI only)
-│   └── OrderHistoryForm.cs           # History viewer — search, filter, sort, CSV
+│   └── OrderHistoryForm.cs           # History viewer — search, filter, void, sort, CSV
 ├── PizzaExpress.Tests/
-│   └── Tests/                        # 161 tests across 11 test classes
+│   └── Tests/                        # 175 tests across 11 test classes
 │       ├── OrderItemTests.cs
 │       ├── OrderTests.cs
 │       ├── CustomerTests.cs
@@ -153,7 +190,11 @@ PizzaOrderingSystemC#/
 │   ├── dependabot.yml                # Weekly NuGet + Actions updates
 │   ├── ISSUE_TEMPLATE/
 │   └── pull_request_template.md
-├── .editorconfig                     # Code style rules
+├── Directory.Build.props             # Shared LangVersion, Nullable, Deterministic, analyzers
+├── Directory.Packages.props          # Central Package Management — all NuGet versions here
+├── global.json                       # Pins .NET SDK to 9.0.x for reproducible builds
+├── NuGet.Config                      # Explicit nuget.org-only package source
+├── .editorconfig                     # Code style + Roslyn/StyleCop severity overrides
 ├── .gitattributes                    # CRLF normalisation
 └── coverlet.runsettings              # OpenCover format, excludes test assembly
 ```
@@ -166,6 +207,13 @@ See [CHANGELOG.md](CHANGELOG.md) for full release history.
 
 | Version | Highlights |
 |---|---|
+| **v2.13.0** | Composition root · `DatabaseMigrator` · `Settings` table · dynamic prices · `SettingsForm` admin UI |
+| **v2.12.0** | Critical receipt pricing bug fixed · world-class dark-theme UI/UX overhaul (Form1 + OrderHistoryForm) · 177 tests |
+| **v2.11.0** | Central Package Management (`Directory.Packages.props`) · tooltips on history controls |
+| **v2.10.0** | `Directory.Build.props` · `global.json` · `NuGet.Config` · `Delete`/`Enter` keys in history |
+| **v2.9.1** | Zero-warning CI gate (`-warnaserror`) · all StyleCop categories suppressed · 12 new CA suppressions |
+| **v2.9.0** | Delete Order (button + right-click + confirmation) · SQLite indexes · 175 tests |
+| **v2.8.0** | SQL-backed search · `GetSummary()` + stats bar in Order History · `OrderSummary` model · 170 tests |
 | **v2.7.0** | SQLite + Dapper replaces NDJSON · SDK-style csproj · dotnet CLI in CI · NetAnalyzers 9.0 · 161 tests |
 | **v2.6.0** | 16 new tests covering null customer, receipt fields, promo messages, empty file, Large pizza price · CONTRIBUTING.md updated · 161 tests |
 | **v2.5.0** | Lifetime-free CI coverage gate · .gitattributes · NullLogger · FileLogger tests · ILogger/ICartService mocks · Release config · 145 tests |
@@ -182,7 +230,7 @@ See [CHANGELOG.md](CHANGELOG.md) for full release history.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for branching strategy and commit conventions.
 Please use the [issue templates](.github/ISSUE_TEMPLATE/) for bug reports and feature requests.
-All PRs must pass CI (build + 161 tests + ≥70% line coverage) before merging.
+All PRs must pass CI (build + 177 tests + ≥70% line coverage) before merging.
 
 ## Security
 

@@ -24,12 +24,13 @@ jobs:
       - name: Restore NuGet packages
         run: dotnet restore "PizzaOrderingSystemC#/WindowsFormsApplication3.sln"
 
-      - name: Build solution (Debug)
+      - name: Build solution (Debug — zero warnings gate)
         run: |
           dotnet build "PizzaOrderingSystemC#/WindowsFormsApplication3.sln" `
             --configuration Debug `
             --no-restore `
-            --nologo
+            --nologo `
+            -warnaserror
 
       - name: Run tests and collect coverage
         run: |

@@ -7,30 +7,23 @@
     <AssemblyName>PizzaExpress.Tests</AssemblyName>
     <RootNamespace>PizzaExpress.Tests</RootNamespace>
     <IsPackable>false</IsPackable>
-    <Nullable>disable</Nullable>
-    <LangVersion>7.3</LangVersion>
+    <!-- LangVersion, Nullable, Deterministic, and analyzer packages
+         are inherited from Directory.Build.props -->
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MSTest.TestAdapter" Version="3.3.1" />
-    <PackageReference Include="MSTest.TestFramework" Version="3.3.1" />
-    <PackageReference Include="NSubstitute" Version="5.1.0" />
-    <PackageReference Include="Castle.Core" Version="5.1.1" />
-    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
-    <PackageReference Include="coverlet.collector" Version="6.0.2">
+    <PackageReference Include="MSTest.TestAdapter" />
+    <PackageReference Include="MSTest.TestFramework" />
+    <PackageReference Include="NSubstitute" />
+    <PackageReference Include="Castle.Core" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" />
+    <PackageReference Include="coverlet.collector">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="9.0.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="System.Data.SQLite" Version="1.0.118.0" />
-    <PackageReference Include="Dapper" Version="2.1.35" />
+    <!-- Analyzer packages inherited from Directory.Build.props -->
+    <PackageReference Include="System.Data.SQLite" />
+    <PackageReference Include="Dapper" />
   </ItemGroup>
 
   <ItemGroup>

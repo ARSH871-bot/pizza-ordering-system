@@ -117,5 +117,46 @@ namespace PizzaExpress.Tests
                 System.IO.File.Delete(path);
             }
         }
+
+        // Regression: BuildOrderForReceipt stores line totals in the ListView price column.
+        // Unit price must be back-calculated as lineTotal / max(qty,1) before constructing
+        // OrderItem, otherwise TotalPrice = unitPrice × qty double-counts quantity.
+        [TestMethod]
+        public void Build_MultiQtyDrink_SubtotalNotDoubledByQuantity()
+        {
+            // Coke x2 @ $1.45/can → line total $2.90 → unit price must be $1.45
+            var order = new Order
+            {
+                Customer      = new Customer { FirstName = "Test", LastName = "User",
+                    Region = "Auckland", PostalCode = "1010" },
+                PaymentMethod = "Cash",
+                AmountPaid    = 50.00m,
+            };
+            order.Items.Add(new OrderItem("Coke - Can", 2, 1.45m));   // correct unit price
+            string receipt = _writer.Build(order);
+
+            // Subtotal = 2 × $1.45 = $2.90 (not $5.80 which was the bug)
+            StringAssert.Contains(receipt, "2.90");
+        }
+
+        [TestMethod]
+        public void Build_MultiQtyDrink_DoesNotDoubleCount()
+        {
+            // If the buggy price ($2.90 line total used as unit price) were passed in,
+            // TotalPrice would be $5.80 — verify the receipt does NOT contain 5.80
+            // when the correct unit price $1.45 is supplied.
+            var order = new Order
+            {
+                Customer      = new Customer { FirstName = "Test", LastName = "User",
+                    Region = "Auckland", PostalCode = "1010" },
+                PaymentMethod = "Cash",
+                AmountPaid    = 50.00m,
+            };
+            order.Items.Add(new OrderItem("Coke - Can", 2, 1.45m));
+            string receipt = _writer.Build(order);
+
+            Assert.IsFalse(receipt.Contains("5.80"),
+                "Subtotal should be $2.90 (unit $1.45 × qty 2), not $5.80 (line-total double-counted).");
+        }
     }
 }

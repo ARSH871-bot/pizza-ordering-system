@@ -12,8 +12,9 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <!-- Required for non-string (image) resources in SDK-style net48 builds -->
     <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
-    <Nullable>disable</Nullable>
-    <LangVersion>7.3</LangVersion>
+    <!-- LangVersion, Nullable, Deterministic, and analyzer packages
+         are inherited from Directory.Build.props -->
+
   </PropertyGroup>
 
   <!-- Windows Forms framework assemblies (not auto-included for net48 SDK-style) -->
@@ -29,17 +30,10 @@
 
   <!-- NuGet packages -->
   <ItemGroup>
-    <PackageReference Include="System.Resources.Extensions" Version="8.0.0" />
-    <PackageReference Include="Dapper" Version="2.1.35" />
-    <PackageReference Include="System.Data.SQLite" Version="1.0.118.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="9.0.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
+    <PackageReference Include="System.Resources.Extensions" />
+    <PackageReference Include="Dapper" />
+    <PackageReference Include="System.Data.SQLite" />
+    <!-- Analyzer packages inherited from Directory.Build.props -->
   </ItemGroup>
 
   <!-- Designer file nesting — SDK auto-globs all .cs; DependentUpon controls nesting -->

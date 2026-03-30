@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Properties and packages shared by every project under this directory.
+  MSBuild imports this file automatically before each .csproj.
+  Keep project-specific settings (OutputType, AssemblyName, etc.) in the csproj.
+-->
+<Project>
+
+  <PropertyGroup>
+    <!-- C# 7.3 is the highest version supported by .NET Framework 4.8 -->
+    <LangVersion>7.3</LangVersion>
+    <!-- Nullable reference types not available in C# 7.3 -->
+    <Nullable>disable</Nullable>
+    <!-- Produce deterministic output (same input → same binary hash) -->
+    <Deterministic>true</Deterministic>
+    <!-- Central Package Management: versions live in Directory.Packages.props only -->
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+
+  <!-- Roslyn and StyleCop analyzers applied to every project -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="StyleCop.Analyzers">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+</Project>

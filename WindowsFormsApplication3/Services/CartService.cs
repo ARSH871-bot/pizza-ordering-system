@@ -8,9 +8,26 @@ namespace WindowsFormsApplication3.Services
     /// <summary>
     /// Builds order line items from raw user selections.
     /// Contains no WinForms dependency — fully unit-testable.
+    /// <para>
+    /// When constructed with an <see cref="ISettingsRepository"/>, prices are read from
+    /// the database so a business owner can adjust them without recompiling.
+    /// The parameterless constructor falls back to the compile-time <see cref="AppConfig"/>
+    /// constants, keeping all existing tests green.
+    /// </para>
     /// </summary>
     public class CartService : ICartService
     {
+        private readonly ISettingsRepository _settings;
+
+        /// <summary>Parameterless constructor — uses compile-time <see cref="AppConfig"/> prices.</summary>
+        public CartService() { }
+
+        /// <summary>Constructor with database-backed settings — prices are resolved at runtime.</summary>
+        public CartService(ISettingsRepository settings)
+        {
+            _settings = settings;
+        }
+
         /// <inheritdoc/>
         public List<OrderItem> BuildPizzaItems(PizzaSize size, CrustType crust, int qty,
                                                IList<string> selectedToppings)
@@ -19,10 +36,9 @@ namespace WindowsFormsApplication3.Services
 
             var items = new List<OrderItem>();
 
-            decimal unitPrice  = AppConfig.PizzaPrices[size];
-            decimal totalPrice = unitPrice * qty;
-            string  sizeName   = size == PizzaSize.ExtraLarge ? "Extra Large" : size.ToString();
-            string  crustName  = crust.ToString();
+            decimal unitPrice = GetPizzaPrice(size);
+            string  sizeName  = size == PizzaSize.ExtraLarge ? "Extra Large" : size.ToString();
+            string  crustName = crust.ToString();
 
             items.Add(new OrderItem($"{crustName} Crust {sizeName} Pizza", qty, unitPrice));
 
@@ -31,7 +47,7 @@ namespace WindowsFormsApplication3.Services
                 foreach (string topping in selectedToppings)
                 {
                     if (!string.IsNullOrWhiteSpace(topping))
-                        items.Add(new OrderItem($"  {topping} Toppings", 0, AppConfig.ToppingPrice));
+                        items.Add(new OrderItem($"  {topping} Toppings", 0, GetToppingPrice()));
                 }
             }
 
@@ -55,5 +71,25 @@ namespace WindowsFormsApplication3.Services
         /// <inheritdoc/>
         public decimal CalculateTotal(decimal subtotal)
             => subtotal + CalculateTax(subtotal);
+
+        // ── Price resolution: DB setting → AppConfig fallback ────────────────
+
+        private decimal GetPizzaPrice(PizzaSize size)
+        {
+            if (_settings == null) return AppConfig.PizzaPrices[size];
+            string raw = _settings.Get($"PizzaPrice.{size}");
+            decimal parsed;
+            if (raw != null && decimal.TryParse(raw, out parsed)) return parsed;
+            return AppConfig.PizzaPrices[size];
+        }
+
+        private decimal GetToppingPrice()
+        {
+            if (_settings == null) return AppConfig.ToppingPrice;
+            string raw = _settings.Get("ToppingPrice");
+            decimal parsed;
+            if (raw != null && decimal.TryParse(raw, out parsed)) return parsed;
+            return AppConfig.ToppingPrice;
+        }
     }
 }

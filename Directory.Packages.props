@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Central Package Management (CPM) — single source of truth for ALL NuGet versions.
+  Add <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally> is set in
+  Directory.Build.props to activate this file.
+
+  To upgrade a package: change the Version here only. Every project that references
+  the package picks up the new version automatically — no per-project edits required.
+-->
+<Project>
+  <ItemGroup>
+    <!-- ── Production dependencies ────────────────────────────────────────── -->
+    <PackageVersion Include="Dapper"                          Version="2.1.35" />
+    <PackageVersion Include="System.Data.SQLite"             Version="1.0.118.0" />
+    <PackageVersion Include="System.Resources.Extensions"    Version="8.0.0" />
+
+    <!-- ── Analyzers (PrivateAssets=all — dev-time only) ─────────────────── -->
+    <PackageVersion Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="9.0.0" />
+    <PackageVersion Include="StyleCop.Analyzers"             Version="1.2.0-beta.556" />
+
+    <!-- ── Test dependencies ─────────────────────────────────────────────── -->
+    <PackageVersion Include="MSTest.TestAdapter"             Version="3.3.1" />
+    <PackageVersion Include="MSTest.TestFramework"           Version="3.3.1" />
+    <PackageVersion Include="NSubstitute"                    Version="5.1.0" />
+    <PackageVersion Include="Castle.Core"                    Version="5.1.1" />
+    <PackageVersion Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
+    <PackageVersion Include="coverlet.collector"             Version="6.0.2" />
+  </ItemGroup>
+</Project>

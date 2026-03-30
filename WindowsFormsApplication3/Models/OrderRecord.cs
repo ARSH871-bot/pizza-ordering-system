@@ -19,6 +19,8 @@ namespace WindowsFormsApplication3.Models
         public decimal  Subtotal      { get; set; }
         public decimal  Tax           { get; set; }
         public decimal  Total         { get; set; }
+        /// <summary>"Active" (default) or "Voided".</summary>
+        public string   Status        { get; set; } = "Active";
         public List<OrderLineRecord> Lines { get; set; } = new List<OrderLineRecord>();
     }
 

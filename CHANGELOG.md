@@ -9,6 +9,168 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.15.0] — 2026-03-26
+
+### Added
+
+- **`EndOfDayForm`** (`Forms/EndOfDayForm.cs`) — Z-Report: cashier shift-close summary for the current calendar day. Shows four KPI boxes (Orders, Revenue, GST, Average), a payment-method breakdown ListView, and a top-items ListView. Print to any printer via `PrintPreviewDialog`; Export CSV button. Opened via **"End of Day"** button (forest-green, Tab 2) or `Alt+E`.
+- **`Alt+E` keyboard shortcut** — wired in `ProcessCmdKey` to open `EndOfDayForm` from anywhere in the main form.
+
+### Fixed
+
+- **`PrintReceipt` multi-page and line-wrap** — previous implementation used a single `DrawString` call, truncating any receipt longer than one page and not wrapping long lines. Rewritten to walk lines one-by-one with character-level wrapping and proper `HasMorePages` signalling so any receipt length prints correctly.
+
+### Changed
+
+- **About dialog** — test count updated from 95 to 192.
+- **Sales Report button** — removed the Unicode emoji (surrogate-pair) from the button label; plain text "Sales Report" renders reliably across all Windows DPI settings.
+- **Order confirmation delivery estimate** — reads `DeliveryMinutes` from the SQLite `Settings` table at runtime (falls back to `AppConfig.DeliveryMinutes` when settings are unavailable). Delivery time now reflects whatever the admin has configured, without a restart.
+- **README** — updated version badge (2.15.0), test count badge (192), architecture diagram, feature sections (reporting, admin, keyboard shortcuts), and project structure tree.
+- `AssemblyInfo.cs` — version bumped to `2.15.0.0`.
+
+---
+
+## [2.14.0] — 2026-03-26
+
+### Added
+
+- **`PinLoginForm`** (`Forms/PinLoginForm.cs`) — dark-theme numpad PIN dialog shown at startup when a staff PIN is configured. Features: circle-dot masking (●), physical numpad and keyboard support (digits, Backspace, Delete, Enter, Escape), CLR button, shake animation on incorrect entry. If `StaffPin` is empty the dialog is bypassed entirely — zero friction for single-operator shops.
+- **Staff PIN startup gate in `Program.cs`** — `PinLoginForm.PinRequired(settings)` check added between migration and `Application.Run`; cancelling the dialog exits cleanly without launching the POS.
+- **`SalesReportForm`** (`Forms/SalesReportForm.cs`) — dark-theme period sales report form (1020×680). Period selector with Today / This Week / This Month shortcuts, four KPI boxes (Orders, Revenue, GST, Avg Order in amber), and three detail ListViews: Daily Breakdown, Top Items (by revenue), Payment Methods. Includes Export CSV. Opened via **Sales Report** button (Tab 2) or `Alt+R`.
+- **Sales Report button** (Tab 2, `Form1`) — wired to `OpenSalesReportForm()`; `Alt+R` keyboard shortcut registered in `ProcessCmdKey`.
+- **`StaffPin` friendly name in `SettingsForm`** — displays as "Staff PIN (leave blank to disable)" in the admin settings grid.
+- **Void Order in `OrderHistoryForm`** — "Void Order" button (dark amber), right-click context menu item, and `V` keyboard shortcut. Voided orders remain in the log (for audit) but are excluded from all revenue reports. Voided rows are rendered in italic grey so they are immediately distinguishable from active orders.
+- **Status column in `OrderHistoryForm`** — shows "Active" or "Voided" per row; detail view includes the status line.
+- **15 new integration tests** in `OrderRepositoryTests` covering `VoidOrder` (3), `GetSummaryForPeriod` (3), `GetDailySummaries` (3), `GetTopItems` (3), and `GetPaymentBreakdown` (3).
+
+### Changed
+
+- `AssemblyInfo.cs` — version bumped to `2.14.0.0`.
+
+---
+
+## [2.13.0] — 2026-03-26
+
+### Added
+
+- **Composition root in `Program.cs`** — single explicit wiring point; `Form1` now depends only on interfaces. The only place that calls `new` on a concrete service is `Program.cs`.
+- **`DatabaseMigrator`** (`Infrastructure/DatabaseMigrator.cs`) — dependency-free migration runner built on existing SQLite + Dapper. Tracks applied scripts in a `SchemaHistory` table; each script runs exactly once across all environments. Zero new NuGet packages.
+- **`Settings` database table** (migration `0001_AddSettingsTable`) — all prices and delivery time now persisted in SQLite, seeded with defaults on first run.
+- **`ISettingsRepository` + `SettingsRepository`** — interface + SQLite implementation for reading/writing the `Settings` table.
+- **`CartService` dynamic pricing** — accepts an optional `ISettingsRepository`; prices are resolved from the DB at order time, falling back to `AppConfig` compile-time values. All 177 existing tests pass unchanged.
+- **`SettingsForm`** (`Forms/SettingsForm.cs`) — dark-theme admin form; opens via `⚙ Settings` button (Tab 2) or `Alt+W`. DataGridView with friendly names, inline editing, numeric validation, immediate persistence. Changes take effect on the next order — no restart required.
+
+### Changed
+
+- **`Form1` constructor injection** — hardwired field initialisers replaced with `(IOrderRepository, ICartService, ISettingsRepository)` constructor. Parameterless fallback retained for WinForms Designer.
+- `AssemblyInfo.cs` — version bumped to `2.13.0.0`.
+
+---
+
+## [2.12.0] — 2026-03-26
+
+### Fixed
+
+- **Critical pricing bug in `BuildOrderForReceipt()`** — the ListView price column stores line totals (`qty × unitPrice`), but the method was passing that value directly as the `unitPrice` parameter of `OrderItem`. Since `OrderItem.TotalPrice = UnitPrice × max(Quantity, 1)`, the quantity was being applied twice, inflating `Order.Subtotal` and producing a negative change amount on the receipt. Fixed by back-calculating `unitPrice = lineTotal / max(qty, 1)` before constructing each `OrderItem`.
+
+### Added
+
+- **2 regression tests** in `ReceiptWriterTests` — `Build_MultiQtyDrink_SubtotalNotDoubledByQuantity` and `Build_MultiQtyDrink_DoesNotDoubleCount` guard against re-introducing the double-counting bug.
+- **World-class UI/UX overhaul (Form1)** — applied programmatically in `ApplyUiPolish()`:
+  - Form launches **maximised** so the tab control fills the screen with no dead space or scrolling.
+  - `tabControl1` gains `Anchor = Top | Left | Right | Bottom` so it resizes with the window.
+  - Form background changed from `DarkGoldenrod` to brand burnt-orange `rgb(192, 64, 0)`, eliminating the ugly golden-brown strip.
+  - **Button colour hierarchy**: primary forward-flow buttons (Confirm Order, Check Out, Submit Order) → brand orange-red; secondary/back buttons (Add to Cart, Order Again, Go Back) → charcoal; destructive buttons (Exit, Clear Order) → crimson; Pay button → forest green. All buttons use `FlatStyle.Flat`, no border, `Cursor.Hand`, "Segoe UI 10pt Bold".
+  - "Add Pizza to Cart" button auto-sized to `175×40` so the label is never clipped.
+  - History and About buttons resized to match the rest of the action row.
+- **World-class UI/UX overhaul (OrderHistoryForm)** — dark-theme redesign:
+  - Background `rgb(26, 26, 26)` (deep charcoal) with surface panels `rgb(38, 38, 38)`.
+  - Filter bar on dark surface; search TextBox styled dark; labels in `rgb(240, 240, 240)`.
+  - Stats bar uses a dark brand-tint panel with warm amber text `rgb(255, 200, 140)`, "Segoe UI 9pt Bold" — instantly visible at a glance.
+  - ListView dark background `rgb(32, 32, 32)` with light text; no border.
+  - Button bar: View Details → brand orange-red; Delete → crimson; Export CSV / Close → charcoal. All flat, hand cursor, "Segoe UI 9.5pt Bold".
+  - Form default size increased to `940×600`.
+
+### Changed
+
+- `AssemblyInfo.cs` — version bumped to `2.12.0.0`.
+
+---
+
+## [2.11.0] — 2026-03-26
+
+### Added
+
+- **Central Package Management (`Directory.Packages.props`)** — all 12 NuGet package versions centralised in a single file. `<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>` enabled in `Directory.Build.props`. Upgrading any package now requires editing exactly one line in one file; version drift between projects is impossible.
+- **Tooltips on Order History controls** — hover hints added to the stats bar (explains all-time vs. filtered), Delete button (`Del` key reminder), View Details button (`Enter` key reminder), and Export CSV button.
+
+### Changed
+
+- `Directory.Build.props` — `ManagePackageVersionsCentrally` enabled; analyzer `PackageReference` entries no longer carry `Version=` attributes.
+- Both `.csproj` files — all `Version=` attributes removed from every `PackageReference`. Versions now resolved exclusively from `Directory.Packages.props`.
+- `AssemblyInfo.cs` — version bumped to `2.11.0.0`.
+
+---
+
+## [2.10.0] — 2026-03-26
+
+### Added
+
+- **`Directory.Build.props`** — single source of truth for properties shared by every project: `LangVersion=7.3`, `Nullable=disable`, `Deterministic=true`, and both analyzer packages (`Microsoft.CodeAnalysis.NetAnalyzers` + `StyleCop.Analyzers`). Eliminates the duplication that previously existed between the two `.csproj` files.
+- **`global.json`** — pins the .NET SDK to `9.0.x` (`rollForward: latestMinor`, `allowPrerelease: false`). Ensures every developer and CI agent uses the same SDK version, preventing "works on my machine" build differences.
+- **`NuGet.Config`** — explicit `<packageSources>` (nuget.org only) + `<packageSourceMapping>`. Prevents accidental resolution from machine-level or corporate feed sources; makes package restore fully reproducible and auditable.
+- **`Delete` / `Enter` keyboard shortcuts in Order History** — `KeyPreview = true` on the form; `Delete` key triggers the delete-with-confirmation flow, `Enter` key opens the detail view. No mouse required for common actions.
+
+### Changed
+
+- Both `.csproj` files — `LangVersion`, `Nullable`, and analyzer `PackageReference` blocks removed (now inherited from `Directory.Build.props`). Files are shorter and easier to read.
+- `AssemblyInfo.cs` — version bumped to `2.10.0.0`.
+
+---
+
+## [2.9.1] — 2026-03-26
+
+### Changed
+
+- **Zero-warning CI gate** — `dotnet build` in both `build-and-test.yml` and `release.yml` now passes `-warnaserror`, turning any surviving diagnostic warning into a build failure.
+- **`.editorconfig`** — all eight StyleCop rule categories suppressed via `dotnet_analyzer_diagnostic.category-StyleCop.CSharp.*.severity = none`. This eliminates the ~740 pre-existing StyleCop noise warnings (spacing, ordering, naming, layout, documentation) that were present in the WinForms / Designer-generated code without meaningful benefit. Additional CA rule suppressions added for common WinForms patterns: `CA1002`, `CA1031`, `CA1051`, `CA1501`, `CA1502`, `CA1506`, `CA1711`, `CA1716`, `CA1724`, `CA2213`, `CA2227`, `CA1416`.
+- `AssemblyInfo.cs` — version bumped to `2.9.1.0`.
+
+---
+
+## [2.9.0] — 2026-03-26
+
+### Added
+
+- **`IOrderRepository.Delete(id)`** — permanently removes an order and all its line items in a single atomic transaction (`ON DELETE CASCADE` handles the lines). No-ops silently on unknown or null ids.
+- **Delete Order UI** — "Delete Order" button (dark-red text) in the Order History button bar; also available via right-click context menu on any list row. Both paths show a confirmation dialog (default: No) before deleting, then refresh the list and stats bar automatically.
+- **SQLite indexes** — `IX_Orders_OrderDate` on `Orders(OrderDate)` and `IX_OrderLines_OrderId` on `OrderLines(OrderId)` created at schema initialisation (`CREATE INDEX IF NOT EXISTS`). Both existing and new databases gain the indexes automatically on next launch.
+- **5 new tests** — 4 integration tests in `OrderRepositoryTests` (`Delete` removes record, `Delete` cascades lines, non-existent id is a no-op, null/empty id is a no-op); 1 NSubstitute mock test in `ServiceInterfaceTests`. **Total tests: 170 → 175**.
+
+### Changed
+
+- `CONTRIBUTING.md` — updated test count 145 → 175; replaced legacy `msbuild` + `vstest.console.exe` commands with `dotnet restore` / `dotnet build` / `dotnet test`.
+- `AssemblyInfo.cs` — version bumped to `2.9.0.0`.
+
+---
+
+## [2.8.0] — 2026-03-26
+
+### Added
+
+- **SQL-powered search** — `IOrderRepository` gains `Search(string text, DateTime? from, DateTime? to)`. All filtering is now performed in the database via SQL `LIKE` and date-range `WHERE` clauses instead of iterating a full in-memory list. Matches on CustomerName, Region, PaymentMethod, or OrderDate.
+- **`OrderSummary` model + `GetSummary()` method** — new `IOrderRepository.GetSummary()` returns a single-query aggregate (`COUNT`, `SUM(Total)`, `AVG(Total)`) rounded to 2 d.p.
+- **Stats bar in Order History** — a slim panel above the list shows all-time order count, total revenue, and average order value (always reflects the full database, not the current filter).
+- **9 new tests** — 7 new `OrderRepositoryTests` (Search with no filter, by text, by date range, combined text+date, no-match, `GetSummary` on empty DB, `GetSummary` with data); 2 new `ServiceInterfaceTests` (NSubstitute mocks for `Search` and `GetSummary`). **Total tests: 161 → 170**.
+
+### Changed
+
+- `OrderHistoryForm.ApplyFilter()` — replaced in-memory C# loop with `_repo.Search()` call; no longer loads all rows on every keystroke.
+- `OrderHistoryForm.LoadOrders()` — now calls `RefreshStats()` once on open, then delegates to `ApplyFilter()`.
+- `AssemblyInfo.cs` — version bumped to `2.8.0.0`.
+
+---
+
 ## [2.7.0] — 2026-03-25
 
 ### Added
