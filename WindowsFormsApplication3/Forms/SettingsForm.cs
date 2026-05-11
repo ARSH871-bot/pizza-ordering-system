@@ -16,6 +16,8 @@ namespace WindowsFormsApplication3.Forms
     /// </summary>
     public class SettingsForm : Form
     {
+        private const string StaffPinConfiguredPlaceholder = "configured (enter a new PIN to change, clear to disable)";
+
         private readonly ISettingsRepository _settings;
         private readonly string              _dataDirectory;
         private DataGridView _grid;
@@ -248,7 +250,7 @@ namespace WindowsFormsApplication3.Forms
             _grid.Rows.Clear();
             IReadOnlyList<SettingRow> rows = _settings.GetAll();
             foreach (var row in rows)
-                _grid.Rows.Add(FriendlyName(row.Key), row.Value);
+                _grid.Rows.Add(FriendlyName(row.Key), GetDisplayValue(row));
 
             // Store original keys as row tags for saving back
             IReadOnlyList<SettingRow> allRows = _settings.GetAll();
@@ -267,6 +269,14 @@ namespace WindowsFormsApplication3.Forms
                 value = value.Trim();
 
                 if (string.IsNullOrEmpty(key)) continue;
+
+                if (string.Equals(key, "StaffPin", StringComparison.Ordinal))
+                {
+                    if (!TrySaveStaffPin(value, errors))
+                        continue;
+
+                    continue;
+                }
 
                 // Validate: numeric keys must be parseable as a positive decimal
                 if (IsNumericKey(key))
@@ -302,6 +312,55 @@ namespace WindowsFormsApplication3.Forms
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Information);
             Close();
+        }
+
+        private string GetDisplayValue(SettingRow row)
+        {
+            if (row == null)
+                return string.Empty;
+
+            if (!string.Equals(row.Key, "StaffPin", StringComparison.Ordinal))
+                return row.Value;
+
+            return PinSecurity.IsConfigured(row.Value)
+                ? StaffPinConfiguredPlaceholder
+                : string.Empty;
+        }
+
+        private bool TrySaveStaffPin(string enteredValue, System.Text.StringBuilder errors)
+        {
+            string existingStoredPin = _settings.Get("StaffPin", string.Empty) ?? string.Empty;
+            string candidate = (enteredValue ?? string.Empty).Trim();
+
+            if (string.IsNullOrWhiteSpace(candidate))
+            {
+                _settings.Set("StaffPin", string.Empty);
+                return true;
+            }
+
+            if (string.Equals(candidate, StaffPinConfiguredPlaceholder, StringComparison.Ordinal))
+            {
+                if (!PinSecurity.IsConfigured(existingStoredPin))
+                {
+                    _settings.Set("StaffPin", string.Empty);
+                    return true;
+                }
+
+                if (!PinSecurity.IsProtected(existingStoredPin))
+                    _settings.Set("StaffPin", PinSecurity.Protect(existingStoredPin));
+
+                return true;
+            }
+
+            ValidationResult validation = PinSecurity.ValidateNewPin(candidate);
+            if (!validation.IsValid)
+            {
+                errors.AppendLine($"  {FriendlyName("StaffPin")}: {validation.ErrorMessage}");
+                return false;
+            }
+
+            _settings.Set("StaffPin", PinSecurity.Protect(candidate));
+            return true;
         }
 
         // ── Helpers ───────────────────────────────────────────────────────────

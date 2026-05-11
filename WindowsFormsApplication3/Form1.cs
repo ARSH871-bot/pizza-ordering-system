@@ -259,7 +259,7 @@ namespace WindowsFormsApplication3
             _toolTip.SetToolTip(btnHistory, "View all past orders (Alt+H)");
             btnHistory.Click += (s, ev) =>
             {
-                using (var f = new OrderHistoryForm(_repo))
+                using (var f = new OrderHistoryForm(_repo, _settings))
                     f.ShowDialog(this);
             };
             btnCheckOut.Parent.Controls.Add(btnHistory);
@@ -420,6 +420,10 @@ namespace WindowsFormsApplication3
                     MessageBoxIcon.Information);
                 return;
             }
+
+            if (!PinLoginForm.EnsureAuthorized(this, _settings, TimeSpan.FromMinutes(10)))
+                return;
+
             using (var f = new SettingsForm(_settings, Program.DefaultDataDirectory()))
                 f.ShowDialog(this);
         }
@@ -522,7 +526,7 @@ namespace WindowsFormsApplication3
                     return true;
 
                 case Keys.Alt | Keys.H:
-                    using (var f = new OrderHistoryForm(_repo))
+                    using (var f = new OrderHistoryForm(_repo, _settings))
                         f.ShowDialog(this);
                     return true;
 

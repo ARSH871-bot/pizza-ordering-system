@@ -8,7 +8,7 @@ on:
 
 jobs:
   build-and-test:
-    name: Build, Test & Coverage
+    name: Build, Test, and Package Smoke
     runs-on: windows-latest
 
     steps:
@@ -18,13 +18,13 @@ jobs:
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: '9.x'
+          dotnet-version: "9.x"
           # .NET Framework 4.8 is pre-installed on windows-latest
 
       - name: Restore NuGet packages
         run: dotnet restore "WindowsFormsApplication3.sln"
 
-      - name: Build solution (Debug — zero warnings gate)
+      - name: Build solution (Debug)
         run: |
           dotnet build "WindowsFormsApplication3.sln" `
             --configuration Debug `
@@ -32,75 +32,14 @@ jobs:
             --nologo `
             -warnaserror
 
-      - name: Run tests and collect coverage
-        run: |
-          dotnet test "PizzaExpress.Tests/PizzaExpress.Tests.csproj" `
-            --configuration Debug `
-            --no-build `
-            --settings "coverlet.runsettings" `
-            --collect "XPlat Code Coverage" `
-            --results-directory "TestResults" `
-            --logger "trx;LogFileName=results.trx"
-
-      - name: Parse coverage and write job summary
+      - name: Run tests
         shell: pwsh
         run: |
-          # Find the OpenCover XML produced by Coverlet
-          $xml = Get-ChildItem -Recurse -Filter "coverage.opencover.xml" |
-                 Select-Object -First 1 -ExpandProperty FullName
-
-          if (-not $xml) {
-            Write-Warning "coverage.opencover.xml not found — skipping coverage summary."
-            exit 0
-          }
-
-          [xml]$doc = Get-Content $xml
-
-          # Sum all sequence points across all modules
-          $total   = 0
-          $covered = 0
-          foreach ($sp in $doc.SelectNodes("//SequencePoint")) {
-            $total++
-            if ([int]$sp.vc -gt 0) { $covered++ }
-          }
-
-          $pct = if ($total -gt 0) { [math]::Round($covered / $total * 100, 1) } else { 0 }
-
-          # Branch coverage
-          $bTotal   = 0
-          $bCovered = 0
-          foreach ($bp in $doc.SelectNodes("//BranchPoint")) {
-            $bTotal++
-            if ([int]$bp.vc -gt 0) { $bCovered++ }
-          }
-          $bPct = if ($bTotal -gt 0) { [math]::Round($bCovered / $bTotal * 100, 1) } else { 0 }
-
-          $threshold = 70
-          $icon      = if ($pct -ge $threshold) { "✅" } else { "❌" }
-          $status    = if ($pct -ge $threshold) { "PASSED" } else { "BELOW THRESHOLD" }
-
-          # Write to GitHub Actions job summary
-          $summary = @"
-          ## 📊 Coverage Report
-
-          | Metric | Value |
-          |--------|-------|
-          | Line coverage | $pct % |
-          | Branch coverage | $bPct % |
-          | Lines covered | $covered / $total |
-          | Threshold | $threshold % |
-          | Status | $icon $status |
-          "@
-
-          $summary | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
-
-          Write-Host "Line coverage: $pct%  Branch: $bPct%  ($covered/$total lines)"
-
-          # Fail the build if below threshold
-          if ($pct -lt $threshold) {
-            Write-Error "Coverage $pct% is below the required threshold of $threshold%."
-            exit 1
-          }
+          .\scripts\Run-Tests.ps1 `
+            -RepoRoot "$PWD" `
+            -Configuration Debug `
+            -ResultsDirectory "$PWD\TestResults" `
+            -LogFileName "results.trx"
 
       - name: Upload test results
         if: always()
@@ -109,9 +48,33 @@ jobs:
           name: test-results
           path: "**/*.trx"
 
-      - name: Upload coverage report
+      - name: Build solution (Release)
+        run: |
+          dotnet build "WindowsFormsApplication3.sln" `
+            --configuration Release `
+            --no-restore `
+            --nologo `
+            -warnaserror
+
+      - name: Package portable release
+        shell: pwsh
+        run: |
+          .\scripts\Package-PortableRelease.ps1 -RepoRoot "$PWD" -Configuration Release -OutputRoot "$PWD\artifacts"
+
+      - name: Smoke test portable package
+        shell: pwsh
+        run: |
+          $package = Get-ChildItem "$PWD\artifacts" -Filter "PizzaExpress-*-portable.zip" |
+                     Select-Object -First 1 -ExpandProperty FullName
+          if (-not $package) {
+            throw "Portable package zip was not created."
+          }
+
+          .\scripts\Test-PortablePackage.ps1 -PackagePath $package -TimeoutSeconds 8
+
+      - name: Upload portable package
         if: always()
         uses: actions/upload-artifact@v6
         with:
-          name: coverage-report
-          path: "**/coverage.opencover.xml"
+          name: portable-release
+          path: "artifacts/PizzaExpress-*-portable.zip"

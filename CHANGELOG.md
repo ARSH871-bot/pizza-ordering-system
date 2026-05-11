@@ -12,6 +12,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `AGENTS.md` repository guidance covering architecture boundaries, validation commands, safe refactoring rules, docs-sync expectations, and the free-tools-only constraint.
 - Regression tests covering discount-aware totals, settings-backed pricing, idempotent database migration, repository line replacement, and discount persistence.
 - WinForms smoke tests covering hidden-form construction, multi-pizza checkout persistence, promo-card checkout persistence, and settings-driven price changes.
+- PIN hardening regression tests covering protected PIN save/load behavior, legacy plaintext upgrade, temporary lockout, and recent-session authorization reuse.
 
 ### Fixed
 
@@ -23,11 +24,32 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Drink, water, and side pricing now respect SQLite settings in both the live total and the confirmed order flow.
 - CI workflows now use correct repository-root paths and updated free GitHub Action versions, fixing broken automation caused by stale path prefixes.
 - GitHub Actions and contributor instructions now use a verified `vstest.console.exe` runner via `scripts/Run-Tests.ps1`, matching the actual MSTest execution path for this .NET Framework solution.
+- Staff PIN values are no longer saved or displayed as plain text in `SettingsForm`; configured PINs stay masked in the UI and new values are stored with PBKDF2 hashing.
+- `PinLoginForm` now verifies PBKDF2-protected PINs, upgrades legacy plaintext PINs on successful login, records recent staff authorization, and temporarily locks the keypad after repeated failures.
+- Sensitive admin actions now reuse recent staff authorization: opening Settings and voiding/deleting from Order History re-prompt only when the session is stale.
 
 ### Changed
 
 - The About dialog and contributor docs no longer hardcode stale test totals.
-- README, USER_STORIES, SECURITY, and CONTRIBUTING were updated to reflect the current stack, pricing behavior, payment-reference handling, and verification workflow.
+- README, SECURITY, AGENTS, CLAUDE, and CONTRIBUTING were updated to reflect the current stack, payment-reference handling, PIN trust boundary, packaging flow, and verification workflow.
+
+---
+
+## [2.18.0] — 2026-05-12
+
+### Added
+
+- **PIN hardening** — Staff PINs are now stored with PBKDF2 (SHA-1, 100 000 iterations, 16-byte salt). `SettingsForm` masks configured PINs in the UI and hashes new values on save. Legacy plaintext PINs are upgraded to PBKDF2 on successful login via `PinLoginForm`. Three failed attempts trigger a 10-second keypad lockout with a countdown label. `StaffAuthSession` records the last successful auth time.
+- **Sensitive-action re-auth** — `PinLoginForm.EnsureAuthorized()` gates opening `SettingsForm` (Form1 `Alt+W`) and both Void/Delete in `OrderHistoryForm`. Recent staff sessions (10-minute window) are reused so operators are not prompted on every click.
+- **WinForms smoke tests** — four hidden-form integration tests covering form construction, multi-pizza cash checkout, promo-card checkout, and settings-driven price changes.
+- **`scripts/Run-Tests.ps1`** — wrapper script that locates `vstest.console.exe` and runs the net48 MSTest assembly; used by CI and contributor docs.
+- **`scripts/Package-PortableRelease.ps1`** / **`Test-PortablePackage.ps1`** — portable ZIP packaging and launch smoke test.
+- **7 PIN hardening regression tests** in `PinHardeningTests.cs` covering PBKDF2 protect/verify, legacy upgrade, lockout, and recent-session reuse.
+
+### Changed
+
+- CI workflows (`build-and-test.yml`, `release.yml`) updated to use `Run-Tests.ps1` instead of `dotnet test`.
+- `AssemblyInfo.cs` — version bumped to `2.18.0.0`.
 
 ---
 

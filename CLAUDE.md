@@ -34,6 +34,7 @@ Claude Code handoff for this repository.
 - US-31 ordering multiple different pizzas is implemented through `_stagedPizzas` and `btnAddPizzaToCart`.
 - Non-cash checkout now uses a reference/promo field only. Do not add full card-number storage.
 - Runtime settings now affect pizza, topping, canned drink, water, side, and delivery pricing/behavior.
+- Staff PINs are now PBKDF2-protected, legacy plaintext PINs upgrade on successful login, and recent staff auth is reused for Settings plus history void/delete actions.
 
 ## Changes Completed In This Pass
 
@@ -84,7 +85,7 @@ Claude Code handoff for this repository.
   - repository line replacement on re-save
   - discount persistence
   - voided-order exclusion from summary
-- Current validated test total: 211 passing.
+- Current validated test total: 221 passing.
 - GitHub Actions workflows were fixed to use the actual repo-root paths and updated free action versions:
   - `actions/checkout@v6`
   - `actions/setup-dotnet@v5`
@@ -118,7 +119,7 @@ dotnet build PizzaExpress.Tests\PizzaExpress.Tests.csproj --no-restore --configu
 
 - Harden the install experience beyond the current portable ZIP.
 - Clean up older mojibake/encoding artifacts in legacy docs/comments.
-- Replace plain-text PIN behavior with hashed verification, throttling, and re-auth for sensitive actions.
+- Add more smoke coverage around backup/restore, reporting exports, and destructive admin flows.
 
 ## Guardrails For Future Claude Sessions
 

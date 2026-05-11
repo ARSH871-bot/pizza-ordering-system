@@ -3,11 +3,11 @@ name: Release
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - "v*.*.*"
 
 jobs:
   build-and-release:
-    name: Build Release & Publish to GitHub
+    name: Build Release and Publish Portable Package
     runs-on: windows-latest
 
     steps:
@@ -17,12 +17,12 @@ jobs:
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: '9.x'
+          dotnet-version: "9.x"
 
       - name: Restore NuGet packages
         run: dotnet restore "WindowsFormsApplication3.sln"
 
-      - name: Build Release (zero warnings gate)
+      - name: Build Release
         run: |
           dotnet build "WindowsFormsApplication3.sln" `
             --configuration Release `
@@ -31,22 +31,42 @@ jobs:
             -warnaserror
 
       - name: Run tests (must pass before release)
+        shell: pwsh
         run: |
-          dotnet test "PizzaExpress.Tests/PizzaExpress.Tests.csproj" `
-            --configuration Release `
-            --no-build
+          .\scripts\Run-Tests.ps1 `
+            -RepoRoot "$PWD" `
+            -Configuration Release `
+            -ResultsDirectory "$PWD\TestResults" `
+            -LogFileName "release-tests.trx"
+
+      - name: Package portable release
+        shell: pwsh
+        run: |
+          .\scripts\Package-PortableRelease.ps1 -RepoRoot "$PWD" -Configuration Release -OutputRoot "$PWD\artifacts"
+
+      - name: Smoke test portable package
+        shell: pwsh
+        run: |
+          $package = Get-ChildItem "$PWD\artifacts" -Filter "PizzaExpress-*-portable.zip" |
+                     Select-Object -First 1 -ExpandProperty FullName
+          if (-not $package) {
+            throw "Portable package zip was not created."
+          }
+
+          .\scripts\Test-PortablePackage.ps1 -PackagePath $package -TimeoutSeconds 8
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            WindowsFormsApplication3/bin/Release/net48/WindowsFormsApplication3.exe
+            artifacts/PizzaExpress-*-portable.zip
           generate_release_notes: true
           body: |
             ## Pizza Express New Zealand ${{ github.ref_name }}
 
             ### Install
-            Download `WindowsFormsApplication3.exe` below — requires Windows 10/11 with .NET Framework 4.8 (pre-installed).
+            Download the portable ZIP below, extract it, and run `WindowsFormsApplication3.exe`.
+            The ZIP includes all required runtime files for Windows 10/11 with .NET Framework 4.8.
 
             ### What's new
             See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/master/CHANGELOG.md) for full details.

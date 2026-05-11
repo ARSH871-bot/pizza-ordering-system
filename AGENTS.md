@@ -55,7 +55,7 @@ Preferred local flow:
 ```powershell
 dotnet restore WindowsFormsApplication3.sln
 dotnet build WindowsFormsApplication3.sln --configuration Debug
-dotnet test PizzaExpress.Tests/PizzaExpress.Tests.csproj --configuration Debug --settings coverlet.runsettings --collect "XPlat Code Coverage"
+.\scripts\Run-Tests.ps1 -Configuration Debug
 ```
 
 Constrained/offline fallback used in this repo when restore is unavailable:
@@ -63,7 +63,7 @@ Constrained/offline fallback used in this repo when restore is unavailable:
 ```powershell
 dotnet build WindowsFormsApplication3\WindowsFormsApplication3.csproj --no-restore --configuration Debug -v minimal
 dotnet build PizzaExpress.Tests\PizzaExpress.Tests.csproj --no-restore --configuration Debug -v minimal
-& 'C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\Extensions\TestPlatform\vstest.console.exe' '.\PizzaExpress.Tests\bin\Debug\net48\PizzaExpress.Tests.dll' /Logger:trx
+.\scripts\Run-Tests.ps1 -Configuration Debug -ResultsDirectory ".\TestResults" -LogFileName "results.trx"
 ```
 
 ## Release / PR Checklist
@@ -97,4 +97,5 @@ dotnet build PizzaExpress.Tests\PizzaExpress.Tests.csproj --no-restore --configu
 
 - US-30 pizza quantity selection and US-31 multi-pizza ordering are implemented and should stay regression-covered.
 - Non-cash checkout uses a reference/promo entry field; do not introduce full card-number storage.
+- Staff PINs are PBKDF2-protected, legacy plaintext values should be upgraded rather than preserved, and sensitive actions should reuse or require recent staff authorization instead of bypassing the PIN model.
 - Local data lives under `%APPDATA%\\PizzaExpress`.

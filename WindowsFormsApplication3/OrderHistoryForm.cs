@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Windows.Forms;
+using WindowsFormsApplication3.Forms;
 using WindowsFormsApplication3.Models;
 using WindowsFormsApplication3.Services;
 
@@ -17,7 +18,10 @@ namespace WindowsFormsApplication3
     /// </summary>
     public class OrderHistoryForm : Form
     {
+        private static readonly TimeSpan SensitiveActionAuthWindow = TimeSpan.FromMinutes(10);
+
         private readonly IOrderRepository _repo;
+        private readonly ISettingsRepository _settings;
         private List<OrderRecord> _currentOrders = new List<OrderRecord>();
 
         // Sort state
@@ -39,9 +43,10 @@ namespace WindowsFormsApplication3
         private Button           _btnClose;
 
         /// <summary>Initialises the history form backed by the given repository.</summary>
-        public OrderHistoryForm(IOrderRepository repo)
+        public OrderHistoryForm(IOrderRepository repo, ISettingsRepository settings = null)
         {
             _repo = repo ?? throw new ArgumentNullException("repo");
+            _settings = settings;
             BuildUi();
             LoadOrders();
         }
@@ -422,6 +427,7 @@ namespace WindowsFormsApplication3
         private void DeleteSelectedOrder()
         {
             if (_listView.SelectedItems.Count == 0) return;
+            if (!EnsureSensitiveActionAuthorized()) return;
 
             var record = _listView.SelectedItems[0].Tag as OrderRecord;
             if (record == null) return;
@@ -444,6 +450,7 @@ namespace WindowsFormsApplication3
         private void VoidSelectedOrder()
         {
             if (_listView.SelectedItems.Count == 0) return;
+            if (!EnsureSensitiveActionAuthorized()) return;
 
             var record = _listView.SelectedItems[0].Tag as OrderRecord;
             if (record == null) return;
@@ -471,6 +478,11 @@ namespace WindowsFormsApplication3
             _repo.VoidOrder(record.Id);
             RefreshStats();
             ApplyFilter();
+        }
+
+        private bool EnsureSensitiveActionAuthorized()
+        {
+            return PinLoginForm.EnsureAuthorized(this, _settings, SensitiveActionAuthWindow);
         }
 
         // ── CSV export ────────────────────────────────────────────────────────

@@ -25,4 +25,6 @@ You will receive a response within 72 hours. We will work with you to confirm th
 
 - This project is local-first and stores order data in SQLite under `%APPDATA%\PizzaExpress`.
 - Non-cash checkout uses a reference field only; contributors should not add full card-number storage.
+- Staff PIN values are stored as PBKDF2 hashes, not plain text. Legacy plaintext PINs are upgraded on the next successful login.
+- Repeated bad PIN attempts trigger a temporary keypad lockout, and recent staff authorization is reused for Settings plus history void/delete actions.
 - Crash logs should remain useful for debugging without leaking unnecessary customer or payment data.
