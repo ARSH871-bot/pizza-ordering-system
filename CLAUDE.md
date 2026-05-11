@@ -119,7 +119,7 @@ dotnet build PizzaExpress.Tests\PizzaExpress.Tests.csproj --no-restore --configu
 
 - Harden the install experience beyond the current portable ZIP.
 - Clean up older mojibake/encoding artifacts in legacy docs/comments.
-- Add more smoke coverage around backup/restore, reporting exports, and destructive admin flows.
+- Add smoke/integration coverage for reporting exports (CSV, print) and end-of-day flows.
 
 ## Guardrails For Future Claude Sessions
 

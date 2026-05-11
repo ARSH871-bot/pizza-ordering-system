@@ -35,6 +35,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.19.0] — 2026-05-12
+
+### Added
+
+- **Restore re-auth gate** — `SettingsForm.BtnRestore_Click` now calls `PinLoginForm.EnsureAuthorized` with `TimeSpan.Zero` (always requires fresh PIN entry) before allowing a database restore. Backup and View Auto-Backups remain accessible within the existing session window.
+- **`DatabaseBackupServiceTests`** — 14 new integration tests covering `RunAutoBackup` (absent DB no-op, creates dated file, idempotent same-day, prunes to 7), `BackupTo` (round-trip, missing DB, empty path), `RestoreFrom` (replaces live DB, creates safety copy, missing source, no live DB), `GetDatabaseSizeKb` (absent/present), and `GetAutoBackups` (empty dir, newest-first ordering).
+
+### Changed
+
+- `AssemblyInfo.cs` — version bumped to `2.19.0.0`.
+
+---
+
 ## [2.18.0] — 2026-05-12
 
 ### Added

@@ -438,6 +438,13 @@ namespace WindowsFormsApplication3.Forms
         {
             if (_dataDirectory == null) { ShowNoDataDir(); return; }
 
+            if (!PinLoginForm.EnsureAuthorized(this, _settings, TimeSpan.Zero))
+            {
+                MessageBox.Show("Staff authorisation required to restore the database.",
+                    "Authorisation Required", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
             var confirm = MessageBox.Show(
                 "Restoring a backup will replace the current database.\n" +
                 "A safety copy of the current data will be saved first.\n\n" +
