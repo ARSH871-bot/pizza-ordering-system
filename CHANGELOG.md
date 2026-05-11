@@ -11,6 +11,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - `AGENTS.md` repository guidance covering architecture boundaries, validation commands, safe refactoring rules, docs-sync expectations, and the free-tools-only constraint.
 - Regression tests covering discount-aware totals, settings-backed pricing, idempotent database migration, repository line replacement, and discount persistence.
+- WinForms smoke tests covering hidden-form construction, multi-pizza checkout persistence, promo-card checkout persistence, and settings-driven price changes.
 
 ### Fixed
 
@@ -21,11 +22,25 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Receipt delivery estimates now use the runtime delivery setting end-to-end.
 - Drink, water, and side pricing now respect SQLite settings in both the live total and the confirmed order flow.
 - CI workflows now use correct repository-root paths and updated free GitHub Action versions, fixing broken automation caused by stale path prefixes.
+- GitHub Actions and contributor instructions now use a verified `vstest.console.exe` runner via `scripts/Run-Tests.ps1`, matching the actual MSTest execution path for this .NET Framework solution.
 
 ### Changed
 
 - The About dialog and contributor docs no longer hardcode stale test totals.
 - README, USER_STORIES, SECURITY, and CONTRIBUTING were updated to reflect the current stack, pricing behavior, payment-reference handling, and verification workflow.
+
+---
+
+## [2.17.0] — 2026-05-12
+
+### Added
+
+- **Payment reference persistence** — `Order.PaymentReference` and `OrderRecord.PaymentReference` fields added. Non-cash references (card last-4 masked by `PaymentReferenceHelper`, transaction IDs, etc.) are captured at checkout, persisted via a new schema migration (`0004_AddPaymentReference`), shown on the printed receipt, and displayed in the Order History detail view.
+- **3 repository tests** — `Save_WithPaymentReference_PersistsAndLoadsBack`, `Save_CashPayment_ReferenceIsNull`, `Save_DebitCard_ReferenceRoundTrips`.
+
+### Changed
+
+- `AssemblyInfo.cs` — version bumped to `2.17.0.0`.
 
 ---
 

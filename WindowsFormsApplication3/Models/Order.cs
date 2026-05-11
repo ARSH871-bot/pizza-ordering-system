@@ -13,7 +13,8 @@ namespace WindowsFormsApplication3.Models
     {
         public List<OrderItem> Items       { get; }      = new List<OrderItem>();
         public Customer        Customer    { get; set; } = new Customer();
-        public string          PaymentMethod { get; set; }
+        public string          PaymentMethod    { get; set; }
+        public string          PaymentReference { get; set; }
         public decimal         Discount    { get; set; }
         public string          DiscountDescription { get; set; }
         public int             DeliveryMinutes { get; set; } = AppConfig.DeliveryMinutes;

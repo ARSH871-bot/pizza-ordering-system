@@ -1188,7 +1188,8 @@ namespace WindowsFormsApplication3
                 City          = order.Customer.City,
                 Region        = order.Customer.Region,
                 PostalCode    = order.Customer.PostalCode,
-                PaymentMethod = order.PaymentMethod,
+                PaymentMethod    = order.PaymentMethod,
+                PaymentReference = order.PaymentReference,
                 Subtotal      = order.Subtotal,
                 Tax           = order.Tax,
                 Total         = order.AmountDue,
@@ -1210,8 +1211,10 @@ namespace WindowsFormsApplication3
         {
             var order = new Order
             {
-                Customer      = BuildCustomer(),
-                PaymentMethod = cboPaymentMethod.Text,
+                Customer         = BuildCustomer(),
+                PaymentMethod    = cboPaymentMethod.Text,
+                PaymentReference = Services.PaymentReferenceHelper.NormalizeForStorage(
+                                       cboPaymentMethod.Text, txtCardOrPromo.Text),
                 DiscountDescription = string.IsNullOrWhiteSpace(_appliedPromoCode) ? null : _appliedPromoCode.Trim(),
                 DeliveryMinutes = GetDeliveryMinutes(),
             };

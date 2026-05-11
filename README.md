@@ -1,9 +1,9 @@
 # Pizza Express — New Zealand
 
 [![Build and Test](https://github.com/ARSH871-bot/pizza-ordering-system/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/ARSH871-bot/pizza-ordering-system/actions/workflows/build-and-test.yml)
-![Version](https://img.shields.io/badge/version-2.16.0-brightgreen)
-![Tests](https://img.shields.io/badge/tests-207%20passing-success)
-![Coverage](https://img.shields.io/badge/coverage-%3E70%25%20gated-brightgreen)
+![Version](https://img.shields.io/badge/version-2.17.0-brightgreen)
+![Tests](https://img.shields.io/badge/tests-214%20passing-success)
+![Coverage](https://img.shields.io/badge/coverage-not%20currently%20gated-lightgrey)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Platform](https://img.shields.io/badge/platform-Windows-lightgrey)
 ![Framework](https://img.shields.io/badge/.NET-4.8-purple)
@@ -130,8 +130,10 @@ Open `WindowsFormsApplication3.sln` in Visual Studio, press `F5`.
 ```powershell
 dotnet restore WindowsFormsApplication3.sln
 dotnet build WindowsFormsApplication3.sln --configuration Debug
-dotnet test PizzaExpress.Tests\PizzaExpress.Tests.csproj --configuration Debug --settings coverlet.runsettings --collect "XPlat Code Coverage"
+.\scripts\Run-Tests.ps1 -Configuration Debug
 ```
+
+`Run-Tests.ps1` wraps the verified `vstest.console.exe` runner for this .NET Framework MSTest suite.
 
 ---
 
@@ -232,6 +234,7 @@ See [CHANGELOG.md](CHANGELOG.md) for full release history.
 
 | Version | Highlights |
 |---|---|
+| **v2.17.0** | Non-cash payment references persisted and surfaced end-to-end (receipt, history detail, DB) · 3 new repository tests |
 | **v2.16.0** | `DatabaseBackupService` · daily auto-backup on startup · Backup/Restore UI in `SettingsForm` · namespace closure fixes |
 | **v2.13.0** | Composition root · `DatabaseMigrator` · `Settings` table · dynamic prices · `SettingsForm` admin UI |
 | **v2.12.0** | Critical receipt pricing bug fixed · world-class dark-theme UI/UX overhaul (Form1 + OrderHistoryForm) · 177 tests |

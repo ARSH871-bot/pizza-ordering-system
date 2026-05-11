@@ -62,11 +62,13 @@ namespace WindowsFormsApplication3.Services
                 conn.Execute(@"
                     INSERT OR REPLACE INTO Orders
                         (Id, OrderDate, CustomerName, Address, City, Region,
-                         PostalCode, PaymentMethod, Subtotal, Tax, Total, Status,
+                         PostalCode, PaymentMethod, PaymentReference,
+                         Subtotal, Tax, Total, Status,
                          Discount, DiscountDescription)
                     VALUES
                         (@Id, @OrderDate, @CustomerName, @Address, @City, @Region,
-                         @PostalCode, @PaymentMethod, @Subtotal, @Tax, @Total, @Status,
+                         @PostalCode, @PaymentMethod, @PaymentReference,
+                         @Subtotal, @Tax, @Total, @Status,
                          @Discount, @DiscountDescription)",
                     record,
                     tx);

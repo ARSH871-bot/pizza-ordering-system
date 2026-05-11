@@ -15,8 +15,9 @@ namespace WindowsFormsApplication3.Models
         public string   City          { get; set; }
         public string   Region        { get; set; }
         public string   PostalCode    { get; set; }
-        public string   PaymentMethod { get; set; }
-        public decimal  Subtotal      { get; set; }
+        public string   PaymentMethod    { get; set; }
+        public string   PaymentReference { get; set; }
+        public decimal  Subtotal         { get; set; }
         public decimal  Tax           { get; set; }
         public decimal  Total         { get; set; }
         public decimal  Discount      { get; set; }

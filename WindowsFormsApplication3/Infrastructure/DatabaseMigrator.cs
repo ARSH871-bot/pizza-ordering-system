@@ -146,6 +146,14 @@ namespace WindowsFormsApplication3.Infrastructure
                         "DiscountDescription",
                         "ALTER TABLE Orders ADD COLUMN DiscountDescription TEXT;");
                 }),
+                new Migration("0004_AddPaymentReference", conn =>
+                {
+                    EnsureColumnExists(
+                        conn,
+                        "Orders",
+                        "PaymentReference",
+                        "ALTER TABLE Orders ADD COLUMN PaymentReference TEXT;");
+                }),
             };
 
         private sealed class Migration

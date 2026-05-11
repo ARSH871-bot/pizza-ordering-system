@@ -604,6 +604,51 @@ namespace PizzaExpress.Tests.Tests
             Assert.AreEqual(0, result.Count);
         }
 
+        // ── Payment reference ─────────────────────────────────────────────────
+
+        [TestMethod]
+        public void Save_WithPaymentReference_PersistsAndLoadsBack()
+        {
+            var repo   = MakeRepo();
+            var record = MakeRecord("Jane Doe");
+            record.PaymentMethod    = "Credit Card";
+            record.PaymentReference = "****1234";
+
+            repo.Save(record);
+            var loaded = repo.LoadAll();
+
+            Assert.AreEqual(1, loaded.Count);
+            Assert.AreEqual("****1234", loaded[0].PaymentReference);
+        }
+
+        [TestMethod]
+        public void Save_CashPayment_ReferenceIsNull()
+        {
+            var repo   = MakeRepo();
+            var record = MakeRecord("John Cash");
+            record.PaymentMethod    = "Cash";
+            record.PaymentReference = null;
+
+            repo.Save(record);
+            var loaded = repo.LoadAll();
+
+            Assert.IsNull(loaded[0].PaymentReference);
+        }
+
+        [TestMethod]
+        public void Save_DebitCard_ReferenceRoundTrips()
+        {
+            var repo   = MakeRepo();
+            var record = MakeRecord("Bob Debit");
+            record.PaymentMethod    = "Debit Card";
+            record.PaymentReference = "TXN-98765";
+
+            repo.Save(record);
+            var loaded = repo.LoadAll();
+
+            Assert.AreEqual("TXN-98765", loaded[0].PaymentReference);
+        }
+
         // ── Helpers ───────────────────────────────────────────────────────────
 
         private static OrderRecord MakeRecord(string name)

@@ -57,6 +57,8 @@ namespace WindowsFormsApplication3.Services
 
             sb.AppendLine("PAYMENT");
             sb.AppendLine($"Method:      {order.PaymentMethod}");
+            if (!string.IsNullOrWhiteSpace(order.PaymentReference))
+                sb.AppendLine($"Reference:   {order.PaymentReference}");
             sb.AppendLine($"Amount Paid: {order.AmountPaid:C2}");
             sb.AppendLine($"Change:      {order.Change:C2}");
             sb.AppendLine();

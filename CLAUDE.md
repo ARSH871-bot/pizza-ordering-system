@@ -84,7 +84,7 @@ Claude Code handoff for this repository.
   - repository line replacement on re-save
   - discount persistence
   - voided-order exclusion from summary
-- Current validated test total: 207 passing.
+- Current validated test total: 211 passing.
 - GitHub Actions workflows were fixed to use the actual repo-root paths and updated free action versions:
   - `actions/checkout@v6`
   - `actions/setup-dotnet@v5`
@@ -103,7 +103,7 @@ Preferred:
 ```powershell
 dotnet restore WindowsFormsApplication3.sln
 dotnet build WindowsFormsApplication3.sln --configuration Debug
-dotnet test PizzaExpress.Tests/PizzaExpress.Tests.csproj --configuration Debug --settings coverlet.runsettings --collect "XPlat Code Coverage"
+.\scripts\Run-Tests.ps1 -Configuration Debug
 ```
 
 Offline/constrained fallback used during this pass:
@@ -111,14 +111,14 @@ Offline/constrained fallback used during this pass:
 ```powershell
 dotnet build WindowsFormsApplication3\WindowsFormsApplication3.csproj --no-restore --configuration Debug -v minimal
 dotnet build PizzaExpress.Tests\PizzaExpress.Tests.csproj --no-restore --configuration Debug -v minimal
-& 'C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\Extensions\TestPlatform\vstest.console.exe' '.\PizzaExpress.Tests\bin\Debug\net48\PizzaExpress.Tests.dll' /Logger:trx
+.\scripts\Run-Tests.ps1 -Configuration Debug -ResultsDirectory ".\TestResults" -LogFileName "results.trx"
 ```
 
 ## Next Best Improvements
 
-- Add stronger UI-level smoke coverage for multi-pizza checkout and settings changes.
-- Improve release packaging beyond a raw `.exe`.
+- Harden the install experience beyond the current portable ZIP.
 - Clean up older mojibake/encoding artifacts in legacy docs/comments.
+- Replace plain-text PIN behavior with hashed verification, throttling, and re-auth for sensitive actions.
 
 ## Guardrails For Future Claude Sessions
 

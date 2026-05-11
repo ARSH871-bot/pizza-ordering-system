@@ -410,6 +410,8 @@ namespace WindowsFormsApplication3
             sb.AppendLine($"{"TOTAL (NZD)",-40}  {record.Total,8:C2}");
             sb.AppendLine();
             sb.AppendLine($"Payment     : {record.PaymentMethod}");
+            if (!string.IsNullOrWhiteSpace(record.PaymentReference))
+                sb.AppendLine($"Reference   : {record.PaymentReference}");
             sb.AppendLine($"Status      : {record.Status ?? "Active"}");
 
             MessageBox.Show(sb.ToString(), "Order Details",
