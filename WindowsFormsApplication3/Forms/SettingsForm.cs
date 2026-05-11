@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
+using System.IO;
 using System.Windows.Forms;
+using WindowsFormsApplication3.Infrastructure;
 using WindowsFormsApplication3.Services;
 
 namespace WindowsFormsApplication3.Forms
@@ -15,6 +17,7 @@ namespace WindowsFormsApplication3.Forms
     public class SettingsForm : Form
     {
         private readonly ISettingsRepository _settings;
+        private readonly string              _dataDirectory;
         private DataGridView _grid;
         private Button _btnSave;
         private Button _btnCancel;
@@ -29,9 +32,10 @@ namespace WindowsFormsApplication3.Forms
         private static readonly Color ClrTextMuted   = Color.FromArgb(160, 160, 160);
         private static readonly Color ClrCellEdit    = Color.FromArgb(50,  50,  50);
 
-        public SettingsForm(ISettingsRepository settings)
+        public SettingsForm(ISettingsRepository settings, string dataDirectory = null)
         {
-            _settings = settings ?? throw new ArgumentNullException("settings");
+            _settings      = settings ?? throw new ArgumentNullException("settings");
+            _dataDirectory = dataDirectory;
             BuildUi();
             LoadSettings();
         }
@@ -189,11 +193,52 @@ namespace WindowsFormsApplication3.Forms
             btnPanel.Controls.Add(_btnCancel);
             btnPanel.Controls.Add(_btnSave);
 
+            // ── Backup / Restore panel ────────────────────────────────────────
+            var btnBackup = new Button { Text = "Backup DB…", Width = 110, Height = 30 };
+            ApplyButtonStyle(btnBackup, Color.FromArgb(30, 100, 50), Color.White);
+            btnBackup.Click += BtnBackup_Click;
+
+            var btnRestore = new Button { Text = "Restore DB…", Width = 110, Height = 30 };
+            ApplyButtonStyle(btnRestore, Color.FromArgb(120, 60, 0), Color.White);
+            btnRestore.Click += BtnRestore_Click;
+
+            var btnViewBackups = new Button { Text = "View Auto-Backups", Width = 140, Height = 30 };
+            ApplyButtonStyle(btnViewBackups, ClrNeutral, Color.White);
+            btnViewBackups.Click += BtnViewBackups_Click;
+
+            var lblBackupInfo = new Label
+            {
+                AutoSize  = false,
+                Width     = 140,
+                Height    = 30,
+                TextAlign = ContentAlignment.MiddleLeft,
+                ForeColor = ClrTextMuted,
+                Font      = new Font("Segoe UI", 8f, FontStyle.Italic),
+                Tag       = "dbsize",
+            };
+
+            var backupPanel = new FlowLayoutPanel
+            {
+                Dock          = DockStyle.Bottom,
+                Height        = 42,
+                FlowDirection = FlowDirection.LeftToRight,
+                Padding       = new Padding(6, 5, 6, 0),
+                BackColor     = Color.FromArgb(30, 30, 30),
+            };
+            backupPanel.Controls.Add(btnBackup);
+            backupPanel.Controls.Add(btnRestore);
+            backupPanel.Controls.Add(btnViewBackups);
+            backupPanel.Controls.Add(lblBackupInfo);
+
             // ── Layout order (dock fills work bottom-up for DockStyle.Fill) ───
             Controls.Add(_grid);
             Controls.Add(_lblHint);
             Controls.Add(header);
+            Controls.Add(backupPanel);
             Controls.Add(btnPanel);
+
+            // Populate DB size label after layout
+            Load += (s, e) => RefreshDbSizeLabel(lblBackupInfo);
         }
 
         // ── Data ──────────────────────────────────────────────────────────────
@@ -297,6 +342,111 @@ namespace WindowsFormsApplication3.Forms
             btn.Font                      = new Font("Segoe UI", 9.5f, FontStyle.Bold);
             btn.Cursor                    = Cursors.Hand;
             btn.UseVisualStyleBackColor   = false;
+        }
+
+        // ── Backup / Restore handlers ─────────────────────────────────────────
+
+        private void BtnBackup_Click(object sender, EventArgs e)
+        {
+            if (_dataDirectory == null) { ShowNoDataDir(); return; }
+
+            using (var dlg = new SaveFileDialog
+            {
+                Title            = "Save Database Backup",
+                Filter           = "SQLite database (*.db)|*.db",
+                FileName         = $"orders_backup_{DateTime.Now:yyyyMMdd_HHmmss}.db",
+                DefaultExt       = "db",
+                OverwritePrompt  = true,
+            })
+            {
+                if (dlg.ShowDialog(this) != DialogResult.OK) return;
+                try
+                {
+                    DatabaseBackupService.BackupTo(_dataDirectory, dlg.FileName);
+                    MessageBox.Show(
+                        $"Backup saved to:\n{dlg.FileName}",
+                        "Backup Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Backup failed:\n{ex.Message}", "Backup Error",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
+
+        private void BtnRestore_Click(object sender, EventArgs e)
+        {
+            if (_dataDirectory == null) { ShowNoDataDir(); return; }
+
+            var confirm = MessageBox.Show(
+                "Restoring a backup will replace the current database.\n" +
+                "A safety copy of the current data will be saved first.\n\n" +
+                "Continue?",
+                "Restore Database",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Warning);
+            if (confirm != DialogResult.Yes) return;
+
+            using (var dlg = new OpenFileDialog
+            {
+                Title  = "Select Backup to Restore",
+                Filter = "SQLite database (*.db)|*.db|All files (*.*)|*.*",
+            })
+            {
+                if (dlg.ShowDialog(this) != DialogResult.OK) return;
+                try
+                {
+                    string safetyPath = DatabaseBackupService.RestoreFrom(_dataDirectory, dlg.FileName);
+                    MessageBox.Show(
+                        $"Database restored successfully.\n\n" +
+                        $"Safety copy of previous data:\n{safetyPath}\n\n" +
+                        "Please restart the application for changes to take full effect.",
+                        "Restore Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Restore failed:\n{ex.Message}", "Restore Error",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
+
+        private void BtnViewBackups_Click(object sender, EventArgs e)
+        {
+            if (_dataDirectory == null) { ShowNoDataDir(); return; }
+
+            string[] backups = DatabaseBackupService.GetAutoBackups(_dataDirectory);
+            if (backups.Length == 0)
+            {
+                MessageBox.Show(
+                    "No auto-backups found yet.\nAuto-backups are created once per day on startup.",
+                    "Auto-Backups", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine($"Auto-backups ({backups.Length}):\n");
+            foreach (string p in backups)
+                sb.AppendLine($"  {Path.GetFileName(p)}");
+            sb.AppendLine($"\nFolder:\n  {Path.GetDirectoryName(backups[0])}");
+
+            MessageBox.Show(sb.ToString(), "Auto-Backups",
+                MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void RefreshDbSizeLabel(Label lbl)
+        {
+            if (_dataDirectory == null) return;
+            long kb = DatabaseBackupService.GetDatabaseSizeKb(_dataDirectory);
+            lbl.Text = kb > 0 ? $"DB: {kb} KB" : "DB: —";
+        }
+
+        private void ShowNoDataDir()
+        {
+            MessageBox.Show(
+                "Data directory is not available in this context.",
+                "Backup Unavailable", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
     }
 }

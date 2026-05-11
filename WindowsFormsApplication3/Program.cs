@@ -30,7 +30,10 @@ namespace WindowsFormsApplication3
             // 1. Run database migrations (idempotent — safe on every startup).
             DatabaseMigrator.Run(dataDir);
 
-            // 2. Wire services.
+            // 2a. Rolling daily auto-backup (keeps last 7; no-op when DB absent).
+            DatabaseBackupService.RunAutoBackup(dataDir);
+
+            // 2b. Wire services.
             IOrderRepository   repo     = new OrderRepository(dataDir);
             ISettingsRepository settings = new SettingsRepository(dataDir);
             ICartService        cart     = new CartService(settings);

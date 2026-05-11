@@ -116,7 +116,6 @@ dotnet build PizzaExpress.Tests\PizzaExpress.Tests.csproj --no-restore --configu
 
 ## Next Best Improvements
 
-- Add backup/export and recovery flows for the local SQLite database.
 - Add stronger UI-level smoke coverage for multi-pizza checkout and settings changes.
 - Improve release packaging beyond a raw `.exe`.
 - Clean up older mojibake/encoding artifacts in legacy docs/comments.

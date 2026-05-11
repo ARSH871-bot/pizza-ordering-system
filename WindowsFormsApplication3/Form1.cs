@@ -420,7 +420,7 @@ namespace WindowsFormsApplication3
                     MessageBoxIcon.Information);
                 return;
             }
-            using (var f = new SettingsForm(_settings))
+            using (var f = new SettingsForm(_settings, Program.DefaultDataDirectory()))
                 f.ShowDialog(this);
         }
 

@@ -29,6 +29,25 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.16.0] — 2026-05-11
+
+### Added
+
+- **`DatabaseBackupService`** (`Infrastructure/DatabaseBackupService.cs`) — static service for rolling auto-backups, manual backup, and database restore with a pre-restore safety copy. Keeps the last 7 dated auto-backups and prunes older ones; `GetDatabaseSizeKb` and `GetAutoBackups` utilities included.
+- **Auto-backup on startup** — `Program.cs` calls `DatabaseBackupService.RunAutoBackup(dataDir)` once per day after migrations; silent no-op if the database does not yet exist.
+- **Backup / Restore UI in `SettingsForm`** — a second toolbar below the Save/Cancel row exposes three buttons: **Backup DB…** (opens `SaveFileDialog`, copies live DB), **Restore DB…** (opens `OpenFileDialog` with confirmation, saves safety copy before overwriting), and **View Auto-Backups** (lists dated auto-backup files). A small label shows the current database size in KB.
+- **Four missing namespace closures** — `OrderSubmissionService`, `PaymentReferenceHelper`, `PinSecurity`, and `StaffAuthSession` were missing their closing `}` for the namespace block; corrected.
+
+### Fixed
+
+- `OrderSubmissionService.CreateRecord` referenced `Order.PaymentReference` and `OrderRecord.PaymentReference` which do not exist on those models; removed the field assignment so the service compiles correctly.
+
+### Changed
+
+- `AssemblyInfo.cs` — version bumped to `2.16.0.0`.
+
+---
+
 ## [2.15.0] — 2026-03-26
 
 ### Added
