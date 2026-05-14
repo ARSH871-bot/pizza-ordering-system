@@ -32,70 +32,13 @@ Claude Code handoff for this repository.
 
 - US-30 pizza quantity selection is implemented.
 - US-31 ordering multiple different pizzas is implemented through `_stagedPizzas` and `btnAddPizzaToCart`.
-- Non-cash checkout now uses a reference/promo field only. Do not add full card-number storage.
-- Runtime settings now affect pizza, topping, canned drink, water, side, and delivery pricing/behavior.
-- Staff PINs are now PBKDF2-protected, legacy plaintext PINs upgrade on successful login, and recent staff auth is reused for Settings plus history void/delete actions.
-
-## Changes Completed In This Pass
-
-### Correctness and Product Flow
-
-- Fixed a build-breaking issue in `SalesReportForm`.
-- Added discount-aware order modeling:
-  - `Order.Discount`
-  - `Order.DiscountDescription`
-  - `Order.DeliveryMinutes`
-  - `Order.AmountDue`
-- Promo checkout now persists the discounted total instead of only changing UI text.
-- Receipts now show discounts correctly and use the discounted amount due plus runtime delivery minutes.
-- `Form1` now resets stale payment state when order/payment inputs change.
-
-### Pricing and UX Integrity
-
-- `ICartService` / `CartService` now expose settings-backed prices for:
-  - canned drinks
-  - bottled water
-  - side items
-- `Form1` live-total and confirm-order flows now use those runtime prices instead of hardcoded `AppConfig` values.
-- The non-cash label changed from card-number wording to `Reference:` to avoid encouraging PAN entry.
-
-### Persistence and Migration Safety
-
-- `DatabaseMigrator` was rewritten to be safe on a brand-new database:
-  - creates core tables first
-  - enables foreign keys
-  - seeds defaults safely
-  - applies later columns idempotently
-- `OrderRepository` now:
-  - runs against the migration-based schema
-  - enables SQLite foreign keys on open
-  - replaces existing order lines on re-save instead of duplicating them
-  - persists discount fields
-  - excludes voided orders from all-time summary revenue
-  - uses parameterized line loading for matched order ids
-
-### Tests and Operations
-
-- Added regression tests for:
-  - fresh database migration
-  - idempotent migration reruns
-  - discount-aware totals
-  - discount-aware receipts
-  - settings-backed prices
-  - repository line replacement on re-save
-  - discount persistence
-  - voided-order exclusion from summary
-- Current validated test total: 221 passing.
-- GitHub Actions workflows were fixed to use the actual repo-root paths and updated free action versions:
-  - `actions/checkout@v6`
-  - `actions/setup-dotnet@v5`
-  - `actions/upload-artifact@v6`
-
-### Documentation
-
-- Added `AGENTS.md`.
-- Updated `README.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, `SECURITY.md`, and `USER_STORIES.md` to match actual behavior.
-- Removed stale hardcoded test-count claims from operational guidance and UI copy where possible.
+- Non-cash checkout uses a reference/promo field only. Do not add full card-number storage.
+- Runtime settings affect pizza, topping, canned drink, water, side, and delivery pricing/behavior.
+- Staff PINs are PBKDF2-protected; legacy plaintext PINs upgrade on successful login; recent staff auth is reused for Settings plus history void/delete actions.
+- CSV/print export content builders are extracted as `internal static` methods and covered by unit tests.
+- `Form1` has an `internal` constructor overload with `showReceiptDialogs = false` used by smoke tests.
+- Both CI workflows (`build-and-test.yml`, `release.yml`) are fully green as of v2.22.5.
+- Portable release package includes a SHA256 sidecar and is published automatically on tag push.
 
 ## Validation Commands
 
@@ -107,19 +50,27 @@ dotnet build WindowsFormsApplication3.sln --configuration Debug
 .\scripts\Run-Tests.ps1 -Configuration Debug
 ```
 
-Offline/constrained fallback used during this pass:
+Expected: 257 tests passing.
+
+Release validation:
 
 ```powershell
-dotnet build WindowsFormsApplication3\WindowsFormsApplication3.csproj --no-restore --configuration Debug -v minimal
-dotnet build PizzaExpress.Tests\PizzaExpress.Tests.csproj --no-restore --configuration Debug -v minimal
-.\scripts\Run-Tests.ps1 -Configuration Debug -ResultsDirectory ".\TestResults" -LogFileName "results.trx"
+dotnet build WindowsFormsApplication3.sln --configuration Release --no-restore -v minimal
+.\scripts\Run-Tests.ps1 -Configuration Release
+.\scripts\Package-PortableRelease.ps1 -Configuration Release
+.\scripts\Test-PortablePackage.ps1 -PackagePath .\artifacts\PizzaExpress-*-portable.zip
 ```
 
 ## Next Best Improvements
 
-- Harden the install experience beyond the current portable ZIP.
-- Clean up older mojibake/encoding artifacts in legacy docs/comments.
-- Add smoke/integration coverage for reporting exports (CSV, print) and end-of-day flows.
+The encoding audit (v2.22.5) found no mojibake or garbled artifacts. Non-ASCII characters
+present (`©`, `x`, `u` in Manawatu, em dashes in Markdown) are all intentional.
+
+Remaining meaningful improvements:
+
+- Shrink the checkout/payment flow still in `Form1.cs` into focused service methods.
+- Add more destructive-admin smoke coverage (void, delete, backup/restore round-trip via UI).
+- Accessibility pass: keyboard navigation and screen-reader labels on the main order form.
 
 ## Guardrails For Future Claude Sessions
 
@@ -132,3 +83,5 @@ dotnet build PizzaExpress.Tests\PizzaExpress.Tests.csproj --no-restore --configu
   - receipt
   - persisted history
   - reporting/summary
+- Do not add non-ASCII characters to PowerShell scripts or YAML files.
+- Do not include Co-Authored-By trailers in git commit messages.
