@@ -1,7 +1,7 @@
 # Pizza Express - New Zealand
 
 [![Build and Test](https://github.com/ARSH871-bot/pizza-ordering-system/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/ARSH871-bot/pizza-ordering-system/actions/workflows/build-and-test.yml)
-![Version](https://img.shields.io/badge/version-2.22.0-brightgreen)
+![Version](https://img.shields.io/badge/version-2.22.1-brightgreen)
 ![Tests](https://img.shields.io/badge/tests-257%20passing-success)
 ![Coverage](https://img.shields.io/badge/coverage-not%20currently%20gated-lightgrey)
 ![License](https://img.shields.io/badge/license-MIT-blue)
@@ -202,6 +202,7 @@ scripts/
 
 | Version | Highlights |
 |---|---|
+| `v2.22.1` | Fix non-ASCII em dash in `Test-PortablePackage.ps1` that caused a parser error on Windows PowerShell 5.1 |
 | `v2.22.0` | Install hardening: SHA256 checksum generation/verification, improved `PORTABLE-README.txt`, user-facing "Download and Run" section in README, `.sha256` uploaded as release asset |
 | `v2.21.0` | CSV/print export unit tests (22 new); extracted `BuildHistoryCsv`, `BuildSalesReportCsv`, `BuildZReportCsv`, `BuildZReportText` as `internal static` builders; `InternalsVisibleTo` for test project |
 | `v2.20.0` | WinForms smoke tests hardened to 235 passing; `[DoNotParallelize]`, improved `DialogAutoCloser`, `DatabaseBackupService` integration tests |

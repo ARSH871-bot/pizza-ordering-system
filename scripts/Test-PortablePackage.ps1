@@ -21,7 +21,7 @@ if (Test-Path $checksumFile) {
     }
     Write-Host ("Checksum OK  : {0}" -f $storedHash)
 } else {
-    Write-Host "No .sha256 sidecar found — skipping checksum verification."
+    Write-Host "No .sha256 sidecar found - skipping checksum verification."
 }
 
 $extractRoot = Join-Path $env:TEMP ("pizzaexpress_portable_smoke_" + [guid]::NewGuid().ToString("N"))

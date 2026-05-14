@@ -9,6 +9,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.22.1] — 2026-05-14
+
+### Fixed
+
+- `Test-PortablePackage.ps1`: replaced a non-ASCII em dash (`—`) in a `Write-Host` string with an ASCII hyphen (`-`). The em dash caused a parser error on Windows PowerShell 5.1, preventing the smoke test from running.
+
+---
+
 ## [2.22.0] — 2026-05-14
 
 ### Added
