@@ -5,6 +5,9 @@ on:
     tags:
       - "v*.*.*"
 
+permissions:
+  contents: write
+
 jobs:
   build-and-release:
     name: Build Release and Publish Portable Package
@@ -67,7 +70,7 @@ jobs:
 
             ### Install
             1. Download `PizzaExpress-*-portable.zip` below and extract it anywhere.
-            2. Run `WindowsFormsApplication3.exe` — no installer needed.
+            2. Run `WindowsFormsApplication3.exe` - no installer needed.
             3. Requires Windows 10/11 with .NET Framework 4.8 (pre-installed on Windows 11).
 
             ### Verify download integrity (optional)

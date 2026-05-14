@@ -9,6 +9,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.22.4] — 2026-05-14
+
+### Fixed
+
+- `release.yml` now declares `permissions: contents: write` at the workflow level so `GITHUB_TOKEN` has the scope required by `softprops/action-gh-release` to create releases and upload assets. Without it the step failed with `Resource not accessible by integration`.
+- Release body text converted to ASCII punctuation to avoid encoding surprises in PowerShell, YAML parsers, and editors.
+
+---
+
 ## [2.22.3] — 2026-05-14
 
 ### Fixed
