@@ -9,6 +9,22 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.22.0] — 2026-05-14
+
+### Added
+
+- `Package-PortableRelease.ps1` now writes a `PizzaExpress-*-portable.zip.sha256` sidecar file (SHA256, lowercase hex, BSD-style `hash  filename` format) alongside every portable ZIP.
+- `Test-PortablePackage.ps1` verifies the `.sha256` sidecar when present before launching the smoke-test executable; outputs a clear mismatch error if the hash does not match.
+- `release.yml` now uploads the `.sha256` file as a release asset alongside the ZIP so reviewers can verify downloads without trusting a separate channel.
+- `PORTABLE-README.txt` now includes the version number, minimum OS/runtime requirements with a link to the .NET 4.8 download, numbered quick-start steps, and PowerShell/CertUtil verification commands.
+- README "Getting Started" section now leads with a user-facing "Download and Run" block (download, extract, run — no source required) followed by a separate "Build from Source" block for developers.
+
+### Changed
+
+- `release.yml` release body updated to match the new user-facing install steps and reference the `.sha256` verification command.
+
+---
+
 ## [2.21.0] — 2026-05-14
 
 ### Added

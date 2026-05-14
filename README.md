@@ -1,7 +1,7 @@
 # Pizza Express - New Zealand
 
 [![Build and Test](https://github.com/ARSH871-bot/pizza-ordering-system/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/ARSH871-bot/pizza-ordering-system/actions/workflows/build-and-test.yml)
-![Version](https://img.shields.io/badge/version-2.21.0-brightgreen)
+![Version](https://img.shields.io/badge/version-2.22.0-brightgreen)
 ![Tests](https://img.shields.io/badge/tests-257%20passing-success)
 ![Coverage](https://img.shields.io/badge/coverage-not%20currently%20gated-lightgrey)
 ![License](https://img.shields.io/badge/license-MIT-blue)
@@ -86,13 +86,27 @@ Local-first Pizza Express POS and ordering software for Windows, built in C# Win
 
 ## Getting Started
 
-### Prerequisites
+### Download and Run (end users)
 
-- Windows 10 or 11
-- Visual Studio 2022 Community or later
-- .NET Framework 4.8
+1. Go to the [Releases page](https://github.com/ARSH871-bot/pizza-ordering-system/releases) and download the latest `PizzaExpress-*-portable.zip`.
+2. Extract the ZIP to any folder (e.g. `Desktop\PizzaExpress`).
+3. Double-click `WindowsFormsApplication3.exe` — no installer or elevated permissions needed.
 
-### Run Locally
+**Requirements:** Windows 10 or 11 with .NET Framework 4.8.
+.NET Framework 4.8 is pre-installed on Windows 11.
+Windows 10 users: download it free from [microsoft.com](https://dotnet.microsoft.com/download/dotnet-framework/net48).
+
+**Verify the download (optional):** A `.sha256` checksum file is published alongside each ZIP on the Releases page.
+
+```powershell
+(Get-FileHash 'PizzaExpress-*-portable.zip' -Algorithm SHA256).Hash
+```
+
+Compare the output against the contents of the matching `.sha256` file.
+
+### Build from Source (developers)
+
+**Prerequisites:** Windows 10 or 11, Visual Studio 2022 Community or later, .NET Framework 4.8.
 
 ```powershell
 git clone https://github.com/ARSH871-bot/pizza-ordering-system.git
@@ -188,6 +202,7 @@ scripts/
 
 | Version | Highlights |
 |---|---|
+| `v2.22.0` | Install hardening: SHA256 checksum generation/verification, improved `PORTABLE-README.txt`, user-facing "Download and Run" section in README, `.sha256` uploaded as release asset |
 | `v2.21.0` | CSV/print export unit tests (22 new); extracted `BuildHistoryCsv`, `BuildSalesReportCsv`, `BuildZReportCsv`, `BuildZReportText` as `internal static` builders; `InternalsVisibleTo` for test project |
 | `v2.20.0` | WinForms smoke tests hardened to 235 passing; `[DoNotParallelize]`, improved `DialogAutoCloser`, `DatabaseBackupService` integration tests |
 | `v2.17.0` | Payment references persisted end to end across checkout, receipts, history, and SQLite |

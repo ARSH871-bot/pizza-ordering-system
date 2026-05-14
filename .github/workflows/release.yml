@@ -60,13 +60,21 @@ jobs:
         with:
           files: |
             artifacts/PizzaExpress-*-portable.zip
+            artifacts/PizzaExpress-*-portable.zip.sha256
           generate_release_notes: true
           body: |
             ## Pizza Express New Zealand ${{ github.ref_name }}
 
             ### Install
-            Download the portable ZIP below, extract it, and run `WindowsFormsApplication3.exe`.
-            The ZIP includes all required runtime files for Windows 10/11 with .NET Framework 4.8.
+            1. Download `PizzaExpress-*-portable.zip` below and extract it anywhere.
+            2. Run `WindowsFormsApplication3.exe` — no installer needed.
+            3. Requires Windows 10/11 with .NET Framework 4.8 (pre-installed on Windows 11).
+
+            ### Verify download integrity (optional)
+            A `.sha256` sidecar file is published alongside the ZIP.  Compare with:
+            ```powershell
+            (Get-FileHash 'PizzaExpress-${{ github.ref_name }}-portable.zip' -Algorithm SHA256).Hash
+            ```
 
             ### What's new
             See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/master/CHANGELOG.md) for full details.
