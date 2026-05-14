@@ -7,6 +7,29 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+---
+
+## [2.21.0] — 2026-05-14
+
+### Added
+
+- `[assembly: InternalsVisibleTo("PizzaExpress.Tests")]` so unit tests can reach `internal static` helpers without reflection.
+- `OrderHistoryForm.BuildHistoryCsv(IEnumerable<OrderRecord>)` — extracted from `ExportCsv()`; returns the CSV string as a pure function.
+- `SalesReportForm.BuildSalesReportCsv(from, to, summary, daily, items, payments)` — extracted from `ExportCsv()`; builds the full sales-report CSV from typed model data.
+- `EndOfDayForm.BuildZReportCsv(day, summary, payments, topItems)` — extracted from `ExportCsv()`; builds the Z-report CSV.
+- `EndOfDayForm.BuildZReportText(day, summary, payments, topItems, printedAt?)` — extracted and made testable; `printedAt` defaults to `DateTime.Now` so tests can pin the timestamp.
+- `ReportExportTests.cs` — 22 new unit tests covering all four content builders: header presence, field content, edge cases (empty data, null payment method, zero-qty item fallback, no-sales message).
+
+### Changed
+
+- `SalesReportForm` now caches `_lastFrom`, `_lastTo`, `_lastSummary`, `_lastDaily`, `_lastItems`, `_lastPayments` after `RunReport()` so `ExportCsv()` exports from typed model data rather than scraping ListView text.
+- `EndOfDayForm.BuildReportText()` now delegates to the new static `BuildZReportText` overload; behavior is unchanged except the `Printed:` line uses the injected timestamp when provided.
+- Test count raised from 235 to 257 (all passing).
+
+---
+
+## [2.20.0] — 2026-05-14
+
 ### Added
 
 - `AGENTS.md` repository guidance covering architecture boundaries, validation commands, safe refactoring rules, docs-sync expectations, and the free-tools-only constraint.

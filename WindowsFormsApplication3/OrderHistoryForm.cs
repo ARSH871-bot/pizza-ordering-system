@@ -497,24 +497,29 @@ namespace WindowsFormsApplication3
 
                 if (sfd.ShowDialog() != DialogResult.OK) return;
 
-                var sb = new StringBuilder();
-                sb.AppendLine("Date/Time,Customer,Region,Payment,Total NZD");
-
+                var records = new List<OrderRecord>();
                 foreach (ListViewItem item in _listView.Items)
-                {
-                    if (item.Tag == null) continue;  // skip placeholder rows
-                    var r = (OrderRecord)item.Tag;
-                    sb.AppendLine(
-                        $"\"{r.OrderDate:yyyy-MM-dd HH:mm:ss}\"," +
-                        $"\"{r.CustomerName}\"," +
-                        $"\"{r.Region}\"," +
-                        $"\"{r.PaymentMethod}\"," +
-                        $"{r.Total:F2}");
-                }
+                    if (item.Tag != null) records.Add((OrderRecord)item.Tag);
 
-                File.WriteAllText(sfd.FileName, sb.ToString(), Encoding.UTF8);
+                File.WriteAllText(sfd.FileName, BuildHistoryCsv(records), Encoding.UTF8);
                 MessageBox.Show($"Exported {_listView.Items.Count} orders to CSV.", "Export Complete");
             }
+        }
+
+        internal static string BuildHistoryCsv(IEnumerable<OrderRecord> records)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("Date/Time,Customer,Region,Payment,Total NZD");
+            foreach (var r in records)
+            {
+                sb.AppendLine(
+                    $"\"{r.OrderDate:yyyy-MM-dd HH:mm:ss}\"," +
+                    $"\"{r.CustomerName}\"," +
+                    $"\"{r.Region}\"," +
+                    $"\"{r.PaymentMethod}\"," +
+                    $"{r.Total:F2}");
+            }
+            return sb.ToString();
         }
     }
 }

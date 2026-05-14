@@ -1,8 +1,8 @@
 # Pizza Express - New Zealand
 
 [![Build and Test](https://github.com/ARSH871-bot/pizza-ordering-system/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/ARSH871-bot/pizza-ordering-system/actions/workflows/build-and-test.yml)
-![Version](https://img.shields.io/badge/version-2.20.0-brightgreen)
-![Tests](https://img.shields.io/badge/tests-235%20passing-success)
+![Version](https://img.shields.io/badge/version-2.21.0-brightgreen)
+![Tests](https://img.shields.io/badge/tests-257%20passing-success)
 ![Coverage](https://img.shields.io/badge/coverage-not%20currently%20gated-lightgrey)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Platform](https://img.shields.io/badge/platform-Windows-lightgrey)
@@ -180,7 +180,6 @@ scripts/
 
 ## Roadmap
 
-- Add more smoke coverage around destructive admin flows, reporting exports, and backup/restore
 - Keep shrinking high-risk logic out of `Form1.cs`
 - Improve install experience beyond the portable ZIP
 - Continue cleaning older doc/comment encoding artifacts
@@ -189,6 +188,8 @@ scripts/
 
 | Version | Highlights |
 |---|---|
+| `v2.21.0` | CSV/print export unit tests (22 new); extracted `BuildHistoryCsv`, `BuildSalesReportCsv`, `BuildZReportCsv`, `BuildZReportText` as `internal static` builders; `InternalsVisibleTo` for test project |
+| `v2.20.0` | WinForms smoke tests hardened to 235 passing; `[DoNotParallelize]`, improved `DialogAutoCloser`, `DatabaseBackupService` integration tests |
 | `v2.17.0` | Payment references persisted end to end across checkout, receipts, history, and SQLite |
 | `v2.16.0` | Daily rolling backups, manual backup/restore UI, startup auto-backup |
 | `v2.15.0` | End-of-day reporting and better receipt printing |

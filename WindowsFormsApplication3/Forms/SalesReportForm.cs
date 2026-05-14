@@ -39,6 +39,14 @@ namespace WindowsFormsApplication3.Forms
         private ListView _lvItems;
         private ListView _lvPayments;
 
+        // Last-run report data (for CSV export)
+        private DateTime         _lastFrom;
+        private DateTime         _lastTo;
+        private OrderSummary     _lastSummary;
+        private List<DailySummary>  _lastDaily;
+        private List<TopItem>       _lastItems;
+        private List<PaymentSplit>  _lastPayments;
+
         // ── Design tokens ─────────────────────────────────────────────────────
         private static readonly Color ClrBg      = Color.FromArgb(26,  26,  26);
         private static readonly Color ClrSurface = Color.FromArgb(38,  38,  38);
@@ -248,6 +256,10 @@ namespace WindowsFormsApplication3.Forms
             // Payment breakdown
             _lvPayments.Items.Clear();
             List<PaymentSplit> payments = _repo.GetPaymentBreakdown(from, to.AddDays(1).AddTicks(-1));
+
+            // Cache for export
+            _lastFrom = from; _lastTo = to; _lastSummary = summary;
+            _lastDaily = daily; _lastItems = items; _lastPayments = payments;
             foreach (var p in payments)
             {
                 var item = new ListViewItem(p.PaymentMethod ?? "Unknown");
@@ -261,33 +273,48 @@ namespace WindowsFormsApplication3.Forms
 
         private void ExportCsv()
         {
+            if (_lastSummary == null) return;
+
             using (var dlg = new SaveFileDialog
             {
                 Filter   = "CSV files (*.csv)|*.csv",
-                FileName = $"SalesReport_{_dtpFrom.Value:yyyyMMdd}_{_dtpTo.Value:yyyyMMdd}.csv",
+                FileName = $"SalesReport_{_lastFrom:yyyyMMdd}_{_lastTo:yyyyMMdd}.csv",
             })
             {
                 if (dlg.ShowDialog() != DialogResult.OK) return;
-                var sb = new StringBuilder();
-                sb.AppendLine("=== PIZZA EXPRESS — SALES REPORT ===");
-                sb.AppendLine($"Period: {_dtpFrom.Value:yyyy-MM-dd} to {_dtpTo.Value:yyyy-MM-dd}");
-                sb.AppendLine($"Orders: {_lblOrders.Text},  Revenue: {_lblRevenue.Text},  GST: {_lblGst.Text},  Avg: {_lblAvg.Text}");
-                sb.AppendLine();
-                sb.AppendLine("DATE,ORDERS,REVENUE,GST");
-                foreach (ListViewItem r in _lvDaily.Items)
-                    sb.AppendLine($"{r.Text},{r.SubItems[1].Text},{r.SubItems[2].Text},{r.SubItems[3].Text}");
-                sb.AppendLine();
-                sb.AppendLine("ITEM,QTY,REVENUE");
-                foreach (ListViewItem r in _lvItems.Items)
-                    sb.AppendLine($"\"{r.Text}\",{r.SubItems[1].Text},{r.SubItems[2].Text}");
-                sb.AppendLine();
-                sb.AppendLine("PAYMENT METHOD,ORDERS,REVENUE");
-                foreach (ListViewItem r in _lvPayments.Items)
-                    sb.AppendLine($"{r.Text},{r.SubItems[1].Text},{r.SubItems[2].Text}");
-                System.IO.File.WriteAllText(dlg.FileName, sb.ToString());
+                System.IO.File.WriteAllText(dlg.FileName,
+                    BuildSalesReportCsv(_lastFrom, _lastTo, _lastSummary, _lastDaily, _lastItems, _lastPayments));
                 MessageBox.Show("Report exported successfully.", "Exported",
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
+        }
+
+        internal static string BuildSalesReportCsv(
+            DateTime from, DateTime to,
+            OrderSummary summary,
+            IEnumerable<DailySummary> daily,
+            IEnumerable<TopItem> items,
+            IEnumerable<PaymentSplit> payments)
+        {
+            var nzd = new CultureInfo("en-NZ");
+            var sb = new StringBuilder();
+            sb.AppendLine("=== PIZZA EXPRESS — SALES REPORT ===");
+            sb.AppendLine($"Period: {from:yyyy-MM-dd} to {to:yyyy-MM-dd}");
+            decimal gst = summary.TotalRevenue - summary.TotalRevenue / 1.15m;
+            sb.AppendLine($"Orders: {summary.TotalOrders},  Revenue: {summary.TotalRevenue.ToString("C2", nzd)},  GST: {gst.ToString("C2", nzd)},  Avg: {summary.AverageOrderValue.ToString("C2", nzd)}");
+            sb.AppendLine();
+            sb.AppendLine("DATE,ORDERS,REVENUE,GST");
+            foreach (var d in daily)
+                sb.AppendLine($"{d.Day:yyyy-MM-dd},{d.OrderCount},{d.Revenue.ToString("C2", nzd)},{d.Gst.ToString("C2", nzd)}");
+            sb.AppendLine();
+            sb.AppendLine("ITEM,QTY,REVENUE");
+            foreach (var t in items)
+                sb.AppendLine($"\"{t.Item.Trim()}\",{(t.TotalQty > 0 ? t.TotalQty.ToString() : "1")},{t.TotalRevenue.ToString("C2", nzd)}");
+            sb.AppendLine();
+            sb.AppendLine("PAYMENT METHOD,ORDERS,REVENUE");
+            foreach (var p in payments)
+                sb.AppendLine($"{p.PaymentMethod ?? "Unknown"},{p.OrderCount},{p.Revenue.ToString("C2", nzd)}");
+            return sb.ToString();
         }
 
         // ── Helpers ───────────────────────────────────────────────────────────

@@ -277,29 +277,40 @@ namespace WindowsFormsApplication3.Forms
             })
             {
                 if (dlg.ShowDialog() != DialogResult.OK) return;
-                var sb = new StringBuilder();
-                sb.AppendLine($"=== PIZZA EXPRESS — Z-REPORT ===");
-                sb.AppendLine($"Date: {_day:yyyy-MM-dd}");
-                sb.AppendLine($"Orders: {_lblOrders.Text},  Revenue: {_lblRevenue.Text},  GST: {_lblGst.Text},  Avg: {_lblAvg.Text}");
-                sb.AppendLine();
-                sb.AppendLine("PAYMENT METHOD,ORDERS,REVENUE");
-                foreach (ListViewItem r in _lvPayments.Items)
-                    if (r.SubItems.Count >= 3)
-                        sb.AppendLine($"{r.Text},{r.SubItems[1].Text},{r.SubItems[2].Text}");
-                sb.AppendLine();
-                sb.AppendLine("ITEM,QTY,REVENUE");
-                foreach (ListViewItem r in _lvItems.Items)
-                    if (r.SubItems.Count >= 3)
-                        sb.AppendLine($"\"{r.Text}\",{r.SubItems[1].Text},{r.SubItems[2].Text}");
-                System.IO.File.WriteAllText(dlg.FileName, sb.ToString());
+                System.IO.File.WriteAllText(dlg.FileName,
+                    BuildZReportCsv(_day, _summary, _payments, _topItems));
                 MessageBox.Show("Z-Report exported.", "Exported",
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
 
+        internal static string BuildZReportCsv(DateTime day, OrderSummary summary, List<PaymentSplit> payments, List<TopItem> topItems)
+        {
+            var nzd = new CultureInfo("en-NZ");
+            var sb = new StringBuilder();
+            sb.AppendLine("=== PIZZA EXPRESS — Z-REPORT ===");
+            sb.AppendLine($"Date: {day:yyyy-MM-dd}");
+            decimal gst = summary.TotalRevenue - summary.TotalRevenue / 1.15m;
+            sb.AppendLine($"Orders: {summary.TotalOrders},  Revenue: {summary.TotalRevenue.ToString("C2", nzd)},  GST: {gst.ToString("C2", nzd)},  Avg: {summary.AverageOrderValue.ToString("C2", nzd)}");
+            sb.AppendLine();
+            sb.AppendLine("PAYMENT METHOD,ORDERS,REVENUE");
+            foreach (var p in payments)
+                sb.AppendLine($"{p.PaymentMethod ?? "Unknown"},{p.OrderCount},{p.Revenue.ToString("C2", nzd)}");
+            sb.AppendLine();
+            sb.AppendLine("ITEM,QTY,REVENUE");
+            foreach (var t in topItems)
+                sb.AppendLine($"\"{t.Item.Trim()}\",{(t.TotalQty > 0 ? t.TotalQty.ToString() : "1")},{t.TotalRevenue.ToString("C2", nzd)}");
+            return sb.ToString();
+        }
+
         // ── Plain-text report builder (used for printing) ─────────────────────
 
         private string BuildReportText()
+        {
+            return BuildZReportText(_day, _summary, _payments, _topItems);
+        }
+
+        internal static string BuildZReportText(DateTime day, OrderSummary summary, List<PaymentSplit> payments, List<TopItem> topItems, DateTime? printedAt = null)
         {
             var sb = new StringBuilder();
             string sep = new string('=', 44);
@@ -307,31 +318,31 @@ namespace WindowsFormsApplication3.Forms
 
             sb.AppendLine(sep);
             sb.AppendLine(" PIZZA EXPRESS NZ — Z-REPORT");
-            sb.AppendLine($" Date    : {_day:dddd d MMMM yyyy}");
-            sb.AppendLine($" Printed : {DateTime.Now:yyyy-MM-dd  HH:mm:ss}");
+            sb.AppendLine($" Date    : {day:dddd d MMMM yyyy}");
+            sb.AppendLine($" Printed : {(printedAt ?? DateTime.Now):yyyy-MM-dd  HH:mm:ss}");
             sb.AppendLine(sep);
             sb.AppendLine();
-            sb.AppendLine($" {"Orders",-22} {_summary.TotalOrders,10}");
-            sb.AppendLine($" {"Revenue (incl. GST)",-22} {_summary.TotalRevenue,10:C2}");
+            sb.AppendLine($" {"Orders",-22} {summary.TotalOrders,10}");
+            sb.AppendLine($" {"Revenue (incl. GST)",-22} {summary.TotalRevenue,10:C2}");
 
-            decimal gst = _summary.TotalRevenue - _summary.TotalRevenue / 1.15m;
+            decimal gst = summary.TotalRevenue - summary.TotalRevenue / 1.15m;
             sb.AppendLine($" {"GST (15%)",-22} {gst,10:C2}");
-            sb.AppendLine($" {"Average Order",-22} {_summary.AverageOrderValue,10:C2}");
+            sb.AppendLine($" {"Average Order",-22} {summary.AverageOrderValue,10:C2}");
             sb.AppendLine();
             sb.AppendLine(line);
             sb.AppendLine(" PAYMENT BREAKDOWN");
             sb.AppendLine(line);
-            foreach (var p in _payments)
+            foreach (var p in payments)
                 sb.AppendLine($" {(p.PaymentMethod ?? "Unknown"),-20} x{p.OrderCount,3}   {p.Revenue,8:C2}");
-            if (_payments.Count == 0) sb.AppendLine(" (no sales)");
+            if (payments.Count == 0) sb.AppendLine(" (no sales)");
 
             sb.AppendLine();
             sb.AppendLine(line);
             sb.AppendLine(" TOP ITEMS");
             sb.AppendLine(line);
-            foreach (var t in _topItems)
+            foreach (var t in topItems)
                 sb.AppendLine($" {t.Item.Trim(),-28} x{(t.TotalQty > 0 ? t.TotalQty : 1),2}  {t.TotalRevenue,8:C2}");
-            if (_topItems.Count == 0) sb.AppendLine(" (no items sold)");
+            if (topItems.Count == 0) sb.AppendLine(" (no items sold)");
 
             sb.AppendLine();
             sb.AppendLine(sep);
