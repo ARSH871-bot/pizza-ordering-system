@@ -9,6 +9,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.22.5] — 2026-05-14
+
+### Changed
+
+- `actions/upload-artifact` bumped from v6 to v7 in `build-and-test.yml` (two uses: test results and portable package artifact).
+- `softprops/action-gh-release` bumped from v2 to v3 in `release.yml`. Both upgrades move to Node.js 20 runtimes, eliminating the Node 20 deprecation warnings that appeared in every CI run.
+
+---
+
 ## [2.22.4] — 2026-05-14
 
 ### Fixed
