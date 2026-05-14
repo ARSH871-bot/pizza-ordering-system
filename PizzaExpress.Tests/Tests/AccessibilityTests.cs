@@ -22,8 +22,8 @@ namespace PizzaExpress.Tests.Tests
                 {
                     // Verify exact expected text (catches wrong mnemonic position)
                     Assert.AreEqual("&Confirm Order",      form.ConfirmOrderButtonText,  "btnConfirmOrder");
-                    Assert.AreEqual("C&heck Out",          form.CheckOutButtonText,       "btnCheckOut");
-                    Assert.AreEqual("&Pay",                form.PayButtonText,            "btnPay");
+                    Assert.AreEqual("Chec&k Out",          form.CheckOutButtonText,       "btnCheckOut");
+                    Assert.AreEqual("Pa&y",                form.PayButtonText,            "btnPay");
                     Assert.AreEqual("&Submit Order",       form.SubmitOrderButtonText,    "btnSubmitOrder");
 
                     // Verify no two buttons share the same Alt shortcut character

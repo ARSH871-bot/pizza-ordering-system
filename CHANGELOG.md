@@ -9,6 +9,30 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.26.0] — 2026-05-15
+
+### Fixed
+
+- `C&heck Out` (Alt+H) was shadowed by `ProcessCmdKey`'s `Alt+H` handler (opens
+  OrderHistoryForm), so the Check Out button mnemonic never fired.
+  Corrected to `Chec&k Out` (Alt+K) and `ProcessCmdKey` updated to intercept
+  `Alt+K` instead (tab-aware: only fires when Tab 2 is active).
+- `&Pay` (Alt+P) was shadowed by `ProcessCmdKey`'s `Alt+P` handler (fires checkout
+  on Tab 2, consumes the key on all other tabs). On Tab 3 the key was consumed but
+  did nothing, making the Pay shortcut dead.
+  Corrected to `Pa&y` (Alt+Y); `ProcessCmdKey` now intercepts `Alt+Y` tab-aware
+  (only fires when Tab 3 is active).
+- Stale tooltip on `btnCheckOut`: `"(Alt+P)"` updated to `"(Alt+K)"`.
+- Keyboard shortcuts help dialog: replaced `Alt+P = Proceed to checkout` entry
+  with `Alt+K` and added new `Alt+Y = Validate payment` entry.
+  Also replaced em-dash arrow (`→`) with ASCII `to` to comply with the no-non-ASCII
+  rule in source strings.
+- `AccessibilityTests` updated to assert `"Chec&k Out"` and `"Pa&y"`.
+
+**Total tests: 282 passing.**
+
+---
+
 ## [2.25.1] — 2026-05-15
 
 ### Fixed

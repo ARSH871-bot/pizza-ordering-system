@@ -163,11 +163,11 @@ namespace WindowsFormsApplication3
             // ── Button mnemonics (Alt+key shortcuts) ──────────────────────────
             btnConfirmOrder.Text    = "&Confirm Order";
             btnAddPizzaToCart.Text  = "&Add Pizza to Cart";
-            btnCheckOut.Text        = "C&heck Out";
+            btnCheckOut.Text        = "Chec&k Out";
             btnOrderAgain.Text      = "&Order Again";
             btnClearOrder.Text      = "C&lear Order";
             btnGoBack.Text          = "Go &Back";
-            btnPay.Text             = "&Pay";
+            btnPay.Text             = "Pa&y";
             btnSubmitOrder.Text     = "&Submit Order";
 
             // ── Label mnemonics linking to required checkout fields ───────────
@@ -306,7 +306,7 @@ namespace WindowsFormsApplication3
             _toolTip.SetToolTip(txtAmountPaid,  "Enter the amount the customer hands over");
             _toolTip.SetToolTip(btnAddPizzaToCart, "Stage this pizza and configure another. All staged pizzas go into the same order.");
             _toolTip.SetToolTip(btnConfirmOrder,   "Lock in your order and proceed to review (Alt+C)");
-            _toolTip.SetToolTip(btnCheckOut,       "Proceed to payment (Alt+P)");
+            _toolTip.SetToolTip(btnCheckOut,       "Proceed to payment (Alt+K)");
             _toolTip.SetToolTip(btnGoBack,         "Return to order review (Esc)");
 
             // ── Order History button (programmatic, bottom-right of Tab 2) ────
@@ -520,17 +520,18 @@ namespace WindowsFormsApplication3
 
                 var shortcuts = new[]
                 {
-                    new[] { "Alt+C",    "Confirm order (Tab 1 → Tab 2)"         },
-                    new[] { "Alt+P",    "Proceed to checkout (Tab 2 → Tab 3)"   },
-                    new[] { "Escape",   "Navigate back one tab"                  },
-                    new[] { "Alt+H",    "Open Order History"                     },
-                    new[] { "Alt+R",    "Open Sales Report (period)"             },
-                    new[] { "Alt+E",    "Open End-of-Day Z-Report"               },
-                    new[] { "Alt+W",    "Open Settings (admin prices)"           },
-                    new[] { "Del",      "Delete selected order (History)"        },
-                    new[] { "Enter",    "View order details (History)"           },
-                    new[] { "V",        "Void selected order (History)"          },
-                    new[] { "F1",       "Show this help"                         },
+                    new[] { "Alt+C",    "Confirm order (Tab 1 to Tab 2)"        },
+                    new[] { "Alt+K",    "Proceed to checkout (Tab 2 to Tab 3)"  },
+                    new[] { "Alt+Y",    "Validate payment (Tab 3)"              },
+                    new[] { "Escape",   "Navigate back one tab"                 },
+                    new[] { "Alt+H",    "Open Order History"                    },
+                    new[] { "Alt+R",    "Open Sales Report (period)"            },
+                    new[] { "Alt+E",    "Open End-of-Day Z-Report"              },
+                    new[] { "Alt+W",    "Open Settings (admin prices)"          },
+                    new[] { "Del",      "Delete selected order (History)"       },
+                    new[] { "Enter",    "View order details (History)"          },
+                    new[] { "V",        "Void selected order (History)"         },
+                    new[] { "F1",       "Show this help"                        },
                 };
 
                 foreach (var row in shortcuts)
@@ -604,9 +605,14 @@ namespace WindowsFormsApplication3
                     OpenEndOfDayForm();
                     return true;
 
-                case Keys.Alt | Keys.P:
+                case Keys.Alt | Keys.K:
                     if (tabControl1.SelectedTab.Name == "tabPage2")
                         btnCheckOut_Click(this, EventArgs.Empty);
+                    return true;
+
+                case Keys.Alt | Keys.Y:
+                    if (tabControl1.SelectedTab.Name == "tabPage3")
+                        btnPay_Click(this, EventArgs.Empty);
                     return true;
 
                 case Keys.Escape:

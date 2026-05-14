@@ -1,7 +1,7 @@
 # Pizza Express - New Zealand
 
 [![Build and Test](https://github.com/ARSH871-bot/pizza-ordering-system/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/ARSH871-bot/pizza-ordering-system/actions/workflows/build-and-test.yml)
-![Version](https://img.shields.io/badge/version-2.25.1-brightgreen)
+![Version](https://img.shields.io/badge/version-2.26.0-brightgreen)
 ![Tests](https://img.shields.io/badge/tests-282%20passing-success)
 ![Coverage](https://img.shields.io/badge/coverage-not%20currently%20gated-lightgrey)
 ![License](https://img.shields.io/badge/license-MIT-blue)
@@ -202,6 +202,7 @@ scripts/
 
 | Version | Highlights |
 |---|---|
+| `v2.26.0` | Fix ProcessCmdKey/mnemonic conflicts: Check Out now Alt+K (`Chec&k Out`), Pay now Alt+Y (`Pa&y`); both wired into ProcessCmdKey tab-aware; keyboard help updated |
 | `v2.25.1` | Fix Check Out mnemonic conflict: `&Check Out` (Alt+C) corrected to `C&heck Out` (Alt+H); strengthen mnemonic test to assert exact text and uniqueness |
 | `v2.25.0` | Accessibility pass on main order form: button mnemonics, label mnemonics, per-tab AcceptButton, decorative image exclusion, 4 new tests |
 | `v2.24.0` | Destructive-admin smoke coverage: void, delete, backup/restore round-trip with real SQLite; `DialogAutoCloser` extended to dismiss Yes/No dialogs |
