@@ -9,6 +9,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.25.1] — 2026-05-15
+
+### Fixed
+
+- `btnCheckOut.Text` corrected from `"&Check Out"` (Alt+C, conflicting with Confirm Order)
+  to `"C&heck Out"` (Alt+H, matching the intended Alt+H shortcut).
+- `Form1_ButtonMnemonics_AreSetOnLoad` test strengthened to assert exact button text values
+  and verify no two buttons share the same Alt shortcut character, preventing regressions.
+
+**Total tests: 282 passing.**
+
+---
+
 ## [2.25.0] — 2026-05-15
 
 ### Added

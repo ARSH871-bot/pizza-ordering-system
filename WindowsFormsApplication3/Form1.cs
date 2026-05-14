@@ -163,7 +163,7 @@ namespace WindowsFormsApplication3
             // ── Button mnemonics (Alt+key shortcuts) ──────────────────────────
             btnConfirmOrder.Text    = "&Confirm Order";
             btnAddPizzaToCart.Text  = "&Add Pizza to Cart";
-            btnCheckOut.Text        = "&Check Out";
+            btnCheckOut.Text        = "C&heck Out";
             btnOrderAgain.Text      = "&Order Again";
             btnClearOrder.Text      = "C&lear Order";
             btnGoBack.Text          = "Go &Back";
