@@ -52,7 +52,7 @@ dotnet build WindowsFormsApplication3.sln --configuration Debug
 .\scripts\Run-Tests.ps1 -Configuration Debug
 ```
 
-Expected: 273 tests passing.
+Expected: 278 tests passing.
 
 Release validation:
 
@@ -67,7 +67,6 @@ dotnet build WindowsFormsApplication3.sln --configuration Release --no-restore -
 
 Remaining meaningful improvements:
 
-- Add more destructive-admin smoke coverage (void, delete, backup/restore round-trip via UI).
 - Accessibility pass: keyboard navigation and screen-reader labels on the main order form.
 
 ## Guardrails For Future Claude Sessions

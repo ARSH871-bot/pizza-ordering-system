@@ -9,6 +9,36 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.24.0] — 2026-05-14
+
+### Added
+
+- `AdminSmokeTests.cs`: 5 new tests covering destructive admin operations.
+  - `OrderHistoryForm_VoidSelectedOrder_PersistsVoidedStatus` — opens `OrderHistoryForm`
+    via STA thread (no PIN configured), selects an order in the list, clicks Void Order,
+    auto-dismisses the Yes/No confirmation dialog (IDYES), and asserts the status is "Voided"
+    in the database.
+  - `OrderHistoryForm_DeleteSelectedOrder_RemovesFromDatabase` — same pattern for Delete Order;
+    asserts the record no longer exists.
+  - `OrderRepository_VoidOrder_SetsStatusToVoided` — direct repository test without WinForms.
+  - `OrderRepository_DeleteOrder_RemovesRecord` — direct repository test without WinForms.
+  - `BackupRestoreRoundTrip_WithRealSqliteData_PreservesActiveOrders` — saves a real order via
+    `OrderRepository`, backs up with `DatabaseBackupService.BackupTo`, voids the order,
+    restores via `DatabaseBackupService.RestoreFrom`, then verifies the order is "Active" again.
+    This is the first test to exercise backup/restore against real SQLite data (not fake content).
+- `WinFormsTestHelper.DialogAutoCloser` now also posts `WM_COMMAND/IDYES (6)` alongside
+  `WM_COMMAND/IDOK (1)`, enabling auto-dismissal of Yes/No confirmation dialogs. Both are
+  safe to send together: each MessageBox responds only to the button IDs it actually owns.
+
+### Fixed
+
+- Test name typo: `ApplyPromo_FreeshipeCode_FullDiscount` renamed to
+  `ApplyPromo_FreeshipCode_FullDiscount`.
+
+**Total tests: 278 passing.**
+
+---
+
 ## [2.23.0] — 2026-05-14
 
 ### Added

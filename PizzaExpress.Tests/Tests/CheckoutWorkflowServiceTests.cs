@@ -79,7 +79,7 @@ namespace PizzaExpress.Tests.Tests
         }
 
         [TestMethod]
-        public void ApplyPromo_FreeshipeCode_FullDiscount()
+        public void ApplyPromo_FreeshipCode_FullDiscount()
         {
             var svc    = MakeService();
             var result = svc.ApplyPromo("FREESHIP", 50m);

@@ -168,11 +168,14 @@ namespace PizzaExpress.Tests.Tests
                             if (!string.IsNullOrWhiteSpace(fragment) &&
                                 title.IndexOf(fragment, StringComparison.OrdinalIgnoreCase) >= 0)
                             {
-                                // WM_COMMAND/IDOK presses the OK button — required for MessageBox
-                                // dialogs whose X button is disabled (single-button OK dialogs).
-                                SendMessage(hWnd, WM_COMMAND, new IntPtr(IDOK), IntPtr.Zero);
-                                PostMessage(hWnd, WM_COMMAND, new IntPtr(IDOK), IntPtr.Zero);
-                                // WM_CLOSE as fallback for custom dialogs that do respond to it.
+                                // IDOK (1)  = OK button in OK-only dialogs.
+                                // IDYES (6) = Yes button in YesNo dialogs.
+                                // Sending both is safe: each MessageBox only responds
+                                // to the IDs that match its actual buttons.
+                                SendMessage(hWnd, WM_COMMAND, new IntPtr(IDOK),  IntPtr.Zero);
+                                PostMessage(hWnd, WM_COMMAND, new IntPtr(IDOK),  IntPtr.Zero);
+                                PostMessage(hWnd, WM_COMMAND, new IntPtr(IDYES), IntPtr.Zero);
+                                // WM_CLOSE as fallback for custom Forms that respond to it.
                                 PostMessage(hWnd, WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
                                 break;
                             }
@@ -199,6 +202,7 @@ namespace PizzaExpress.Tests.Tests
             private const uint WM_CLOSE   = 0x0010;
             private const uint WM_COMMAND = 0x0111;
             private const int  IDOK       = 1;
+            private const int  IDYES      = 6;
 
             private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
 
