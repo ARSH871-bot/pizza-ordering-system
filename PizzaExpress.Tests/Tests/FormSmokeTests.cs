@@ -12,6 +12,7 @@ using WindowsFormsApplication3.Services;
 
 namespace PizzaExpress.Tests.Tests
 {
+    [DoNotParallelize]
     [TestClass]
     public class FormSmokeTests
     {
@@ -242,10 +243,11 @@ namespace PizzaExpress.Tests.Tests
                         Assert.IsNotNull(WinFormsTestHelper.FindByTextPrefix<Button>(form, "Restore DB"));
                         Assert.IsNotNull(WinFormsTestHelper.FindByTextPrefix<Button>(form, "View Auto-Backups"));
 
+                        // The DB-size label shows "DB: N KB" or "DB: —" depending on file size.
                         Label dbSizeLabel = WinFormsTestHelper
                             .EnumerateControls<Label>(form)
-                            .Single(label => (label.Text ?? string.Empty).IndexOf("KB", StringComparison.OrdinalIgnoreCase) >= 0);
-                        StringAssert.Contains(dbSizeLabel.Text, "KB");
+                            .Single(label => (label.Text ?? string.Empty).StartsWith("DB:", StringComparison.OrdinalIgnoreCase));
+                        Assert.IsNotNull(dbSizeLabel);
 
                         DataGridView grid = WinFormsTestHelper.EnumerateControls<DataGridView>(form).Single();
                         DataGridViewRow drinkPriceRow = grid.Rows

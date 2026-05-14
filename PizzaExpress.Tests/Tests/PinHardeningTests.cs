@@ -10,6 +10,7 @@ using WindowsFormsApplication3.Services;
 
 namespace PizzaExpress.Tests.Tests
 {
+    [DoNotParallelize]
     [TestClass]
     public class PinHardeningTests
     {

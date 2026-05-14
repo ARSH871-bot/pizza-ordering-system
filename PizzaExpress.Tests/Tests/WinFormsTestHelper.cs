@@ -13,7 +13,7 @@ namespace PizzaExpress.Tests.Tests
 {
     internal static class WinFormsTestHelper
     {
-        public static void RunInSta(Action action, int timeoutMs = 60000)
+        public static void RunInSta(Action action, int timeoutMs = 90000)
         {
             Exception failure = null;
 
@@ -44,10 +44,15 @@ namespace PizzaExpress.Tests.Tests
             }
         }
 
-        public static void PumpEvents()
+        public static void PumpEvents(int extraMs = 0)
         {
-            Application.DoEvents();
-            Thread.Sleep(100);
+            for (int i = 0; i < 3; i++)
+            {
+                Application.DoEvents();
+                Thread.Sleep(50);
+            }
+            if (extraMs > 0)
+                Thread.Sleep(extraMs);
             Application.DoEvents();
         }
 
@@ -163,6 +168,8 @@ namespace PizzaExpress.Tests.Tests
                             if (!string.IsNullOrWhiteSpace(fragment) &&
                                 title.IndexOf(fragment, StringComparison.OrdinalIgnoreCase) >= 0)
                             {
+                                // Try SendMessage first (synchronous) then PostMessage as fallback
+                                SendMessage(hWnd, WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
                                 PostMessage(hWnd, WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
                                 break;
                             }
@@ -171,7 +178,7 @@ namespace PizzaExpress.Tests.Tests
                         return true;
                     }, IntPtr.Zero);
 
-                    Thread.Sleep(100);
+                    Thread.Sleep(50);
                 }
             }
 
@@ -201,6 +208,9 @@ namespace PizzaExpress.Tests.Tests
 
             [DllImport("user32.dll", SetLastError = true)]
             private static extern bool PostMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+
+            [DllImport("user32.dll", CharSet = CharSet.Auto)]
+            private static extern IntPtr SendMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
         }
     }
 }

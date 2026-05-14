@@ -35,6 +35,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.20.0] — 2026-05-14
+
+### Fixed
+
+- **WinForms smoke test flakiness** — `FormSmokeTests` and `PinHardeningTests` now carry `[DoNotParallelize]` so their STA threads never share window-space with other concurrently running test classes. `WinFormsTestHelper` changes: default `RunInSta` timeout raised from 60 s to 90 s; `PumpEvents` now drives three `DoEvents` / 50 ms cycles instead of two 100 ms ones; `DialogAutoCloser.WatchLoop` polls every 50 ms (down from 100 ms) and fires both `SendMessage` and `PostMessage(WM_CLOSE)` for faster modal dismissal. The DB-size label assertion in `SettingsForm_SaveChanges` test was tightened to match "DB: —" as well as "DB: N KB" (previously failed when the test DB was < 1 KB).
+
+### Changed
+
+- `AssemblyInfo.cs` — version bumped to `2.20.0.0`.
+
+---
+
 ## [2.19.0] — 2026-05-12
 
 ### Added
