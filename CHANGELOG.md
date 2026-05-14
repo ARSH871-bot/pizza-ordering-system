@@ -9,6 +9,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.22.3] — 2026-05-14
+
+### Fixed
+
+- Checkout WinForms smoke tests no longer depend on auto-closing the post-submit receipt/order-again dialog. That dialog is a custom `Form` (not `MessageBox`), so the `WM_COMMAND/IDOK` fix in v2.22.2 never applied to it. `Form1` now has an `internal` constructor overload with a `showReceiptDialogs` flag; the public constructor delegates with `true`. Smoke tests pass `false` to skip the post-submit dialog entirely, making checkout persistence coverage deterministic in CI without touching production behavior.
+
+---
+
 ## [2.22.2] — 2026-05-14
 
 ### Fixed

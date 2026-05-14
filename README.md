@@ -1,7 +1,7 @@
 # Pizza Express - New Zealand
 
 [![Build and Test](https://github.com/ARSH871-bot/pizza-ordering-system/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/ARSH871-bot/pizza-ordering-system/actions/workflows/build-and-test.yml)
-![Version](https://img.shields.io/badge/version-2.22.2-brightgreen)
+![Version](https://img.shields.io/badge/version-2.22.3-brightgreen)
 ![Tests](https://img.shields.io/badge/tests-257%20passing-success)
 ![Coverage](https://img.shields.io/badge/coverage-not%20currently%20gated-lightgrey)
 ![License](https://img.shields.io/badge/license-MIT-blue)
@@ -202,6 +202,7 @@ scripts/
 
 | Version | Highlights |
 |---|---|
+| `v2.22.3` | Fix checkout smoke tests still timing out on CI: post-submit receipt dialog is a custom `Form` (not `MessageBox`), so `WM_COMMAND/IDOK` never applied; tests use `showReceiptDialogs: false` internal constructor path instead |
 | `v2.22.2` | Fix WinForms smoke tests failing on CI: `DialogAutoCloser` now sends `WM_COMMAND/IDOK` to dismiss single-OK-button `MessageBox` dialogs; `RunInSta` timeout raised from 90 s to 180 s |
 | `v2.22.1` | Fix non-ASCII em dash in `Test-PortablePackage.ps1` that caused a parser error on Windows PowerShell 5.1 |
 | `v2.22.0` | Install hardening: SHA256 checksum generation/verification, improved `PORTABLE-README.txt`, user-facing "Download and Run" section in README, `.sha256` uploaded as release asset |

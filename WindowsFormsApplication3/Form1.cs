@@ -23,6 +23,7 @@ namespace WindowsFormsApplication3
         private readonly IOrderRepository   _repo;
         private readonly ICartService       _cart;
         private readonly ISettingsRepository _settings;
+        private readonly bool _showReceiptDialogs;
 
         /// <summary>
         /// WinForms Designer constructor — uses default service implementations.
@@ -39,10 +40,16 @@ namespace WindowsFormsApplication3
         /// <see cref="Program"/>'s composition root.
         /// </summary>
         public Form1(IOrderRepository repo, ICartService cart, ISettingsRepository settings)
+            : this(repo, cart, settings, true)
+        {
+        }
+
+        internal Form1(IOrderRepository repo, ICartService cart, ISettingsRepository settings, bool showReceiptDialogs)
         {
             _repo     = repo     ?? throw new ArgumentNullException("repo");
             _cart     = cart     ?? throw new ArgumentNullException("cart");
             _settings = settings; // null-safe: used only for SettingsForm
+            _showReceiptDialogs = showReceiptDialogs;
             InitializeComponent();
         }
 
@@ -777,6 +784,9 @@ namespace WindowsFormsApplication3
                 _logger.Error("Failed to persist order to history", ex);
                 // History persistence is non-critical — never block the user
             }
+
+            if (!_showReceiptDialogs)
+                return;
 
             // ── Receipt options dialog ─────────────────────────────────────────
             using (var dlg = new Form())

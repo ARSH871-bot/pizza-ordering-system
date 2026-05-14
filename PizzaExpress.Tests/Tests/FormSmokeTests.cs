@@ -73,7 +73,7 @@ namespace PizzaExpress.Tests.Tests
                     var settings = new SettingsRepository(tempDir);
                     var cart = new CartService(settings);
 
-                    using (var form = new Form1(repo, cart, settings))
+                    using (var form = new Form1(repo, cart, settings, showReceiptDialogs: false))
                     {
                         form.Show();
                         WinFormsTestHelper.PumpEvents();
@@ -118,8 +118,7 @@ namespace PizzaExpress.Tests.Tests
                         Assert.IsTrue(WinFormsTestHelper.FindByName<Button>(form, "btnSubmitOrder").Enabled);
                         Assert.IsFalse(string.IsNullOrWhiteSpace(WinFormsTestHelper.FindByName<TextBox>(form, "txtChange").Text));
 
-                        using (new WinFormsTestHelper.DialogAutoCloser("Order Confirmed", "Order Complete"))
-                            WinFormsTestHelper.FindByName<Button>(form, "btnSubmitOrder").PerformClick();
+                        WinFormsTestHelper.FindByName<Button>(form, "btnSubmitOrder").PerformClick();
 
                         WinFormsTestHelper.PumpEvents();
                     }
@@ -169,7 +168,7 @@ namespace PizzaExpress.Tests.Tests
                     decimal totalBeforeDiscount;
                     decimal totalAfterDiscount;
 
-                    using (var form = new Form1(repo, cart, settings))
+                    using (var form = new Form1(repo, cart, settings, showReceiptDialogs: false))
                     {
                         form.Show();
                         WinFormsTestHelper.PumpEvents();
@@ -203,8 +202,7 @@ namespace PizzaExpress.Tests.Tests
                         Assert.IsTrue(totalAfterDiscount < totalBeforeDiscount);
                         Assert.IsTrue(WinFormsTestHelper.FindByName<Button>(form, "btnSubmitOrder").Enabled);
 
-                        using (new WinFormsTestHelper.DialogAutoCloser("Order Confirmed", "Order Complete"))
-                            WinFormsTestHelper.FindByName<Button>(form, "btnSubmitOrder").PerformClick();
+                        WinFormsTestHelper.FindByName<Button>(form, "btnSubmitOrder").PerformClick();
 
                         WinFormsTestHelper.PumpEvents();
                     }
