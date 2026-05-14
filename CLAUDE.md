@@ -38,6 +38,8 @@ Claude Code handoff for this repository.
 - CSV/print export content builders are extracted as `internal static` methods and covered by unit tests.
 - `Form1` has an `internal` constructor overload with `showReceiptDialogs = false` used by smoke tests.
 - Both CI workflows (`build-and-test.yml`, `release.yml`) are fully green as of v2.22.5.
+- `CheckoutWorkflowService` owns customer assembly, promo application, standard payment processing, order assembly, order-record assembly, and delivery-minutes resolution. `Form1` only reads controls and calls this service.
+- `ICheckoutWorkflowService` + `CheckoutWorkflowService` live in `Services/`; tested via `CheckoutWorkflowServiceTests.cs` (16 tests).
 - Portable release package includes a SHA256 sidecar and is published automatically on tag push.
 
 ## Validation Commands
@@ -50,7 +52,7 @@ dotnet build WindowsFormsApplication3.sln --configuration Debug
 .\scripts\Run-Tests.ps1 -Configuration Debug
 ```
 
-Expected: 257 tests passing.
+Expected: 273 tests passing.
 
 Release validation:
 
@@ -63,12 +65,8 @@ dotnet build WindowsFormsApplication3.sln --configuration Release --no-restore -
 
 ## Next Best Improvements
 
-The encoding audit (v2.22.5) found no mojibake or garbled artifacts. Non-ASCII characters
-present (`©`, `x`, `u` in Manawatu, em dashes in Markdown) are all intentional.
-
 Remaining meaningful improvements:
 
-- Shrink the checkout/payment flow still in `Form1.cs` into focused service methods.
 - Add more destructive-admin smoke coverage (void, delete, backup/restore round-trip via UI).
 - Accessibility pass: keyboard navigation and screen-reader labels on the main order form.
 

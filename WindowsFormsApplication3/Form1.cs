@@ -16,13 +16,13 @@ namespace WindowsFormsApplication3
     public partial class Form1 : Form
     {
         // ── Services ─────────────────────────────────────────────────────────
-        private readonly ILogger            _logger        = new FileLogger();
-        private readonly IPromoEngine       _promoEngine   = new PromoEngine();
-        private readonly IOrderValidator    _validator     = new OrderValidator();
-        private readonly IReceiptWriter     _receiptWriter = new ReceiptWriter();
-        private readonly IOrderRepository   _repo;
-        private readonly ICartService       _cart;
-        private readonly ISettingsRepository _settings;
+        private readonly ILogger                  _logger;
+        private readonly IOrderValidator          _validator;
+        private readonly IReceiptWriter           _receiptWriter;
+        private readonly ICheckoutWorkflowService _checkout;
+        private readonly IOrderRepository         _repo;
+        private readonly ICartService             _cart;
+        private readonly ISettingsRepository      _settings;
         private readonly bool _showReceiptDialogs;
 
         /// <summary>
@@ -46,10 +46,14 @@ namespace WindowsFormsApplication3
 
         internal Form1(IOrderRepository repo, ICartService cart, ISettingsRepository settings, bool showReceiptDialogs)
         {
-            _repo     = repo     ?? throw new ArgumentNullException("repo");
-            _cart     = cart     ?? throw new ArgumentNullException("cart");
-            _settings = settings; // null-safe: used only for SettingsForm
+            _repo               = repo     ?? throw new ArgumentNullException("repo");
+            _cart               = cart     ?? throw new ArgumentNullException("cart");
+            _settings           = settings; // null-safe: used only for SettingsForm
             _showReceiptDialogs = showReceiptDialogs;
+            _logger        = new FileLogger();
+            _validator     = new OrderValidator();
+            _receiptWriter = new ReceiptWriter();
+            _checkout      = new CheckoutWorkflowService(new PromoEngine(), _validator);
             InitializeComponent();
         }
 
@@ -714,7 +718,7 @@ namespace WindowsFormsApplication3
             var customer = BuildCustomer();
 
             // Validate customer fields
-            var customerResult = _validator.ValidateCustomer(customer);
+            var customerResult = _checkout.ValidateCustomer(customer);
             if (!customerResult.IsValid) { MessageBox.Show(customerResult.ErrorMessage); return; }
 
             if (cboPaymentMethod.Text == "Promo Card")
@@ -722,7 +726,7 @@ namespace WindowsFormsApplication3
                 string code = txtCardOrPromo.Text.Trim();
                 decimal originalTotal = ParseCurrencyOrZero(txtTotalDue.Text);
 
-                var promoResult = _promoEngine.Apply(code, originalTotal);
+                var promoResult = _checkout.ApplyPromo(code, originalTotal);
                 if (!promoResult.Success)
                 {
                     _appliedPromoCode = null;
@@ -732,10 +736,10 @@ namespace WindowsFormsApplication3
                 }
 
                 decimal discountAmount = Math.Max(originalTotal - promoResult.DiscountedTotal, 0m);
-                _appliedPromoCode = code;
-                txtAmountDue.Text = promoResult.DiscountedTotal.ToString("C2", CurrencyCulture);
+                _appliedPromoCode = promoResult.AppliedCode;
+                txtAmountDue.Text  = promoResult.DiscountedTotal.ToString("C2", CurrencyCulture);
                 txtAmountPaid.Text = promoResult.DiscountedTotal.ToString("F2", CultureInfo.InvariantCulture);
-                txtChange.Text = 0m.ToString("C2", CurrencyCulture);
+                txtChange.Text     = 0m.ToString("C2", CurrencyCulture);
                 _logger.Info($"Promo applied  code={code}  savings={discountAmount:C2}");
                 MessageBox.Show(promoResult.Message, "Promo Applied");
                 btnSubmitOrder.Enabled = true;
@@ -758,17 +762,36 @@ namespace WindowsFormsApplication3
                 return;
             }
 
-            var payResult = _validator.ValidatePayment(cboPaymentMethod.Text, amountPaid, totalDue);
-            if (!payResult.IsValid) { MessageBox.Show(payResult.ErrorMessage); btnSubmitOrder.Enabled = false; return; }
+            var payResult = _checkout.ProcessStandardPayment(cboPaymentMethod.Text, amountPaid, totalDue);
+            if (!payResult.Success) { MessageBox.Show(payResult.ErrorMessage); btnSubmitOrder.Enabled = false; return; }
 
-            txtChange.Text  = (amountPaid - totalDue).ToString("C2", CurrencyCulture);
+            txtChange.Text = payResult.Change.ToString("C2", CurrencyCulture);
             btnSubmitOrder.Enabled = true;
         }
 
         private void btnSubmitOrder_Click(object sender, EventArgs e)
         {
-            // Build the Order object for the receipt service
-            var order = BuildOrderForReceipt();
+            // Read items from the order list view
+            var items = new List<OrderItem>();
+            foreach (ListViewItem lvi in lvOrder.Items)
+            {
+                decimal price; decimal.TryParse(lvi.SubItems[2].Text, out price);
+                int qty;       int.TryParse(lvi.SubItems[1].Text, out qty);
+                decimal unitPrice = price / Math.Max(qty, 1);
+                items.Add(new OrderItem(lvi.Text, qty, unitPrice));
+            }
+
+            var order = _checkout.AssembleOrder(
+                BuildCustomer(),
+                cboPaymentMethod.Text,
+                txtCardOrPromo.Text,
+                _appliedPromoCode,
+                ParseCurrencyOrZero(txtTotalDue.Text),
+                ParseCurrencyOrZero(txtAmountDue.Text),
+                ParseCurrencyOrZero(txtAmountPaid.Text),
+                _checkout.GetDeliveryMinutes(_settings),
+                items);
+
             _lastReceiptText = _receiptWriter.Build(order);
 
             // Persist order to JSON history
@@ -834,7 +857,7 @@ namespace WindowsFormsApplication3
             // Order again or exit
             if (MessageBox.Show(
                     $"Thanks for ordering at Pizza Express!\n" +
-                    $"Your order will be delivered in approx. {GetDeliveryMinutes()} minutes.\n\n" +
+                    $"Your order will be delivered in approx. {order.DeliveryMinutes} minutes.\n\n" +
                     "Would you like to place another order?",
                     "Order Complete", MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
@@ -1179,81 +1202,12 @@ namespace WindowsFormsApplication3
             lvOrder.Items.Add(item);
         }
 
-        private Customer BuildCustomer() => new Customer
-        {
-            FirstName  = txtFirstName.Text.Trim(),
-            LastName   = txtLastName.Text.Trim(),
-            Address    = txtAddress.Text.Trim(),
-            City       = txtCity.Text.Trim(),
-            Region     = cboRegion.Text,
-            PostalCode = txtPostalCode.Text.Trim(),
-            ContactNo  = txtContactNo.Text.Trim(),
-            Email      = txtEmail.Text.Trim(),
-        };
+        private Customer BuildCustomer() => _checkout.BuildCustomer(
+            txtFirstName.Text.Trim(), txtLastName.Text.Trim(),
+            txtAddress.Text.Trim(), txtCity.Text.Trim(), cboRegion.Text,
+            txtPostalCode.Text.Trim(), txtContactNo.Text.Trim(), txtEmail.Text.Trim());
 
-        private OrderRecord BuildOrderRecord(Order order)
-        {
-            var record = new OrderRecord
-            {
-                Id            = Guid.NewGuid().ToString("N").Substring(0, 8).ToUpper(),
-                OrderDate     = order.OrderDate,
-                CustomerName  = order.Customer.FullName,
-                Address       = order.Customer.Address,
-                City          = order.Customer.City,
-                Region        = order.Customer.Region,
-                PostalCode    = order.Customer.PostalCode,
-                PaymentMethod    = order.PaymentMethod,
-                PaymentReference = order.PaymentReference,
-                Subtotal      = order.Subtotal,
-                Tax           = order.Tax,
-                Total         = order.AmountDue,
-                Discount      = order.Discount,
-                DiscountDescription = order.DiscountDescription,
-                Status        = "Active",
-            };
-            foreach (var item in order.Items)
-                record.Lines.Add(new OrderLineRecord
-                {
-                    Item     = item.Name,
-                    Quantity = item.Quantity,
-                    Price    = item.TotalPrice,
-                });
-            return record;
-        }
-
-        private Order BuildOrderForReceipt()
-        {
-            var order = new Order
-            {
-                Customer         = BuildCustomer(),
-                PaymentMethod    = cboPaymentMethod.Text,
-                PaymentReference = Services.PaymentReferenceHelper.NormalizeForStorage(
-                                       cboPaymentMethod.Text, txtCardOrPromo.Text),
-                DiscountDescription = string.IsNullOrWhiteSpace(_appliedPromoCode) ? null : _appliedPromoCode.Trim(),
-                DeliveryMinutes = GetDeliveryMinutes(),
-            };
-
-            decimal paid = ParseCurrencyOrZero(txtAmountPaid.Text);
-            order.AmountPaid = paid;
-            order.Discount = Math.Max(
-                ParseCurrencyOrZero(txtTotalDue.Text) - ParseCurrencyOrZero(txtAmountDue.Text),
-                0m);
-
-            foreach (ListViewItem lvi in lvOrder.Items)
-            {
-                decimal price;
-                decimal.TryParse(lvi.SubItems[2].Text, out price);
-                int qty;
-                int.TryParse(lvi.SubItems[1].Text, out qty);
-                // lvi.SubItems[2] holds the line total (qty × unit price).
-                // Back-calculate unit price before constructing OrderItem,
-                // which multiplies UnitPrice × max(Quantity, 1) internally.
-                decimal unitPrice = price / Math.Max(qty, 1);
-                order.Items.Add(new OrderItem(lvi.Text, qty, unitPrice));
-            }
-
-            return order;
-        }
+        private OrderRecord BuildOrderRecord(Order order) => _checkout.BuildOrderRecord(order);
 
         private void ResetValidatedPayment(bool clearAmountPaid, bool resetAmountDue)
         {
@@ -1268,29 +1222,8 @@ namespace WindowsFormsApplication3
                 txtAmountPaid.Text = string.Empty;
         }
 
-        private int GetDeliveryMinutes()
-        {
-            string raw = _settings?.Get("DeliveryMinutes", AppConfig.DeliveryMinutes.ToString());
-            int minutes;
-            return int.TryParse(raw, out minutes) && minutes > 0
-                ? minutes
-                : AppConfig.DeliveryMinutes;
-        }
-
         private static decimal ParseCurrencyOrZero(string text)
-        {
-            if (string.IsNullOrWhiteSpace(text))
-                return 0m;
-
-            decimal value;
-            if (decimal.TryParse(text, NumberStyles.Currency, CurrencyCulture, out value))
-                return value;
-            if (decimal.TryParse(text, NumberStyles.Currency, CultureInfo.CurrentCulture, out value))
-                return value;
-            if (decimal.TryParse(text, NumberStyles.Number, CultureInfo.InvariantCulture, out value))
-                return value;
-            return 0m;
-        }
+            => CheckoutWorkflowService.ParseCurrencyOrZero(text);
 
         private void ResetPizzaAndToppings()
         {

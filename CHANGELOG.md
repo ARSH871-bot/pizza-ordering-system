@@ -9,6 +9,38 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.23.0] — 2026-05-14
+
+### Added
+
+- `CheckoutWorkflowService` (with `ICheckoutWorkflowService` interface): extracts customer
+  assembly, customer and payment validation delegation, promo application, standard payment
+  processing, order assembly, order-record assembly, and delivery-minutes resolution out of
+  `Form1.cs` into a focused, UI-free service. Form1 now delegates all checkout decisions to
+  this service; it retains only control-reads, focus management, and MessageBox calls.
+- `PromoPaymentResult` and `StandardPaymentResult` result-value types returned by the service.
+- 16 new unit tests in `CheckoutWorkflowServiceTests.cs` covering customer build, customer
+  validation, promo codes (valid, invalid, free-shipping), standard payment (cash, overpay,
+  underpay, empty method), order assembly (card masking, cash no-reference, promo discount),
+  `ParseCurrencyOrZero`, and `GetDeliveryMinutes` with null settings. Total: 273 tests.
+
+### Fixed
+
+- `OrderSubmissionService.CreateRecord` now persists `PaymentReference` (previously omitted,
+  so non-cash payment references were lost when that service was used directly).
+
+### Changed
+
+- `Form1.BuildCustomer()`, `Form1.BuildOrderRecord()`, and `Form1.ParseCurrencyOrZero()` are
+  now thin wrappers that delegate to `CheckoutWorkflowService`; the logic lives in the service.
+- `Form1.BuildOrderForReceipt()` removed; order assembly is inlined in `btnSubmitOrder_Click`
+  using `_checkout.AssembleOrder(...)`.
+- `Form1.GetDeliveryMinutes()` removed; delivery minutes are resolved once in
+  `_checkout.GetDeliveryMinutes(_settings)` during order assembly and read from
+  `order.DeliveryMinutes` in the confirmation dialog.
+
+---
+
 ## [2.22.5] — 2026-05-14
 
 ### Changed

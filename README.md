@@ -1,8 +1,8 @@
 # Pizza Express - New Zealand
 
 [![Build and Test](https://github.com/ARSH871-bot/pizza-ordering-system/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/ARSH871-bot/pizza-ordering-system/actions/workflows/build-and-test.yml)
-![Version](https://img.shields.io/badge/version-2.22.5-brightgreen)
-![Tests](https://img.shields.io/badge/tests-257%20passing-success)
+![Version](https://img.shields.io/badge/version-2.23.0-brightgreen)
+![Tests](https://img.shields.io/badge/tests-273%20passing-success)
 ![Coverage](https://img.shields.io/badge/coverage-not%20currently%20gated-lightgrey)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Platform](https://img.shields.io/badge/platform-Windows-lightgrey)
@@ -202,6 +202,7 @@ scripts/
 
 | Version | Highlights |
 |---|---|
+| `v2.23.0` | Extract checkout/payment flow from `Form1.cs` into `CheckoutWorkflowService`; 16 new tests; fix `OrderSubmissionService` missing `PaymentReference` |
 | `v2.22.5` | Bump `actions/upload-artifact` to v7 and `softprops/action-gh-release` to v3; silence Node.js 20 deprecation warnings in CI |
 | `v2.22.4` | Fix `release.yml`: add `permissions: contents: write` so `GITHUB_TOKEN` can create GitHub Releases; replace em dash in release body with ASCII `-` |
 | `v2.22.3` | Fix checkout smoke tests still timing out on CI: post-submit receipt dialog is a custom `Form` (not `MessageBox`), so `WM_COMMAND/IDOK` never applied; tests use `showReceiptDialogs: false` internal constructor path instead |
