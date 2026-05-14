@@ -52,7 +52,7 @@ dotnet build WindowsFormsApplication3.sln --configuration Debug
 .\scripts\Run-Tests.ps1 -Configuration Debug
 ```
 
-Expected: 278 tests passing.
+Expected: 282 tests passing.
 
 Release validation:
 
@@ -65,9 +65,11 @@ dotnet build WindowsFormsApplication3.sln --configuration Release --no-restore -
 
 ## Next Best Improvements
 
-Remaining meaningful improvements:
+All planned improvements have been implemented. Meaningful next areas:
 
-- Accessibility pass: keyboard navigation and screen-reader labels on the main order form.
+- Shrink remaining workflow logic from `Form1.cs` into services.
+- Improve install experience beyond the portable ZIP.
+- Gate coverage in CI (add a minimum threshold).
 
 ## Guardrails For Future Claude Sessions
 

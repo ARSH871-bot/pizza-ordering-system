@@ -9,6 +9,30 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.25.0] — 2026-05-15
+
+### Added
+
+- Keyboard-navigation and screen-reader accessibility pass on the main order form (`Form1`).
+  - Button mnemonics via `&` in `Text`: Alt+C Confirm Order, Alt+A Add Pizza to Cart,
+    Alt+H Check Out, Alt+O Order Again, Alt+L Clear Order, Alt+B Go Back,
+    Alt+P Pay, Alt+S Submit Order.
+  - Label mnemonics for required checkout fields: `*&First Name:`, `*&Last Name:`,
+    `*&Address:`, `*Payment &Method:` — Tab from label moves focus directly to its input.
+  - `AcceptButton` switches per active tab (Tab 0: Confirm Order, Tab 1: Check Out,
+    Tab 2: Pay) via `tabControl1.SelectedIndexChanged`. Escape on Tab 2 activates Go Back.
+  - Stale Alt-key hints removed from `AccessibleName` on `btnConfirmOrder` and `btnCheckOut`.
+  - `pictureBox1` and `pictureBox2` set to `AccessibleRole.None` to exclude from the
+    accessibility tree.
+  - `AccessibilityTests.cs`: 4 new unit tests verifying mnemonics, AcceptButton, decorative
+    image exclusion, and input `AccessibleName` values.
+  - Internal `Form1(bool showReceiptDialogs)` convenience constructor for accessibility tests.
+  - Internal test-surface properties on `Form1` for accessibility assertions.
+
+**Total tests: 282 passing.**
+
+---
+
 ## [2.24.0] — 2026-05-14
 
 ### Added

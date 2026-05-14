@@ -1,8 +1,8 @@
 # Pizza Express - New Zealand
 
 [![Build and Test](https://github.com/ARSH871-bot/pizza-ordering-system/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/ARSH871-bot/pizza-ordering-system/actions/workflows/build-and-test.yml)
-![Version](https://img.shields.io/badge/version-2.24.0-brightgreen)
-![Tests](https://img.shields.io/badge/tests-278%20passing-success)
+![Version](https://img.shields.io/badge/version-2.25.0-brightgreen)
+![Tests](https://img.shields.io/badge/tests-282%20passing-success)
 ![Coverage](https://img.shields.io/badge/coverage-not%20currently%20gated-lightgrey)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Platform](https://img.shields.io/badge/platform-Windows-lightgrey)
@@ -202,6 +202,7 @@ scripts/
 
 | Version | Highlights |
 |---|---|
+| `v2.25.0` | Accessibility pass on main order form: button mnemonics, label mnemonics, per-tab AcceptButton, decorative image exclusion, 4 new tests |
 | `v2.24.0` | Destructive-admin smoke coverage: void, delete, backup/restore round-trip with real SQLite; `DialogAutoCloser` extended to dismiss Yes/No dialogs |
 | `v2.23.0` | Extract checkout/payment flow from `Form1.cs` into `CheckoutWorkflowService`; 16 new tests; fix `OrderSubmissionService` missing `PaymentReference` |
 | `v2.22.5` | Bump `actions/upload-artifact` to v7 and `softprops/action-gh-release` to v3; silence Node.js 20 deprecation warnings in CI |

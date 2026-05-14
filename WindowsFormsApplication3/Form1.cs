@@ -57,6 +57,25 @@ namespace WindowsFormsApplication3
             InitializeComponent();
         }
 
+        internal Form1(bool showReceiptDialogs)
+            : this(
+                new OrderRepository(Program.DefaultDataDirectory()),
+                new CartService(),
+                null,
+                showReceiptDialogs)
+        { }
+
+        // ── Internal test-surface ─────────────────────────────────────────────
+        internal string ConfirmOrderButtonText  => btnConfirmOrder.Text;
+        internal string CheckOutButtonText      => btnCheckOut.Text;
+        internal string PayButtonText           => btnPay.Text;
+        internal string SubmitOrderButtonText   => btnSubmitOrder.Text;
+        internal AccessibleRole PictureBox1Role => pictureBox1.AccessibleRole;
+        internal AccessibleRole PictureBox2Role => pictureBox2.AccessibleRole;
+        internal string FirstNameAccessibleName    => txtFirstName.AccessibleName;
+        internal string PostalCodeAccessibleName   => txtPostalCode.AccessibleName;
+        internal string PaymentMethodAccessibleName => cboPaymentMethod.AccessibleName;
+
         // ── State ─────────────────────────────────────────────────────────────
         private readonly List<ListViewItem> _stagedPizzas = new List<ListViewItem>();
         private string _lastReceiptText;   // cached for clipboard / print
@@ -132,14 +151,46 @@ namespace WindowsFormsApplication3
             txtTax.AccessibleName           = "GST Amount";
             txtTotalDue.AccessibleName      = "Total Due";
             nudPizzaQty.AccessibleName      = "Pizza Quantity, 1 to 20";
-            btnConfirmOrder.AccessibleName   = "Confirm Order, Alt C";
-            btnCheckOut.AccessibleName       = "Proceed to Checkout, Alt P";
-            btnGoBack.AccessibleName         = "Go Back, Escape";
+            btnConfirmOrder.AccessibleName   = "Confirm Order";
+            btnCheckOut.AccessibleName       = "Proceed to Checkout";
+            btnGoBack.AccessibleName         = "Go Back";
             btnSubmitOrder.AccessibleName    = "Submit and Pay";
             btnPay.AccessibleName            = "Validate Payment";
             btnClearOrder.AccessibleName     = "Clear Order";
             btnAddPizzaToCart.AccessibleName = "Add Pizza to Cart";
             lvOrder.AccessibleName           = "Order Items. Right-click to remove.";
+
+            // ── Button mnemonics (Alt+key shortcuts) ──────────────────────────
+            btnConfirmOrder.Text    = "&Confirm Order";
+            btnAddPizzaToCart.Text  = "&Add Pizza to Cart";
+            btnCheckOut.Text        = "&Check Out";
+            btnOrderAgain.Text      = "&Order Again";
+            btnClearOrder.Text      = "C&lear Order";
+            btnGoBack.Text          = "Go &Back";
+            btnPay.Text             = "&Pay";
+            btnSubmitOrder.Text     = "&Submit Order";
+
+            // ── Label mnemonics linking to required checkout fields ───────────
+            label6.Text  = "*&First Name:";
+            label7.Text  = "*&Last Name:";
+            label8.Text  = "*&Address:";
+            label14.Text = "*Payment &Method:";
+
+            // ── AcceptButton follows active tab; Escape exits checkout ────────
+            this.AcceptButton = btnConfirmOrder;
+            tabControl1.SelectedIndexChanged += (s, ev) =>
+            {
+                switch (tabControl1.SelectedIndex)
+                {
+                    case 0: this.AcceptButton = btnConfirmOrder; this.CancelButton = null;      break;
+                    case 1: this.AcceptButton = btnCheckOut;     this.CancelButton = null;      break;
+                    case 2: this.AcceptButton = btnPay;          this.CancelButton = btnGoBack; break;
+                }
+            };
+
+            // ── Decorative images: exclude from accessibility tree ────────────
+            pictureBox1.AccessibleRole = AccessibleRole.None;
+            pictureBox2.AccessibleRole = AccessibleRole.None;
 
             // ── Postal code input masking (digits only, max 4 chars) ──────────
             txtPostalCode.KeyPress += (s, ev) =>
