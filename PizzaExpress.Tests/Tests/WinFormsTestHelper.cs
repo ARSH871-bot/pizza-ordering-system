@@ -13,7 +13,7 @@ namespace PizzaExpress.Tests.Tests
 {
     internal static class WinFormsTestHelper
     {
-        public static void RunInSta(Action action, int timeoutMs = 90000)
+        public static void RunInSta(Action action, int timeoutMs = 180000)
         {
             Exception failure = null;
 
@@ -168,8 +168,11 @@ namespace PizzaExpress.Tests.Tests
                             if (!string.IsNullOrWhiteSpace(fragment) &&
                                 title.IndexOf(fragment, StringComparison.OrdinalIgnoreCase) >= 0)
                             {
-                                // Try SendMessage first (synchronous) then PostMessage as fallback
-                                SendMessage(hWnd, WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
+                                // WM_COMMAND/IDOK presses the OK button — required for MessageBox
+                                // dialogs whose X button is disabled (single-button OK dialogs).
+                                SendMessage(hWnd, WM_COMMAND, new IntPtr(IDOK), IntPtr.Zero);
+                                PostMessage(hWnd, WM_COMMAND, new IntPtr(IDOK), IntPtr.Zero);
+                                // WM_CLOSE as fallback for custom dialogs that do respond to it.
                                 PostMessage(hWnd, WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
                                 break;
                             }
@@ -193,7 +196,9 @@ namespace PizzaExpress.Tests.Tests
                 return builder.ToString();
             }
 
-            private const uint WM_CLOSE = 0x0010;
+            private const uint WM_CLOSE   = 0x0010;
+            private const uint WM_COMMAND = 0x0111;
+            private const int  IDOK       = 1;
 
             private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
 

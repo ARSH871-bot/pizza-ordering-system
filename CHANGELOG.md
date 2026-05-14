@@ -9,6 +9,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.22.2] — 2026-05-14
+
+### Fixed
+
+- `DialogAutoCloser` now sends `WM_COMMAND/IDOK` (in addition to `WM_CLOSE`) when a matching window is found. Single-button `MessageBox` dialogs disable the X button, so `WM_CLOSE` alone was silently dropped on CI, causing the two checkout smoke tests to hang until the 90-second STA timeout. `WM_COMMAND/IDOK` presses the OK button directly and is reliable regardless of close-button state.
+- `RunInSta` default timeout raised from 90 s to 180 s to give the slower GitHub Actions runner headroom for the full checkout workflow even under load.
+
+---
+
 ## [2.22.1] — 2026-05-14
 
 ### Fixed
