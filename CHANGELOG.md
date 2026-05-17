@@ -9,6 +9,26 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.40.0] — 2026-05-18
+
+### Added
+
+- `FormSmokeTests.cs`: 3 new `Form1` smoke tests:
+  - `Form1_ExitButton_Yes_ClosesForm` — clicks `btnExit`, `DialogAutoCloser("Exit")`
+    sends IDYES, asserts `form.Visible == false`.
+  - `Form1_AboutButton_ShowsAboutDialog` — finds the dynamically-added "About" button
+    by text prefix, `DialogAutoCloser("About Pizza Express NZ")` dismisses the
+    `MessageBox`; covers `ShowAboutDialog`.
+  - `Form1_KeyboardHelp_ShowsAndCloses` — invokes `ShowKeyboardHelp` via reflection,
+    `DialogAutoCloser("Keyboard Shortcuts")` closes the custom `Form`; covers all
+    69 lines of the keyboard-help builder.
+- Added `using System.Reflection;` to `FormSmokeTests.cs`.
+
+**Total tests: 415 passing.**
+**`Form1` coverage increases; overall WindowsFormsApplication3 now 87.5%.**
+
+---
+
 ## [2.39.0] — 2026-05-18
 
 ### Added

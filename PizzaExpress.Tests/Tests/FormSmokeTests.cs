@@ -2,6 +2,7 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Windows.Forms;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using WindowsFormsApplication3;
@@ -563,6 +564,97 @@ namespace PizzaExpress.Tests.Tests
                 {
                     DeleteTempDataDirectory(tempDir);
                 }
+            });
+        }
+
+        [TestMethod]
+        public void Form1_ExitButton_Yes_ClosesForm()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo     = new OrderRepository(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    var cart     = new CartService(settings);
+
+                    using (var form = new Form1(repo, cart, settings, showReceiptDialogs: false))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        using (new WinFormsTestHelper.DialogAutoCloser("Exit"))
+                            WinFormsTestHelper.FindByName<Button>(form, "btnExit").PerformClick();
+
+                        WinFormsTestHelper.PumpEvents();
+
+                        Assert.IsFalse(form.Visible, "Form should close after confirming Exit with Yes.");
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        [TestMethod]
+        public void Form1_AboutButton_ShowsAboutDialog()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo     = new OrderRepository(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    var cart     = new CartService(settings);
+
+                    using (var form = new Form1(repo, cart, settings, showReceiptDialogs: false))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        using (new WinFormsTestHelper.DialogAutoCloser("About Pizza Express NZ"))
+                            WinFormsTestHelper.FindByTextPrefix<Button>(form, "About").PerformClick();
+
+                        WinFormsTestHelper.PumpEvents();
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        [TestMethod]
+        public void Form1_KeyboardHelp_ShowsAndCloses()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo     = new OrderRepository(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    var cart     = new CartService(settings);
+
+                    using (var form = new Form1(repo, cart, settings, showReceiptDialogs: false))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        var mi = typeof(Form1).GetMethod(
+                            "ShowKeyboardHelp",
+                            BindingFlags.NonPublic | BindingFlags.Instance);
+                        Assert.IsNotNull(mi, "ShowKeyboardHelp method not found.");
+
+                        using (new WinFormsTestHelper.DialogAutoCloser("Keyboard Shortcuts"))
+                            mi.Invoke(form, null);
+
+                        WinFormsTestHelper.PumpEvents();
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
             });
         }
 
