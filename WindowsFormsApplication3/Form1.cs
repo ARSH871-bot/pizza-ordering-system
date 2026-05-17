@@ -776,7 +776,7 @@ namespace WindowsFormsApplication3
 
             // Validate customer fields
             var customerResult = _checkout.ValidateCustomer(customer);
-            if (!customerResult.IsValid) { MessageBox.Show(customerResult.ErrorMessage); return; }
+            if (!customerResult.IsValid) { MessageBox.Show(customerResult.ErrorMessage, "Validation Error"); return; }
 
             if (cboPaymentMethod.Text == "Promo Card")
             {
@@ -788,7 +788,7 @@ namespace WindowsFormsApplication3
                 {
                     _appliedPromoCode = null;
                     btnSubmitOrder.Enabled = false;
-                    MessageBox.Show(promoResult.Message);
+                    MessageBox.Show(promoResult.Message, "Promo Error");
                     return;
                 }
 
@@ -806,7 +806,7 @@ namespace WindowsFormsApplication3
             // Standard payment flow
             if (string.IsNullOrWhiteSpace(cboPaymentMethod.Text) || string.IsNullOrWhiteSpace(txtAmountPaid.Text))
             {
-                MessageBox.Show("Please fill in all required fields.");
+                MessageBox.Show("Please fill in all required fields.", "Validation Error");
                 return;
             }
 
@@ -815,12 +815,12 @@ namespace WindowsFormsApplication3
             decimal amountPaid;
             if (!decimal.TryParse(txtAmountPaid.Text, NumberStyles.Number | NumberStyles.AllowCurrencySymbol, CurrencyCulture, out amountPaid))
             {
-                MessageBox.Show("Please enter a valid payment amount.");
+                MessageBox.Show("Please enter a valid payment amount.", "Validation Error");
                 return;
             }
 
             var payResult = _checkout.ProcessStandardPayment(cboPaymentMethod.Text, amountPaid, totalDue);
-            if (!payResult.Success) { MessageBox.Show(payResult.ErrorMessage); btnSubmitOrder.Enabled = false; return; }
+            if (!payResult.Success) { MessageBox.Show(payResult.ErrorMessage, "Payment Error"); btnSubmitOrder.Enabled = false; return; }
 
             txtChange.Text = payResult.Change.ToString("C2", CurrencyCulture);
             btnSubmitOrder.Enabled = true;

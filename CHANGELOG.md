@@ -9,6 +9,32 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.34.0] — 2026-05-18
+
+### Added
+
+- `FormSmokeTests.cs`: 4 new Form1 smoke tests:
+  - `Form1_OrderAgain_NavigatesFromTab2BackToTab1` — verifies `btnOrderAgain` returns
+    the active tab to Tab 1 after an order is confirmed on Tab 2.
+  - `Form1_GoBack_NavigatesFromTab3BackToTab2` — verifies `btnGoBack` returns from
+    the checkout tab (Tab 3) back to order review (Tab 2).
+  - `Form1_DebitCardCheckout_MasksReferenceAndPersistsOrder` — end-to-end debit card
+    checkout: masks last-4 digits (e.g. `****9012`), persists order with correct method.
+  - `Form1_CashUnderpayment_DisablesSubmitOrder` — verifies that paying $0.01 toward a
+    large pizza order leaves `btnSubmitOrder` disabled and shows a Payment Error dialog.
+- `OrderItemTests.cs`: 1 new test for the parameterless `OrderItem()` constructor.
+
+### Changed
+
+- `Form1.btnPay_Click`: all `MessageBox.Show` error calls now include a caption
+  (`"Validation Error"`, `"Promo Error"`, `"Payment Error"`) so dialogs have meaningful
+  titles and can be matched by `DialogAutoCloser` in tests.
+
+**Total tests: 391 passing.**
+**Overall WindowsFormsApplication3 coverage now at 82.3%.**
+
+---
+
 ## [2.33.0] — 2026-05-18
 
 ### Added

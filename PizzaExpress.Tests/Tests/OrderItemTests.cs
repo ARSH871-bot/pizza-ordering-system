@@ -42,5 +42,12 @@ namespace PizzaExpress.Tests
             Assert.AreEqual(2,     item.Quantity);
             Assert.AreEqual(5.50m, item.UnitPrice);
         }
+
+        [TestMethod]
+        public void ParameterlessConstructor_CreatesInstanceWithDefaults()
+        {
+            var item = new OrderItem();
+            Assert.IsNotNull(item);
+        }
     }
 }
