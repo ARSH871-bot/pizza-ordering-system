@@ -1,9 +1,9 @@
 # Pizza Express - New Zealand
 
 [![Build and Test](https://github.com/ARSH871-bot/pizza-ordering-system/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/ARSH871-bot/pizza-ordering-system/actions/workflows/build-and-test.yml)
-![Version](https://img.shields.io/badge/version-2.38.0-brightgreen)
-![Tests](https://img.shields.io/badge/tests-408%20passing-success)
-![Coverage](https://img.shields.io/badge/coverage-85.5%25%20line%20(75%25%20gate)-brightgreen)
+![Version](https://img.shields.io/badge/version-2.39.0-brightgreen)
+![Tests](https://img.shields.io/badge/tests-412%20passing-success)
+![Coverage](https://img.shields.io/badge/coverage-86.1%25%20line%20(75%25%20gate)-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Platform](https://img.shields.io/badge/platform-Windows-lightgrey)
 ![Framework](https://img.shields.io/badge/.NET-4.8-purple)
@@ -202,6 +202,7 @@ scripts/
 
 | Version | Highlights |
 |---|---|
+| `v2.39.0` | 4 new `SalesReportForm` smoke tests (Run Report with orders, Today/This Week/This Month quick-date buttons); `SalesReportForm` 85.2%→95.1%; 412 total, coverage 86.1% |
 | `v2.38.0` | 2 new `EndOfDayForm` tests: KPI/payment-list population with real orders (covers non-empty branches) and Print Report with `DialogAutoCloser`; `EndOfDayForm` 80%→95.6%; 408 total, coverage 85.5% |
 | `v2.37.0` | 3 new `SettingsForm` smoke tests (Backup Unavailable dialog with null data dir, View Auto-Backups with no backups, View Auto-Backups with backups); `SettingsForm` 74.3%→80.9%; 406 total, coverage 84.4% |
 | `v2.36.0` | 4 new `OrderHistoryForm` smoke tests (search filter, no-match row, view details dialog, date filter toggle); `OrderHistoryForm` 79.3%→87.9%; 403 total, coverage 83.9% |

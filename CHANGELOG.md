@@ -9,6 +9,26 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.39.0] — 2026-05-18
+
+### Added
+
+- `SalesReportFormTests.cs`: 4 new smoke tests for `SalesReportForm`:
+  - `RunReport_WithOrders_PopulatesKpis` — saves two real orders and clicks
+    "Run Report"; asserts the order-count KPI label shows "2".
+  - `TodayButton_SetsDateRangeAndRunsReport` — clicks "Today", verifies both
+    pickers are set to `DateTime.Today`.
+  - `ThisWeekButton_SetsFromToStartOfWeek` — clicks "This Week", verifies
+    From is on or before today and To is today.
+  - `ThisMonthButton_SetsFromToFirstOfMonth` — clicks "This Month", verifies
+    From is the 1st of the current month.
+    All four cover `RunReport()` and the quick-date lambda handlers.
+
+**Total tests: 412 passing.**
+**`SalesReportForm` coverage 85.2% to 95.1%; overall WindowsFormsApplication3 now 86.1%.**
+
+---
+
 ## [2.38.0] — 2026-05-18
 
 ### Added
