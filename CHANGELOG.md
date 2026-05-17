@@ -9,6 +9,24 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.41.0] — 2026-05-18
+
+### Added
+
+- `FormSmokeTests.cs`: 1 new `Form1` smoke test covering the receipt-options dialog path:
+  - `Form1_SubmitOrder_WithReceiptDialogs_SkipAndOrderComplete_ResetsToTab1` — uses
+    the production constructor (`showReceiptDialogs: true`); completes a full
+    cash checkout; `DialogAutoCloser("Order Confirmed", "Order Complete")` closes
+    the receipt-options custom `Form` via WM_CLOSE and the "Order Complete" YesNo
+    via IDYES, which calls `ResetFullForm()` and returns to Tab 1. Covers lines
+    871-927 of `btnSubmitOrder_Click` (the entire `_showReceiptDialogs` block)
+    and `ResetFullForm`.
+
+**Total tests: 416 passing.**
+**`Form1` coverage increases significantly; overall WindowsFormsApplication3 now 89.0%.**
+
+---
+
 ## [2.40.0] — 2026-05-18
 
 ### Added

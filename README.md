@@ -1,9 +1,9 @@
 # Pizza Express - New Zealand
 
 [![Build and Test](https://github.com/ARSH871-bot/pizza-ordering-system/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/ARSH871-bot/pizza-ordering-system/actions/workflows/build-and-test.yml)
-![Version](https://img.shields.io/badge/version-2.40.0-brightgreen)
-![Tests](https://img.shields.io/badge/tests-415%20passing-success)
-![Coverage](https://img.shields.io/badge/coverage-87.5%25%20line%20(75%25%20gate)-brightgreen)
+![Version](https://img.shields.io/badge/version-2.41.0-brightgreen)
+![Tests](https://img.shields.io/badge/tests-416%20passing-success)
+![Coverage](https://img.shields.io/badge/coverage-89.0%25%20line%20(75%25%20gate)-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Platform](https://img.shields.io/badge/platform-Windows-lightgrey)
 ![Framework](https://img.shields.io/badge/.NET-4.8-purple)
@@ -202,6 +202,7 @@ scripts/
 
 | Version | Highlights |
 |---|---|
+| `v2.41.0` | 1 new `Form1` smoke test covering receipt-options dialog block (`showReceiptDialogs: true` path); `DialogAutoCloser` closes both sequential dialogs; covers `ResetFullForm`; 416 total, coverage 89.0% |
 | `v2.40.0` | 3 new `Form1` smoke tests (Exit Yes closes form, About dialog, Keyboard Help via reflection); covers `btnExit_Click`, `ShowAboutDialog`, `ShowKeyboardHelp`; 415 total, coverage 87.5% |
 | `v2.39.0` | 4 new `SalesReportForm` smoke tests (Run Report with orders, Today/This Week/This Month quick-date buttons); `SalesReportForm` 85.2%→95.1%; 412 total, coverage 86.1% |
 | `v2.38.0` | 2 new `EndOfDayForm` tests: KPI/payment-list population with real orders (covers non-empty branches) and Print Report with `DialogAutoCloser`; `EndOfDayForm` 80%→95.6%; 408 total, coverage 85.5% |

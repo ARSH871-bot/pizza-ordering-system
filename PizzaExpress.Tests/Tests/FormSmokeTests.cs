@@ -568,6 +568,69 @@ namespace PizzaExpress.Tests.Tests
         }
 
         [TestMethod]
+        public void Form1_SubmitOrder_WithReceiptDialogs_SkipAndOrderAgain_ResetsToTab1()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo     = new OrderRepository(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    var cart     = new CartService(settings);
+
+                    // Production constructor: showReceiptDialogs = true
+                    using (var form = new Form1(repo, cart, settings))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        WinFormsTestHelper.FindByName<RadioButton>(form, "rbSizeSmall").Checked   = true;
+                        WinFormsTestHelper.FindByName<RadioButton>(form, "rbCrustNormal").Checked = true;
+                        WinFormsTestHelper.FindByName<Button>(form, "btnConfirmOrder").PerformClick();
+                        WinFormsTestHelper.PumpEvents();
+
+                        WinFormsTestHelper.FindByName<Button>(form, "btnCheckOut").PerformClick();
+                        WinFormsTestHelper.PumpEvents();
+
+                        WinFormsTestHelper.FindByName<TextBox>(form, "txtFirstName").Text  = "Jo";
+                        WinFormsTestHelper.FindByName<TextBox>(form, "txtLastName").Text   = "Kim";
+                        WinFormsTestHelper.FindByName<TextBox>(form, "txtAddress").Text    = "1 Test Street";
+                        WinFormsTestHelper.FindByName<TextBox>(form, "txtCity").Text       = "Auckland";
+                        WinFormsTestHelper.FindByName<TextBox>(form, "txtPostalCode").Text = "1010";
+                        WinFormsTestHelper.FindByName<ComboBox>(form, "cboRegion").SelectedItem = "Auckland";
+                        WinFormsTestHelper.FindByName<ComboBox>(form, "cboPaymentMethod").SelectedItem = "Cash";
+                        WinFormsTestHelper.FindByName<TextBox>(form, "txtAmountPaid").Text = "50.00";
+
+                        WinFormsTestHelper.FindByName<Button>(form, "btnPay").PerformClick();
+                        WinFormsTestHelper.PumpEvents();
+
+                        Assert.IsTrue(WinFormsTestHelper.FindByName<Button>(form, "btnSubmitOrder").Enabled,
+                            "btnSubmitOrder must be enabled before clicking.");
+
+                        // Receipt options dialog title: "Order Confirmed — Receipt Options"
+                        // Dismisses via WM_CLOSE (Skip path).
+                        // Order Complete dialog title: "Order Complete"
+                        // Dismisses via IDYES (Order Again path) — resets form to Tab 1.
+                        using (new WinFormsTestHelper.DialogAutoCloser("Order Confirmed", "Order Complete"))
+                            WinFormsTestHelper.FindByName<Button>(form, "btnSubmitOrder").PerformClick();
+
+                        WinFormsTestHelper.PumpEvents();
+
+                        var tabControl = WinFormsTestHelper.FindByName<TabControl>(form, "tabControl1");
+                        Assert.AreEqual(0, tabControl.SelectedIndex,
+                            "Form should return to Tab 1 after Order Again in Order Complete dialog.");
+                    }
+
+                    var saved = repo.LoadAll();
+                    Assert.AreEqual(1, saved.Count, "Order should have been persisted.");
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        [TestMethod]
         public void Form1_ExitButton_Yes_ClosesForm()
         {
             WinFormsTestHelper.RunInSta(() =>
