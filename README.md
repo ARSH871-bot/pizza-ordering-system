@@ -1,9 +1,9 @@
 # Pizza Express - New Zealand
 
 [![Build and Test](https://github.com/ARSH871-bot/pizza-ordering-system/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/ARSH871-bot/pizza-ordering-system/actions/workflows/build-and-test.yml)
-![Version](https://img.shields.io/badge/version-2.27.0-brightgreen)
-![Tests](https://img.shields.io/badge/tests-282%20passing-success)
-![Coverage](https://img.shields.io/badge/coverage-80%25%20line%20(75%25%20gate)-brightgreen)
+![Version](https://img.shields.io/badge/version-2.28.0-brightgreen)
+![Tests](https://img.shields.io/badge/tests-307%20passing-success)
+![Coverage](https://img.shields.io/badge/coverage-81%25%20line%20(75%25%20gate)-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Platform](https://img.shields.io/badge/platform-Windows-lightgrey)
 ![Framework](https://img.shields.io/badge/.NET-4.8-purple)
@@ -202,6 +202,7 @@ scripts/
 
 | Version | Highlights |
 |---|---|
+| `v2.28.0` | 25 new tests for `OrderSubmissionService` (0% to 100%) and `PaymentReferenceHelper` (83% to 100%); coverage up to 81.2% |
 | `v2.27.0` | CI coverage gating: `dotnet-coverage` + `Check-Coverage.ps1` enforce 75% line-rate on `WindowsFormsApplication3`; `-CollectCoverage` flag on `Run-Tests.ps1` |
 | `v2.26.0` | Fix ProcessCmdKey/mnemonic conflicts: Check Out now Alt+K (`Chec&k Out`), Pay now Alt+Y (`Pa&y`); both wired into ProcessCmdKey tab-aware; keyboard help updated |
 | `v2.25.1` | Fix Check Out mnemonic conflict: `&Check Out` (Alt+C) corrected to `C&heck Out` (Alt+H); strengthen mnemonic test to assert exact text and uniqueness |

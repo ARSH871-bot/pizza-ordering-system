@@ -9,6 +9,35 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.28.0] — 2026-05-15
+
+### Added
+
+- `OrderSubmissionServiceTests.cs`: 10 new tests covering `OrderSubmissionService`
+  (was at 0% coverage).
+  - Constructor null-guard assertions for `repo` and `receiptWriter`.
+  - `Submit(null)` throws `ArgumentNullException`.
+  - `Submit` calls `IOrderRepository.Save` exactly once.
+  - `Submit` returns the receipt text from `IReceiptWriter.Build`.
+  - Record `Status` is `"Active"`.
+  - Customer fields (`CustomerName`, `Address`, `City`, `Region`, `PostalCode`) map correctly.
+  - Order lines map item name and quantity.
+  - Credit Card order preserves `PaymentReference` (regression guard for v2.23.0 fix).
+  - Cash order has `null` `PaymentReference`.
+  - `Record.Id` is exactly 8 uppercase hex characters.
+- `PaymentReferenceHelperTests.cs`: 15 new tests covering `PaymentReferenceHelper`
+  (was at 83% coverage).
+  - `RequiresReference`: Cash, Promo Card, empty, null all return `false`; Credit Card and
+    Debit Card return `true`.
+  - `NormalizeForStorage`: Cash returns `null`; null reference returns `null`;
+    whitespace-only returns `null`; 16-digit card number masks to `****1111`;
+    short alphanumeric reference returned as-is; multiple spaces collapsed to one;
+    reference longer than 30 characters truncated; Promo Card returns `null`.
+
+**Total tests: 307 passing.**
+
+---
+
 ## [2.27.0] — 2026-05-15
 
 ### Added
