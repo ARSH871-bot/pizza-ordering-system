@@ -9,6 +9,23 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.37.0] — 2026-05-18
+
+### Added
+
+- `SettingsFormSmokeTests.cs`: 3 new smoke tests for backup-related `SettingsForm` paths:
+  - Clicking "Backup DB" with `dataDirectory: null` shows the "Backup Unavailable"
+    guard dialog (`ShowNoDataDir`).
+  - Clicking "View Auto-Backups" with no backups in the Backups folder shows the
+    "No auto-backups found yet." dialog (zero-backup branch).
+  - Clicking "View Auto-Backups" with a fake auto-backup file present shows the
+    backup-list dialog (has-backups branch).
+
+**Total tests: 406 passing.**
+**`SettingsForm` coverage 74.3% to 80.9%; overall WindowsFormsApplication3 now 84.4%.**
+
+---
+
 ## [2.36.0] — 2026-05-18
 
 ### Added
