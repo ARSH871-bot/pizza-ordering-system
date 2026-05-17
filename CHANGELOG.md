@@ -9,6 +9,25 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.32.0] — 2026-05-18
+
+### Added
+
+- `FormSmokeTests.cs`: 2 new end-to-end smoke tests for `Form1`.
+  - `Form1_CreditCardCheckout_MasksReferenceAndPersistsOrder`: full checkout with
+    "Credit Card" payment method; verifies `txtCardOrPromo` is enabled, submits
+    order, and asserts persisted `PaymentReference` is masked (`"****1111"`).
+  - `Form1_ClearOrder_WhenItemsPresent_RemovesAllItemsOnConfirm`: builds a one-pizza
+    order, clicks `btnClearOrder`, auto-confirms the YesNo dialog, and asserts the
+    order list is empty.
+  - Together these cover `cboPaymentMethod_SelectedIndexChanged` for non-Cash paths
+    and the `btnClearOrder` confirmation flow — both previously uncovered.
+
+**Total tests: 375 passing.**
+**`Form1` coverage 63.0% → 64.8%; overall WindowsFormsApplication3 81.9%.**
+
+---
+
 ## [2.31.0] — 2026-05-18
 
 ### Added

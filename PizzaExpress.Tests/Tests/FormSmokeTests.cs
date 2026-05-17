@@ -270,6 +270,111 @@ namespace PizzaExpress.Tests.Tests
             });
         }
 
+        [TestMethod]
+        public void Form1_CreditCardCheckout_MasksReferenceAndPersistsOrder()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo     = new OrderRepository(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    var cart     = new CartService(settings);
+
+                    using (var form = new Form1(repo, cart, settings, showReceiptDialogs: false))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        WinFormsTestHelper.FindByName<RadioButton>(form, "rbSizeSmall").Checked  = true;
+                        WinFormsTestHelper.FindByName<RadioButton>(form, "rbCrustNormal").Checked = true;
+                        WinFormsTestHelper.FindByName<Button>(form, "btnConfirmOrder").PerformClick();
+                        WinFormsTestHelper.PumpEvents();
+
+                        WinFormsTestHelper.FindByName<Button>(form, "btnCheckOut").PerformClick();
+                        WinFormsTestHelper.PumpEvents();
+
+                        WinFormsTestHelper.FindByName<TextBox>(form, "txtFirstName").Text  = "Taylor";
+                        WinFormsTestHelper.FindByName<TextBox>(form, "txtLastName").Text   = "Smith";
+                        WinFormsTestHelper.FindByName<TextBox>(form, "txtAddress").Text    = "5 Lambton Quay";
+                        WinFormsTestHelper.FindByName<TextBox>(form, "txtCity").Text       = "Wellington";
+                        WinFormsTestHelper.FindByName<TextBox>(form, "txtPostalCode").Text = "6011";
+                        WinFormsTestHelper.FindByName<ComboBox>(form, "cboRegion").SelectedItem = "Wellington";
+
+                        // Select Credit Card: must enable the reference field
+                        WinFormsTestHelper.FindByName<ComboBox>(form, "cboPaymentMethod").SelectedItem = "Credit Card";
+                        WinFormsTestHelper.PumpEvents();
+                        Assert.IsTrue(WinFormsTestHelper.FindByName<TextBox>(form, "txtCardOrPromo").Enabled,
+                            "txtCardOrPromo should be enabled for Credit Card");
+
+                        WinFormsTestHelper.FindByName<TextBox>(form, "txtCardOrPromo").Text  = "4111111111111111";
+                        WinFormsTestHelper.FindByName<TextBox>(form, "txtAmountPaid").Text   = "20.00";
+
+                        WinFormsTestHelper.FindByName<Button>(form, "btnPay").PerformClick();
+                        WinFormsTestHelper.PumpEvents();
+
+                        Assert.IsTrue(WinFormsTestHelper.FindByName<Button>(form, "btnSubmitOrder").Enabled);
+
+                        WinFormsTestHelper.FindByName<Button>(form, "btnSubmitOrder").PerformClick();
+                        WinFormsTestHelper.PumpEvents();
+                    }
+
+                    var saved = repo.LoadAll();
+                    Assert.AreEqual(1, saved.Count);
+                    Assert.AreEqual("Credit Card", saved[0].PaymentMethod);
+                    Assert.AreEqual("****1111",    saved[0].PaymentReference, "Card number should be masked");
+                }
+                finally
+                {
+                    DeleteTempDataDirectory(tempDir);
+                }
+            });
+        }
+
+        [TestMethod]
+        public void Form1_ClearOrder_WhenItemsPresent_RemovesAllItemsOnConfirm()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo     = new OrderRepository(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    var cart     = new CartService(settings);
+
+                    using (var form = new Form1(repo, cart, settings, showReceiptDialogs: false))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        // Build an order first
+                        WinFormsTestHelper.FindByName<RadioButton>(form, "rbSizeSmall").Checked   = true;
+                        WinFormsTestHelper.FindByName<RadioButton>(form, "rbCrustNormal").Checked = true;
+                        WinFormsTestHelper.FindByName<Button>(form, "btnConfirmOrder").PerformClick();
+                        WinFormsTestHelper.PumpEvents();
+
+                        var lvOrder = WinFormsTestHelper.FindByName<ListView>(form, "lvOrder");
+                        Assert.IsTrue(lvOrder.Items.Count > 0, "Order should have items after Confirm");
+
+                        // Click Clear Order and confirm Yes (dialog title is "Clear Order")
+                        using (new WinFormsTestHelper.DialogAutoCloser("Clear Order"))
+                            WinFormsTestHelper.FindByName<Button>(form, "btnClearOrder").PerformClick();
+
+                        WinFormsTestHelper.PumpEvents();
+                        Assert.AreEqual(0, lvOrder.Items.Count, "Order should be empty after Clear + Yes");
+                    }
+                }
+                finally
+                {
+                    DeleteTempDataDirectory(tempDir);
+                }
+            });
+        }
+
         private static string CreateTempDataDirectory()
         {
             string dir = Path.Combine(Path.GetTempPath(), "PizzaExpressForms_" + Guid.NewGuid().ToString("N"));

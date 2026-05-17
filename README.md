@@ -1,9 +1,9 @@
 # Pizza Express - New Zealand
 
 [![Build and Test](https://github.com/ARSH871-bot/pizza-ordering-system/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/ARSH871-bot/pizza-ordering-system/actions/workflows/build-and-test.yml)
-![Version](https://img.shields.io/badge/version-2.31.0-brightgreen)
-![Tests](https://img.shields.io/badge/tests-373%20passing-success)
-![Coverage](https://img.shields.io/badge/coverage-81.6%25%20line%20(75%25%20gate)-brightgreen)
+![Version](https://img.shields.io/badge/version-2.32.0-brightgreen)
+![Tests](https://img.shields.io/badge/tests-375%20passing-success)
+![Coverage](https://img.shields.io/badge/coverage-81.9%25%20line%20(75%25%20gate)-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Platform](https://img.shields.io/badge/platform-Windows-lightgrey)
 ![Framework](https://img.shields.io/badge/.NET-4.8-purple)
@@ -202,6 +202,7 @@ scripts/
 
 | Version | Highlights |
 |---|---|
+| `v2.32.0` | 2 new smoke tests: credit card checkout (masks card ref, persists order) and Clear Order confirm flow; Form1 coverage 63%→65%, overall 81.9% |
 | `v2.31.0` | 24 new tests for `SettingsForm.FriendlyName` and `IsNumericKey`; methods promoted to `internal static`; 373 total, coverage 81.6% |
 | `v2.30.0` | 15 new tests for `CheckoutWorkflowService` (constructor guards, `BuildOrderRecord`, `GetDeliveryMinutes` with settings, `ParseCurrencyOrZero` edge cases); 349 total |
 | `v2.29.0` | 27 new tests for `PinSecurity` and `StaffAuthSession`; `StaffAuthSession` to 100%, `PinSecurity` to 97%; coverage up to 81.5% |
