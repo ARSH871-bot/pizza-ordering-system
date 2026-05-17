@@ -9,6 +9,31 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.33.0] — 2026-05-18
+
+### Added
+
+- `SettingsFormLogicTests.cs`: 11 new tests covering `SettingsForm.GetDisplayValue`
+  (null row, non-PIN key returns value as-is, PIN not configured returns empty,
+  PIN configured returns placeholder) and `SettingsForm.TrySaveStaffPin`
+  (empty/null clears PIN, placeholder with no configured PIN clears, placeholder with
+  plaintext PIN upgrades to PBKDF2, placeholder with already-protected PIN is no-op,
+  invalid PIN adds error and returns false, valid new PIN stores protected hash).
+
+### Changed
+
+- `SettingsForm.StaffPinConfiguredPlaceholder` promoted from `private const` to
+  `internal const` to allow test assertions against the exact placeholder string.
+- `SettingsForm.GetDisplayValue` promoted from `private` to `internal static`
+  (no functional change; instance state was not used).
+- `SettingsForm.TrySaveStaffPin` refactored to accept `ISettingsRepository` as first
+  parameter and promoted to `internal static`; the private overload delegates to it.
+
+**Total tests: 386 passing.**
+**`SettingsForm` coverage increases; overall WindowsFormsApplication3 now at 82.2%.**
+
+---
+
 ## [2.32.0] — 2026-05-18
 
 ### Added

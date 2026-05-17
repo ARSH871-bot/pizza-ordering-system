@@ -16,7 +16,7 @@ namespace WindowsFormsApplication3.Forms
     /// </summary>
     public class SettingsForm : Form
     {
-        private const string StaffPinConfiguredPlaceholder = "configured (enter a new PIN to change, clear to disable)";
+        internal const string StaffPinConfiguredPlaceholder = "configured (enter a new PIN to change, clear to disable)";
 
         private readonly ISettingsRepository _settings;
         private readonly string              _dataDirectory;
@@ -314,7 +314,7 @@ namespace WindowsFormsApplication3.Forms
             Close();
         }
 
-        private string GetDisplayValue(SettingRow row)
+        internal static string GetDisplayValue(SettingRow row)
         {
             if (row == null)
                 return string.Empty;
@@ -328,13 +328,16 @@ namespace WindowsFormsApplication3.Forms
         }
 
         private bool TrySaveStaffPin(string enteredValue, System.Text.StringBuilder errors)
+            => TrySaveStaffPin(_settings, enteredValue, errors);
+
+        internal static bool TrySaveStaffPin(ISettingsRepository settings, string enteredValue, System.Text.StringBuilder errors)
         {
-            string existingStoredPin = _settings.Get("StaffPin", string.Empty) ?? string.Empty;
+            string existingStoredPin = settings.Get("StaffPin", string.Empty) ?? string.Empty;
             string candidate = (enteredValue ?? string.Empty).Trim();
 
             if (string.IsNullOrWhiteSpace(candidate))
             {
-                _settings.Set("StaffPin", string.Empty);
+                settings.Set("StaffPin", string.Empty);
                 return true;
             }
 
@@ -342,12 +345,12 @@ namespace WindowsFormsApplication3.Forms
             {
                 if (!PinSecurity.IsConfigured(existingStoredPin))
                 {
-                    _settings.Set("StaffPin", string.Empty);
+                    settings.Set("StaffPin", string.Empty);
                     return true;
                 }
 
                 if (!PinSecurity.IsProtected(existingStoredPin))
-                    _settings.Set("StaffPin", PinSecurity.Protect(existingStoredPin));
+                    settings.Set("StaffPin", PinSecurity.Protect(existingStoredPin));
 
                 return true;
             }
@@ -359,7 +362,7 @@ namespace WindowsFormsApplication3.Forms
                 return false;
             }
 
-            _settings.Set("StaffPin", PinSecurity.Protect(candidate));
+            settings.Set("StaffPin", PinSecurity.Protect(candidate));
             return true;
         }
 
