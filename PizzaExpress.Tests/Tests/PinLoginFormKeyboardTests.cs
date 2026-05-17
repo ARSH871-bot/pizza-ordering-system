@@ -1,0 +1,306 @@
+using System;
+using System.IO;
+using System.Reflection;
+using System.Windows.Forms;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using WindowsFormsApplication3.Forms;
+using WindowsFormsApplication3.Infrastructure;
+using WindowsFormsApplication3.Services;
+
+namespace PizzaExpress.Tests.Tests
+{
+    [DoNotParallelize]
+    [TestClass]
+    public class PinLoginFormKeyboardTests
+    {
+        // ── Helpers ───────────────────────────────────────────────────────────
+
+        private static Label GetDotsLabel(PinLoginForm form)
+            => WinFormsTestHelper.GetPrivateField<Label>(form, "_lblDots");
+
+        private static string CreateTempDataDirectory()
+        {
+            string dir = Path.Combine(Path.GetTempPath(), "PizzaExpressKbd_" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(dir);
+            return dir;
+        }
+
+        private static void DeleteTempDataDirectory(string tempDir)
+        {
+            if (!string.IsNullOrWhiteSpace(tempDir) && Directory.Exists(tempDir))
+                Directory.Delete(tempDir, true);
+        }
+
+        private static void ResetStaffAuthSession()
+        {
+            FieldInfo field = typeof(StaffAuthSession).GetField(
+                "_lastAuthenticatedUtc",
+                BindingFlags.Static | BindingFlags.NonPublic);
+            Assert.IsNotNull(field);
+            field.SetValue(null, DateTime.MinValue);
+        }
+
+        // ── Digit and numpad keys ─────────────────────────────────────────────
+
+        [TestMethod]
+        public void OnKeyDown_DigitKey_AppendsOneDot()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    settings.Set("StaffPin", PinSecurity.Protect("1234"));
+
+                    using (var form = new PinLoginForm(settings))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        var e = new KeyEventArgs(Keys.D3);
+                        form.OnKeyDown(form, e);
+
+                        Assert.AreEqual("●", GetDotsLabel(form).Text,
+                            "One dot should appear after pressing a digit key.");
+                        Assert.IsTrue(e.Handled, "Key should be marked handled.");
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        [TestMethod]
+        public void OnKeyDown_NumPadKey_AppendsOneDot()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    settings.Set("StaffPin", PinSecurity.Protect("5678"));
+
+                    using (var form = new PinLoginForm(settings))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        var e = new KeyEventArgs(Keys.NumPad5);
+                        form.OnKeyDown(form, e);
+
+                        Assert.AreEqual("●", GetDotsLabel(form).Text,
+                            "One dot should appear after pressing a numpad key.");
+                        Assert.IsTrue(e.Handled);
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        // ── Backspace and Delete ──────────────────────────────────────────────
+
+        [TestMethod]
+        public void OnKeyDown_Backspace_RemovesLastDigit()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    settings.Set("StaffPin", PinSecurity.Protect("1234"));
+
+                    using (var form = new PinLoginForm(settings))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        form.OnKeyDown(form, new KeyEventArgs(Keys.D1));
+                        form.OnKeyDown(form, new KeyEventArgs(Keys.D2));
+                        Assert.AreEqual("●●", GetDotsLabel(form).Text);
+
+                        var backE = new KeyEventArgs(Keys.Back);
+                        form.OnKeyDown(form, backE);
+
+                        Assert.AreEqual("●", GetDotsLabel(form).Text,
+                            "Backspace should remove the last digit.");
+                        Assert.IsTrue(backE.Handled);
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        [TestMethod]
+        public void OnKeyDown_Delete_ClearsAllDigits()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    settings.Set("StaffPin", PinSecurity.Protect("1234"));
+
+                    using (var form = new PinLoginForm(settings))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        form.OnKeyDown(form, new KeyEventArgs(Keys.D1));
+                        form.OnKeyDown(form, new KeyEventArgs(Keys.D2));
+                        form.OnKeyDown(form, new KeyEventArgs(Keys.D3));
+                        Assert.AreEqual(3, GetDotsLabel(form).Text.Length);
+
+                        var delE = new KeyEventArgs(Keys.Delete);
+                        form.OnKeyDown(form, delE);
+
+                        Assert.AreEqual(string.Empty, GetDotsLabel(form).Text,
+                            "Delete key should clear all entered digits.");
+                        Assert.IsTrue(delE.Handled);
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        // ── Enter and Escape ──────────────────────────────────────────────────
+
+        [TestMethod]
+        public void OnKeyDown_Enter_WithCorrectPin_ClosesWithOk()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    ResetStaffAuthSession();
+                    DatabaseMigrator.Run(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    settings.Set("StaffPin", PinSecurity.Protect("1234"));
+
+                    using (var form = new PinLoginForm(settings))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        foreach (char c in "1234")
+                            form.OnKeyDown(form, new KeyEventArgs(Keys.D0 + (c - '0')));
+
+                        var enterE = new KeyEventArgs(Keys.Enter);
+                        form.OnKeyDown(form, enterE);
+                        WinFormsTestHelper.PumpEvents();
+
+                        Assert.AreEqual(DialogResult.OK, form.DialogResult,
+                            "Enter with correct PIN should close with OK.");
+                        Assert.IsTrue(enterE.Handled);
+                    }
+                }
+                finally
+                {
+                    ResetStaffAuthSession();
+                    DeleteTempDataDirectory(tempDir);
+                }
+            });
+        }
+
+        [TestMethod]
+        public void OnKeyDown_Escape_ClosesWithCancel()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    settings.Set("StaffPin", PinSecurity.Protect("1234"));
+
+                    using (var form = new PinLoginForm(settings))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        var escE = new KeyEventArgs(Keys.Escape);
+                        form.OnKeyDown(form, escE);
+                        WinFormsTestHelper.PumpEvents();
+
+                        Assert.AreEqual(DialogResult.Cancel, form.DialogResult,
+                            "Escape should close the form with Cancel result.");
+                        Assert.IsTrue(escE.Handled);
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        [TestMethod]
+        public void OnKeyDown_UnhandledKey_LeavesHandledFalse()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    settings.Set("StaffPin", PinSecurity.Protect("1234"));
+
+                    using (var form = new PinLoginForm(settings))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        var e = new KeyEventArgs(Keys.F5);
+                        form.OnKeyDown(form, e);
+
+                        Assert.IsFalse(e.Handled, "Non-handled key should leave Handled as false.");
+                        Assert.AreEqual(string.Empty, GetDotsLabel(form).Text);
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        // ── Max-length guard ──────────────────────────────────────────────────
+
+        [TestMethod]
+        public void AppendDigit_AtMaxLength_DoesNotAddMore()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    settings.Set("StaffPin", PinSecurity.Protect("1234"));
+
+                    using (var form = new PinLoginForm(settings))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        // Fill to 12-digit limit
+                        for (int i = 0; i < 12; i++)
+                            form.OnKeyDown(form, new KeyEventArgs(Keys.D1));
+
+                        Assert.AreEqual(12, GetDotsLabel(form).Text.Length);
+
+                        // 13th digit should be ignored
+                        form.OnKeyDown(form, new KeyEventArgs(Keys.D2));
+
+                        Assert.AreEqual(12, GetDotsLabel(form).Text.Length,
+                            "PIN entry should stop at 12 digits.");
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+    }
+}

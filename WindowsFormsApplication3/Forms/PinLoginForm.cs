@@ -264,7 +264,7 @@ namespace WindowsFormsApplication3.Forms
             ShakeForm();
         }
 
-        private void OnKeyDown(object sender, KeyEventArgs e)
+        internal void OnKeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode >= Keys.D0 && e.KeyCode <= Keys.D9)
             {

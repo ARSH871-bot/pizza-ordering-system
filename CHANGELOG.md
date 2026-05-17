@@ -9,6 +9,30 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.35.0] — 2026-05-18
+
+### Added
+
+- `PinLoginFormKeyboardTests.cs`: 8 new tests exercising `PinLoginForm.OnKeyDown`:
+  - Digit key (D3) appends one dot to the PIN display.
+  - NumPad key (NumPad5) appends one dot.
+  - Backspace removes the last entered digit.
+  - Delete clears all entered digits.
+  - Enter key with the correct PIN closes the form with `DialogResult.OK`.
+  - Escape closes the form with `DialogResult.Cancel`.
+  - Unhandled key (F5) leaves `e.Handled` false and dots unchanged.
+  - 12-digit entry ignores a 13th digit (max-length guard).
+
+### Changed
+
+- `PinLoginForm.OnKeyDown` promoted from `private` to `internal` to allow
+  direct testing without WinForms event dispatch.
+
+**Total tests: 399 passing.**
+**`PinLoginForm` coverage 73.6% to 85.5%; overall WindowsFormsApplication3 now 83.2%.**
+
+---
+
 ## [2.34.0] — 2026-05-18
 
 ### Added
