@@ -9,6 +9,23 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.36.0] — 2026-05-18
+
+### Added
+
+- `OrderHistoryFormTests.cs`: 4 new smoke tests for `OrderHistoryForm`:
+  - Search filter shows only matching orders (name search → 1 result from 3).
+  - No-match search displays the "No matching orders found." placeholder row.
+  - "View Details" button with a selected order shows and dismisses the detail
+    `MessageBox` (title "Order Details").
+  - Date filter checkbox toggle calls `ApplyFilter` without error; today's order
+    remains visible in the default date window.
+
+**Total tests: 403 passing.**
+**`OrderHistoryForm` coverage 79.3% to 87.9%; overall WindowsFormsApplication3 now 83.9%.**
+
+---
+
 ## [2.35.0] — 2026-05-18
 
 ### Added
