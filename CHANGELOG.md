@@ -9,6 +9,27 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.30.0] — 2026-05-18
+
+### Added
+
+- `CheckoutWorkflowServiceTests.cs`: 15 new tests filling remaining coverage gaps.
+  - Constructor null guards: `null` `IPromoEngine` and `null` `IOrderValidator` each throw `ArgumentNullException`.
+  - `BuildOrderRecord` directly tested: status is "Active"; ID is 8 uppercase hex chars;
+    all scalar fields (customer name, address, city, region, postal code, payment method) are mapped;
+    order lines are mapped in order; discount description and amount set when promo applied.
+  - `GetDeliveryMinutes` with real settings: configured value (45 min) returned; zero value
+    and invalid string both fall back to `AppConfig.DeliveryMinutes`.
+  - `ParseCurrencyOrZero` edge cases: null returns zero; plain decimal string "12.50" parses
+    via invariant-culture path; unparsable string returns zero.
+  - `ApplyPromo` with `PIZZA20` code: 20% discount applied, total correct.
+  - `AssembleOrder` with empty promo-code string: `DiscountDescription` is null.
+
+**Total tests: 349 passing.**
+**`CheckoutWorkflowService` coverage increases to near 100%.**
+
+---
+
 ## [2.29.0] — 2026-05-15
 
 ### Added

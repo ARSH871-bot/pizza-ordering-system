@@ -1,8 +1,8 @@
 # Pizza Express - New Zealand
 
 [![Build and Test](https://github.com/ARSH871-bot/pizza-ordering-system/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/ARSH871-bot/pizza-ordering-system/actions/workflows/build-and-test.yml)
-![Version](https://img.shields.io/badge/version-2.29.0-brightgreen)
-![Tests](https://img.shields.io/badge/tests-334%20passing-success)
+![Version](https://img.shields.io/badge/version-2.30.0-brightgreen)
+![Tests](https://img.shields.io/badge/tests-349%20passing-success)
 ![Coverage](https://img.shields.io/badge/coverage-81.5%25%20line%20(75%25%20gate)-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Platform](https://img.shields.io/badge/platform-Windows-lightgrey)
@@ -202,6 +202,7 @@ scripts/
 
 | Version | Highlights |
 |---|---|
+| `v2.30.0` | 15 new tests for `CheckoutWorkflowService` (constructor guards, `BuildOrderRecord`, `GetDeliveryMinutes` with settings, `ParseCurrencyOrZero` edge cases); 349 total |
 | `v2.29.0` | 27 new tests for `PinSecurity` and `StaffAuthSession`; `StaffAuthSession` to 100%, `PinSecurity` to 97%; coverage up to 81.5% |
 | `v2.28.0` | 25 new tests for `OrderSubmissionService` (0% to 100%) and `PaymentReferenceHelper` (83% to 100%); coverage up to 81.2% |
 | `v2.27.0` | CI coverage gating: `dotnet-coverage` + `Check-Coverage.ps1` enforce 75% line-rate on `WindowsFormsApplication3`; `-CollectCoverage` flag on `Run-Tests.ps1` |
