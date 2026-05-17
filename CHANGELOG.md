@@ -9,6 +9,29 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.29.0] — 2026-05-15
+
+### Added
+
+- `SecurityServiceTests.cs`: 27 new tests for `PinSecurity` and `StaffAuthSession`.
+  - `PinSecurity.IsConfigured`: null, empty, whitespace return false; non-empty returns true.
+  - `PinSecurity.IsProtected`: null and plaintext return false; protected hash returns true.
+  - `PinSecurity.ValidateNewPin`: blank/null valid; 4-digit and 12-digit valid;
+    3-digit (too short), 13-digit (too long), and non-digit input invalid.
+  - `PinSecurity.Verify`: correct pin verifies; wrong pin rejected; empty/null stored
+    rejects; legacy plaintext exact match and mismatch; malformed hash (too few parts,
+    bad base64, non-integer iterations) all return false; PIN with surrounding spaces
+    is trimmed and verifies correctly.
+  - `StaffAuthSession.HasRecentAuthorization`: never-authenticated returns false;
+    just-authenticated returns true; expired session (age > maxAge) returns false.
+  - `[TestInitialize]` resets static `_lastAuthenticatedUtc` via reflection before each test.
+
+**Total tests: 334 passing.**
+**`StaffAuthSession`: 100% line coverage.**
+**`PinSecurity`: 97% line coverage (remaining 3%: defensive null/length guard in private `ConstantTimeEquals` unreachable through public API).**
+
+---
+
 ## [2.28.0] — 2026-05-15
 
 ### Added
