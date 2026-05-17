@@ -365,7 +365,7 @@ namespace WindowsFormsApplication3.Forms
 
         // ── Helpers ───────────────────────────────────────────────────────────
 
-        private static string FriendlyName(string key)
+        internal static string FriendlyName(string key)
         {
             switch (key)
             {
@@ -383,7 +383,7 @@ namespace WindowsFormsApplication3.Forms
             }
         }
 
-        private static bool IsNumericKey(string key)
+        internal static bool IsNumericKey(string key)
         {
             return key == "PizzaPrice.Small"      || key == "PizzaPrice.Medium"  ||
                    key == "PizzaPrice.Large"       || key == "PizzaPrice.ExtraLarge" ||

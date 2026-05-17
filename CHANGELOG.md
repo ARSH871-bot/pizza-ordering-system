@@ -9,6 +9,26 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.31.0] — 2026-05-18
+
+### Added
+
+- `SettingsFormHelpersTests.cs`: 24 new tests covering `SettingsForm.FriendlyName`
+  (all 10 known keys + unknown key fallback + bulk non-empty assertion) and
+  `SettingsForm.IsNumericKey` (all 9 numeric keys return true; StaffPin, unknown,
+  and empty string return false).
+
+### Changed
+
+- `SettingsForm.FriendlyName` and `SettingsForm.IsNumericKey` promoted from
+  `private static` to `internal static` to enable direct unit testing via
+  `InternalsVisibleTo`.
+
+**Total tests: 373 passing.**
+**`SettingsForm` coverage increases; overall WindowsFormsApplication3 now at 81.6%.**
+
+---
+
 ## [2.30.0] — 2026-05-18
 
 ### Added
