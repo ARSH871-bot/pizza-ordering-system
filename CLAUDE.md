@@ -52,7 +52,7 @@ dotnet build WindowsFormsApplication3.sln --configuration Debug
 .\scripts\Run-Tests.ps1 -Configuration Debug
 ```
 
-Expected: 282 tests passing.
+Expected: 282 tests passing. Coverage gate: 75% line-rate on WindowsFormsApplication3 (currently 80.2%).
 
 Release validation:
 
@@ -65,11 +65,10 @@ dotnet build WindowsFormsApplication3.sln --configuration Release --no-restore -
 
 ## Next Best Improvements
 
-All planned improvements have been implemented. Meaningful next areas:
+All originally planned improvements have been implemented. Meaningful next areas:
 
 - Shrink remaining workflow logic from `Form1.cs` into services.
 - Improve install experience beyond the portable ZIP.
-- Gate coverage in CI (add a minimum threshold).
 
 ## Guardrails For Future Claude Sessions
 

@@ -4,7 +4,9 @@ param(
     [string]$Configuration = 'Debug',
     [string]$ResultsDirectory = '',
     [string]$LogFileName = 'results.trx',
-    [string]$TestCaseFilter = ''
+    [string]$TestCaseFilter = '',
+    [switch]$CollectCoverage,
+    [string]$CoverageOutput = ''
 )
 
 $ErrorActionPreference = 'Stop'
@@ -60,9 +62,24 @@ if (-not [string]::IsNullOrWhiteSpace($TestCaseFilter)) {
 
 Push-Location $RepoRoot
 try {
-    & $vstest @arguments
-    if ($LASTEXITCODE -ne 0) {
-        throw "vstest.console.exe exited with code $LASTEXITCODE."
+    if ($CollectCoverage) {
+        $dotnetCoverage = (Get-Command 'dotnet-coverage' -ErrorAction SilentlyContinue)
+        if (-not $dotnetCoverage) {
+            throw 'dotnet-coverage not found. Install with: dotnet tool install --global dotnet-coverage'
+        }
+        if ([string]::IsNullOrWhiteSpace($CoverageOutput)) {
+            $CoverageOutput = Join-Path $ResultsDirectory 'coverage.xml'
+        }
+        & dotnet-coverage collect --output $CoverageOutput --output-format cobertura -- $vstest @arguments
+        if ($LASTEXITCODE -ne 0) {
+            throw "Test run with coverage collection exited with code $LASTEXITCODE."
+        }
+        Write-Host "Coverage report: $CoverageOutput"
+    } else {
+        & $vstest @arguments
+        if ($LASTEXITCODE -ne 0) {
+            throw "vstest.console.exe exited with code $LASTEXITCODE."
+        }
     }
 }
 finally {

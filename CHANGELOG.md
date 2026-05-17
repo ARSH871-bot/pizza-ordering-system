@@ -9,6 +9,29 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.27.0] — 2026-05-15
+
+### Added
+
+- CI coverage gating for the `WindowsFormsApplication3` assembly.
+  - `scripts/Check-Coverage.ps1`: parses a Cobertura XML file, filters to a named
+    package, and exits non-zero if line-rate is below a configurable threshold
+    (default 75%).
+  - `scripts/Run-Tests.ps1`: new `-CollectCoverage` switch and `-CoverageOutput` path
+    parameter. When set, wraps `vstest.console.exe` with `dotnet-coverage collect`
+    to produce a Cobertura XML alongside the `.trx` file.
+  - `build-and-test.yml`: three new steps:
+    1. Install `dotnet-coverage` global tool.
+    2. Run tests with `-CollectCoverage` to collect `coverage.xml`.
+    3. Call `Check-Coverage.ps1` to enforce the 75% line-rate gate; fails the build
+       if coverage drops below threshold.
+    4. Upload `coverage.xml` as an artifact.
+  - Current measured line rate: 80.2% (5.2 pp above the gate).
+
+**Total tests: 282 passing.**
+
+---
+
 ## [2.26.0] — 2026-05-15
 
 ### Fixed

@@ -32,14 +32,34 @@ jobs:
             --nologo `
             -warnaserror
 
-      - name: Run tests
+      - name: Install dotnet-coverage
+        run: dotnet tool install --global dotnet-coverage
+
+      - name: Run tests with coverage
         shell: pwsh
         run: |
           .\scripts\Run-Tests.ps1 `
             -RepoRoot "$PWD" `
             -Configuration Debug `
             -ResultsDirectory "$PWD\TestResults" `
-            -LogFileName "results.trx"
+            -LogFileName "results.trx" `
+            -CollectCoverage `
+            -CoverageOutput "$PWD\TestResults\coverage.xml"
+
+      - name: Check coverage threshold
+        shell: pwsh
+        run: |
+          .\scripts\Check-Coverage.ps1 `
+            -CoverageXml "$PWD\TestResults\coverage.xml" `
+            -PackageFilter "WindowsFormsApplication3" `
+            -MinLineRate 0.75
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-report
+          path: "TestResults/coverage.xml"
 
       - name: Upload test results
         if: always()
