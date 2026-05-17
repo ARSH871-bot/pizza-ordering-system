@@ -9,6 +9,25 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.38.0] — 2026-05-18
+
+### Added
+
+- `EndOfDayFormTests.cs`: 2 new tests for `EndOfDayForm`:
+  - `EndOfDayForm_WithOrders_PopulatesKpisAndPaymentList` — opens the form with two
+    real orders (Cash + Credit Card) for today; asserts KPI labels show "2", the
+    payment breakdown list has 2 rows, and the top items list is non-empty.
+    Covers the `_payments.Count > 0` and `_topItems.Count > 0` branches in `LoadData`.
+  - `EndOfDayForm_PrintReport_OpensPreviewAndCanBeClosed` — clicks "Print Report"
+    with a `DialogAutoCloser("Print Preview")` to dismiss the `PrintPreviewDialog`
+    via `WM_CLOSE`; verifies the main form remains visible.
+    Covers `PrintReport`, `PrintPage`, and `BuildReportText` paths.
+
+**Total tests: 408 passing.**
+**`EndOfDayForm` coverage 80% to 95.6%; overall WindowsFormsApplication3 now 85.5%.**
+
+---
+
 ## [2.37.0] — 2026-05-18
 
 ### Added

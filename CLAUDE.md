@@ -52,7 +52,7 @@ dotnet build WindowsFormsApplication3.sln --configuration Debug
 .\scripts\Run-Tests.ps1 -Configuration Debug
 ```
 
-Expected: 406 tests passing. Coverage gate: 75% line-rate on WindowsFormsApplication3 (currently 84.4%).
+Expected: 408 tests passing. Coverage gate: 75% line-rate on WindowsFormsApplication3 (currently 85.5%).
 
 Release validation:
 
