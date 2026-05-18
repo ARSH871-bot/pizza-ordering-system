@@ -9,6 +9,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.61.0] — 2026-05-19
+
+### Added
+
+- `Form1_DefaultConstructor_DoesNotThrow`: invokes the parameterless `Form1()` constructor in
+  an STA context; covers lines 33–36 of Form1.cs (the designer constructor that wires up
+  `OrderRepository` from the default AppData path).
+- `OnUnhandledUiException_ShowsErrorMessageBoxAndLogsFile`: invokes the private static
+  `OnUnhandledUiException` via reflection with a synthetic `ThreadExceptionEventArgs`; uses a
+  `DialogAutoCloser("Unexpected Error")` to dismiss the message box; covers lines 59–69 of
+  Program.cs (the UI-thread crash handler that writes a log file and shows an error dialog).
+
+---
+
 ## [2.60.0] — 2026-05-19
 
 ### Added

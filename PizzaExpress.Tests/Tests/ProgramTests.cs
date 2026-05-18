@@ -1,11 +1,13 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using WindowsFormsApplication3;
 
 namespace PizzaExpress.Tests.Tests
 {
+    [DoNotParallelize]
     [TestClass]
     public class ProgramTests
     {
@@ -70,6 +72,23 @@ namespace PizzaExpress.Tests.Tests
 
             var args = new UnhandledExceptionEventArgs("not an exception object", false);
             mi.Invoke(null, new object[] { null, args });
+        }
+
+        // ── OnUnhandledUiException ────────────────────────────────────────────
+
+        [TestMethod]
+        public void OnUnhandledUiException_ShowsErrorMessageBoxAndLogsFile()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                var mi = typeof(Program).GetMethod("OnUnhandledUiException",
+                    BindingFlags.NonPublic | BindingFlags.Static);
+                Assert.IsNotNull(mi, "OnUnhandledUiException not found via reflection.");
+
+                var args = new ThreadExceptionEventArgs(new Exception("test ui exception"));
+                using (new WinFormsTestHelper.DialogAutoCloser("Unexpected Error"))
+                    mi.Invoke(null, new object[] { null, args });
+            });
         }
     }
 }

@@ -2098,6 +2098,20 @@ namespace PizzaExpress.Tests.Tests
             });
         }
 
+        // ── Default constructor ───────────────────────────────────────────────
+
+        [TestMethod]
+        public void Form1_DefaultConstructor_DoesNotThrow()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                using (var form = new Form1())
+                {
+                    Assert.IsNotNull(form);
+                }
+            });
+        }
+
         // ── ShowAboutDialog ───────────────────────────────────────────────────
 
         [TestMethod]
