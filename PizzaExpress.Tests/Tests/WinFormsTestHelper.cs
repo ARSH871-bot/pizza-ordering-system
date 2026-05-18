@@ -137,12 +137,24 @@ namespace PizzaExpress.Tests.Tests
         internal sealed class DialogAutoCloser : IDisposable
         {
             private readonly string[] _titleFragments;
+            private readonly bool     _respondNo;
             private readonly Thread _thread;
             private volatile bool _disposed;
 
             public DialogAutoCloser(params string[] titleFragments)
             {
                 _titleFragments = titleFragments ?? Array.Empty<string>();
+                _respondNo = false;
+                _thread = new Thread(WatchLoop) { IsBackground = true };
+                _thread.Start();
+            }
+
+            // Use when you need the dialog dismissed with "No" / IDNO (e.g. a YesNo confirmation
+            // where the test exercises the No / cancel code path).
+            public DialogAutoCloser(string titleFragment, bool respondNo)
+            {
+                _titleFragments = new[] { titleFragment };
+                _respondNo = respondNo;
                 _thread = new Thread(WatchLoop) { IsBackground = true };
                 _thread.Start();
             }
@@ -168,15 +180,19 @@ namespace PizzaExpress.Tests.Tests
                             if (!string.IsNullOrWhiteSpace(fragment) &&
                                 title.IndexOf(fragment, StringComparison.OrdinalIgnoreCase) >= 0)
                             {
-                                // IDOK (1)  = OK button in OK-only dialogs.
-                                // IDYES (6) = Yes button in YesNo dialogs.
-                                // Sending both is safe: each MessageBox only responds
-                                // to the IDs that match its actual buttons.
-                                SendMessage(hWnd, WM_COMMAND, new IntPtr(IDOK),  IntPtr.Zero);
-                                PostMessage(hWnd, WM_COMMAND, new IntPtr(IDOK),  IntPtr.Zero);
-                                PostMessage(hWnd, WM_COMMAND, new IntPtr(IDYES), IntPtr.Zero);
-                                // WM_CLOSE as fallback for custom Forms that respond to it.
-                                PostMessage(hWnd, WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
+                                if (_respondNo)
+                                {
+                                    PostMessage(hWnd, WM_COMMAND, new IntPtr(IDNO), IntPtr.Zero);
+                                }
+                                else
+                                {
+                                    // IDOK (1)  = OK button in OK-only dialogs.
+                                    // IDYES (6) = Yes button in YesNo dialogs.
+                                    SendMessage(hWnd, WM_COMMAND, new IntPtr(IDOK),  IntPtr.Zero);
+                                    PostMessage(hWnd, WM_COMMAND, new IntPtr(IDOK),  IntPtr.Zero);
+                                    PostMessage(hWnd, WM_COMMAND, new IntPtr(IDYES), IntPtr.Zero);
+                                    PostMessage(hWnd, WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
+                                }
                                 break;
                             }
                         }
@@ -202,6 +218,7 @@ namespace PizzaExpress.Tests.Tests
             private const uint WM_CLOSE   = 0x0010;
             private const uint WM_COMMAND = 0x0111;
             private const int  IDOK       = 1;
+            private const int  IDNO       = 7;
             private const int  IDYES      = 6;
 
             private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);

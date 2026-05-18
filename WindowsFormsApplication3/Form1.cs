@@ -685,7 +685,7 @@ namespace WindowsFormsApplication3
             if (!orderResult.IsValid)
             {
                 lvOrder.Items.Clear();
-                MessageBox.Show(orderResult.ErrorMessage);
+                MessageBox.Show(orderResult.ErrorMessage, "Order Error");
                 return;
             }
 
@@ -716,7 +716,7 @@ namespace WindowsFormsApplication3
             var pizzaItems = BuildCurrentPizzaItems();
             if (pizzaItems.Count == 0)
             {
-                MessageBox.Show("Please select a pizza size and crust before adding to cart.");
+                MessageBox.Show("Please select a pizza size and crust before adding to cart.", "Add to Cart");
                 return;
             }
             _stagedPizzas.AddRange(pizzaItems);
@@ -1178,7 +1178,7 @@ namespace WindowsFormsApplication3
                 int qty;
                 if (cb.Checked && (!int.TryParse(tb.Text, out qty) || qty <= 0))
                 {
-                    MessageBox.Show($"Please enter a valid quantity (greater than 0) for {name}.");
+                    MessageBox.Show($"Please enter a valid quantity (greater than 0) for {name}.", "Invalid Quantity");
                     return false;
                 }
             }

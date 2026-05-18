@@ -1172,6 +1172,418 @@ namespace PizzaExpress.Tests.Tests
             });
         }
 
+        // ── btnAddPizzaToCart — no pizza selected ────────────────────────────
+
+        [TestMethod]
+        public void Form1_BtnAddPizzaToCart_NoPizzaSelected_ShowsAddToCartError()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo     = new OrderRepository(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    var cart     = new CartService(settings);
+
+                    using (var form = new Form1(repo, cart, settings, showReceiptDialogs: false))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        // Form1 constructor sets rbSizeSmall + rbCrustNormal checked; uncheck them so
+                        // BuildCurrentPizzaItems() returns empty and the "Add to Cart" error is shown.
+                        WinFormsTestHelper.FindByName<RadioButton>(form, "rbSizeSmall").Checked   = false;
+                        WinFormsTestHelper.FindByName<RadioButton>(form, "rbCrustNormal").Checked = false;
+                        WinFormsTestHelper.PumpEvents();
+
+                        using (new WinFormsTestHelper.DialogAutoCloser("Add to Cart"))
+                            WinFormsTestHelper.FindByName<Button>(form, "btnAddPizzaToCart").PerformClick();
+
+                        WinFormsTestHelper.PumpEvents();
+                        Assert.IsTrue(form.Visible, "Form should remain visible after dialog.");
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        // ── btnClearOrder — No response ───────────────────────────────────────
+
+        [TestMethod]
+        public void Form1_BtnClearOrder_No_DoesNotClearList()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo     = new OrderRepository(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    var cart     = new CartService(settings);
+
+                    using (var form = new Form1(repo, cart, settings, showReceiptDialogs: false))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        // Navigate to Tab 2 to have items in lvOrder
+                        WinFormsTestHelper.FindByName<RadioButton>(form, "rbSizeSmall").Checked   = true;
+                        WinFormsTestHelper.FindByName<RadioButton>(form, "rbCrustNormal").Checked = true;
+                        WinFormsTestHelper.FindByName<Button>(form, "btnConfirmOrder").PerformClick();
+                        WinFormsTestHelper.PumpEvents();
+
+                        var lvOrder = WinFormsTestHelper.FindByName<ListView>(form, "lvOrder");
+                        int countBefore = lvOrder.Items.Count;
+                        Assert.IsTrue(countBefore > 0, "lvOrder should have items after Confirm Order.");
+
+                        using (new WinFormsTestHelper.DialogAutoCloser("Clear Order", respondNo: true))
+                            WinFormsTestHelper.FindByName<Button>(form, "btnClearOrder").PerformClick();
+
+                        WinFormsTestHelper.PumpEvents();
+                        Assert.AreEqual(countBefore, lvOrder.Items.Count,
+                            "Items should not be removed when Clear Order is cancelled with No.");
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        // ── btnPay_Click — validation branches ───────────────────────────────
+
+        [TestMethod]
+        public void Form1_BtnPay_PromoCodeInvalid_ShowsPromoError()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo     = new OrderRepository(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    var cart     = new CartService(settings);
+
+                    using (var form = new Form1(repo, cart, settings, showReceiptDialogs: false))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        WinFormsTestHelper.FindByName<RadioButton>(form, "rbSizeSmall").Checked   = true;
+                        WinFormsTestHelper.FindByName<RadioButton>(form, "rbCrustNormal").Checked = true;
+                        WinFormsTestHelper.FindByName<Button>(form, "btnConfirmOrder").PerformClick();
+                        WinFormsTestHelper.PumpEvents();
+                        WinFormsTestHelper.FindByName<Button>(form, "btnCheckOut").PerformClick();
+                        WinFormsTestHelper.PumpEvents();
+
+                        WinFormsTestHelper.FindByName<ComboBox>(form, "cboPaymentMethod").SelectedItem = "Promo Card";
+                        WinFormsTestHelper.FindByName<TextBox>(form, "txtCardOrPromo").Text = "BADCODE";
+
+                        using (new WinFormsTestHelper.DialogAutoCloser("Promo Error"))
+                            WinFormsTestHelper.FindByName<Button>(form, "btnPay").PerformClick();
+
+                        WinFormsTestHelper.PumpEvents();
+                        Assert.IsFalse(
+                            WinFormsTestHelper.FindByName<Button>(form, "btnSubmitOrder").Enabled,
+                            "btnSubmitOrder should remain disabled after promo error.");
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        [TestMethod]
+        public void Form1_BtnPay_MissingPaymentFields_ShowsValidationError()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo     = new OrderRepository(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    var cart     = new CartService(settings);
+
+                    using (var form = new Form1(repo, cart, settings, showReceiptDialogs: false))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        WinFormsTestHelper.FindByName<RadioButton>(form, "rbSizeSmall").Checked   = true;
+                        WinFormsTestHelper.FindByName<RadioButton>(form, "rbCrustNormal").Checked = true;
+                        WinFormsTestHelper.FindByName<Button>(form, "btnConfirmOrder").PerformClick();
+                        WinFormsTestHelper.PumpEvents();
+                        WinFormsTestHelper.FindByName<Button>(form, "btnCheckOut").PerformClick();
+                        WinFormsTestHelper.PumpEvents();
+
+                        // Leave payment method and amount blank — triggers missing-fields branch
+                        WinFormsTestHelper.FindByName<TextBox>(form, "txtFirstName").Text  = "Tom";
+                        WinFormsTestHelper.FindByName<TextBox>(form, "txtLastName").Text   = "Smith";
+                        WinFormsTestHelper.FindByName<TextBox>(form, "txtAddress").Text    = "1 Queen St";
+                        WinFormsTestHelper.FindByName<TextBox>(form, "txtCity").Text       = "Auckland";
+                        WinFormsTestHelper.FindByName<TextBox>(form, "txtPostalCode").Text = "1010";
+                        WinFormsTestHelper.FindByName<ComboBox>(form, "cboRegion").SelectedItem = "Auckland";
+
+                        using (new WinFormsTestHelper.DialogAutoCloser("Validation Error"))
+                            WinFormsTestHelper.FindByName<Button>(form, "btnPay").PerformClick();
+
+                        WinFormsTestHelper.PumpEvents();
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        [TestMethod]
+        public void Form1_BtnPay_InvalidAmountFormat_ShowsValidationError()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo     = new OrderRepository(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    var cart     = new CartService(settings);
+
+                    using (var form = new Form1(repo, cart, settings, showReceiptDialogs: false))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        WinFormsTestHelper.FindByName<RadioButton>(form, "rbSizeSmall").Checked   = true;
+                        WinFormsTestHelper.FindByName<RadioButton>(form, "rbCrustNormal").Checked = true;
+                        WinFormsTestHelper.FindByName<Button>(form, "btnConfirmOrder").PerformClick();
+                        WinFormsTestHelper.PumpEvents();
+                        WinFormsTestHelper.FindByName<Button>(form, "btnCheckOut").PerformClick();
+                        WinFormsTestHelper.PumpEvents();
+
+                        WinFormsTestHelper.FindByName<TextBox>(form, "txtFirstName").Text  = "Tom";
+                        WinFormsTestHelper.FindByName<TextBox>(form, "txtLastName").Text   = "Smith";
+                        WinFormsTestHelper.FindByName<TextBox>(form, "txtAddress").Text    = "1 Queen St";
+                        WinFormsTestHelper.FindByName<TextBox>(form, "txtCity").Text       = "Auckland";
+                        WinFormsTestHelper.FindByName<TextBox>(form, "txtPostalCode").Text = "1010";
+                        WinFormsTestHelper.FindByName<ComboBox>(form, "cboRegion").SelectedItem = "Auckland";
+                        WinFormsTestHelper.FindByName<ComboBox>(form, "cboPaymentMethod").SelectedItem = "Cash";
+                        WinFormsTestHelper.FindByName<TextBox>(form, "txtAmountPaid").Text = "notanumber";
+
+                        using (new WinFormsTestHelper.DialogAutoCloser("Validation Error"))
+                            WinFormsTestHelper.FindByName<Button>(form, "btnPay").PerformClick();
+
+                        WinFormsTestHelper.PumpEvents();
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        // ── Order Complete — No path (closes form) ────────────────────────────
+
+        [TestMethod]
+        public void Form1_OrderComplete_No_ClosesForm()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo     = new OrderRepository(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    var cart     = new CartService(settings);
+
+                    using (var form = new Form1(repo, cart, settings))  // showReceiptDialogs = true
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        WinFormsTestHelper.FindByName<RadioButton>(form, "rbSizeSmall").Checked   = true;
+                        WinFormsTestHelper.FindByName<RadioButton>(form, "rbCrustNormal").Checked = true;
+                        WinFormsTestHelper.FindByName<Button>(form, "btnConfirmOrder").PerformClick();
+                        WinFormsTestHelper.PumpEvents();
+                        WinFormsTestHelper.FindByName<Button>(form, "btnCheckOut").PerformClick();
+                        WinFormsTestHelper.PumpEvents();
+
+                        WinFormsTestHelper.FindByName<TextBox>(form, "txtFirstName").Text  = "Nina";
+                        WinFormsTestHelper.FindByName<TextBox>(form, "txtLastName").Text   = "Cole";
+                        WinFormsTestHelper.FindByName<TextBox>(form, "txtAddress").Text    = "5 Main Rd";
+                        WinFormsTestHelper.FindByName<TextBox>(form, "txtCity").Text       = "Wellington";
+                        WinFormsTestHelper.FindByName<TextBox>(form, "txtPostalCode").Text = "6011";
+                        WinFormsTestHelper.FindByName<ComboBox>(form, "cboRegion").SelectedItem = "Wellington";
+                        WinFormsTestHelper.FindByName<ComboBox>(form, "cboPaymentMethod").SelectedItem = "Cash";
+                        WinFormsTestHelper.FindByName<TextBox>(form, "txtAmountPaid").Text = "50.00";
+
+                        WinFormsTestHelper.FindByName<Button>(form, "btnPay").PerformClick();
+                        WinFormsTestHelper.PumpEvents();
+
+                        Assert.IsTrue(WinFormsTestHelper.FindByName<Button>(form, "btnSubmitOrder").Enabled);
+
+                        // Skip the receipt dialog, then click No on Order Complete to close the form
+                        using (new WinFormsTestHelper.DialogButtonClicker("Order Confirmed", "Skip"))
+                        using (new WinFormsTestHelper.DialogAutoCloser("Order Complete", respondNo: true))
+                            WinFormsTestHelper.FindByName<Button>(form, "btnSubmitOrder").PerformClick();
+
+                        WinFormsTestHelper.PumpEvents();
+                        Assert.IsFalse(form.Visible,
+                            "Form should close when user selects No on Order Complete.");
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        // ── KeyPress handlers + AllowDigitsOnly + TextChanged ────────────────
+
+        [TestMethod]
+        public void Form1_MinorHandlers_KeyPressAndTextChanged()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo     = new OrderRepository(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    var cart     = new CartService(settings);
+
+                    using (var form = new Form1(repo, cart, settings, showReceiptDialogs: false))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        // Invoke all qty KeyPress handlers via reflection (cover AllowDigitsOnly)
+                        var handlers = new[]
+                        {
+                            "txtQtyCoke_KeyPress", "txtQtyDietCoke_KeyPress", "txtQtyIcedTea_KeyPress",
+                            "txtQtyGingerAle_KeyPress", "txtQtySprite_KeyPress",
+                            "txtQtyRootBeer_KeyPress", "txtQtyWater_KeyPress",
+                        };
+                        foreach (var name in handlers)
+                        {
+                            var mi  = typeof(Form1).GetMethod(name, BindingFlags.NonPublic | BindingFlags.Instance);
+                            var kpe = new KeyPressEventArgs('a');
+                            mi.Invoke(form, new object[] { null, kpe });
+                            Assert.IsTrue(kpe.Handled, $"{name}: 'a' should be handled.");
+
+                            var kpeDigit = new KeyPressEventArgs('3');
+                            mi.Invoke(form, new object[] { null, kpeDigit });
+                            Assert.IsFalse(kpeDigit.Handled, $"{name}: '3' should not be handled.");
+                        }
+
+                        // txtAmountPaid_KeyPress — first dot allowed, second blocked
+                        var amtMi   = typeof(Form1).GetMethod("txtAmountPaid_KeyPress",
+                            BindingFlags.NonPublic | BindingFlags.Instance);
+                        var txtAmt  = WinFormsTestHelper.FindByName<TextBox>(form, "txtAmountPaid");
+                        txtAmt.Text = "";
+                        var dot1    = new KeyPressEventArgs('.');
+                        amtMi.Invoke(form, new object[] { txtAmt, dot1 });
+                        Assert.IsFalse(dot1.Handled, "First dot should be allowed.");
+
+                        txtAmt.Text = "10.";
+                        var dot2    = new KeyPressEventArgs('.');
+                        amtMi.Invoke(form, new object[] { txtAmt, dot2 });
+                        Assert.IsTrue(dot2.Handled, "Second dot should be blocked.");
+
+                        var letterX = new KeyPressEventArgs('x');
+                        amtMi.Invoke(form, new object[] { txtAmt, letterX });
+                        Assert.IsTrue(letterX.Handled, "'x' should be blocked in amount field.");
+
+                        // txtPostalCode TextChanged — truncates to 4 chars
+                        var txtPostal = WinFormsTestHelper.FindByName<TextBox>(form, "txtPostalCode");
+                        txtPostal.Text = "12345";
+                        WinFormsTestHelper.PumpEvents();
+                        Assert.AreEqual(4, txtPostal.Text.Length,
+                            "Postal code should be truncated to 4 characters.");
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        // ── ValidateDrinkQuantities failure ───────────────────────────────────
+
+        [TestMethod]
+        public void Form1_ValidateDrinkQuantities_ZeroQty_ShowsInvalidQuantityError()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo     = new OrderRepository(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    var cart     = new CartService(settings);
+
+                    using (var form = new Form1(repo, cart, settings, showReceiptDialogs: false))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        // Check Coke but set qty to 0 — triggers ValidateDrinkQuantities failure
+                        WinFormsTestHelper.FindByName<RadioButton>(form, "rbSizeSmall").Checked   = true;
+                        WinFormsTestHelper.FindByName<RadioButton>(form, "rbCrustNormal").Checked = true;
+                        WinFormsTestHelper.FindByName<CheckBox>(form, "cbCoke").Checked            = true;
+                        WinFormsTestHelper.FindByName<TextBox>(form, "txtQtyCoke").Text            = "0";
+
+                        using (new WinFormsTestHelper.DialogAutoCloser("Invalid Quantity"))
+                            WinFormsTestHelper.FindByName<Button>(form, "btnConfirmOrder").PerformClick();
+
+                        WinFormsTestHelper.PumpEvents();
+                        // Form should remain on Tab 1 since validation blocked Confirm
+                        var tabControl = WinFormsTestHelper.FindByName<TabControl>(form, "tabControl1");
+                        Assert.AreEqual(0, tabControl.SelectedIndex,
+                            "Tab should remain on 1 when drink quantity validation fails.");
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        // ── AddSideIfChecked — checked path ───────────────────────────────────
+
+        [TestMethod]
+        public void Form1_ConfirmOrder_WithSideChecked_AddsSideToList()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo     = new OrderRepository(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    var cart     = new CartService(settings);
+
+                    using (var form = new Form1(repo, cart, settings, showReceiptDialogs: false))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        WinFormsTestHelper.FindByName<RadioButton>(form, "rbSizeSmall").Checked     = true;
+                        WinFormsTestHelper.FindByName<RadioButton>(form, "rbCrustNormal").Checked   = true;
+                        WinFormsTestHelper.FindByName<CheckBox>(form, "cbChickenWings").Checked     = true;
+
+                        WinFormsTestHelper.FindByName<Button>(form, "btnConfirmOrder").PerformClick();
+                        WinFormsTestHelper.PumpEvents();
+
+                        var lvOrder = WinFormsTestHelper.FindByName<ListView>(form, "lvOrder");
+                        bool hasSide = false;
+                        foreach (ListViewItem lvi in lvOrder.Items)
+                            if (lvi.Text == "Chicken Wings") hasSide = true;
+
+                        Assert.IsTrue(hasSide, "Chicken Wings side should appear in lvOrder.");
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
         private static string CreateTempDataDirectory()
         {
             string dir = Path.Combine(Path.GetTempPath(), "PizzaExpressForms_" + Guid.NewGuid().ToString("N"));

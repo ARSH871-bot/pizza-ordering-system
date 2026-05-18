@@ -39,7 +39,7 @@ Claude Code handoff for this repository.
 - Staff PINs are PBKDF2-protected; legacy plaintext PINs upgrade on successful login; recent staff auth is reused for Settings plus history void/delete actions.
 - CSV/print export content builders are extracted as `internal static` methods and covered by unit tests.
 - `Form1` has an `internal` constructor overload with `showReceiptDialogs = false` used by smoke tests.
-- `WinFormsTestHelper` has `DialogAutoCloser` (title-fragment + IDOK/IDYES/WM_CLOSE) and `DialogButtonClicker` (finds child button by text, sends BM_CLICK) for modal-dialog testing.
+- `WinFormsTestHelper` has `DialogAutoCloser` (title-fragment + IDOK/IDYES/WM_CLOSE; also `respondNo: true` overload sending IDNO for YesNo dialogs) and `DialogButtonClicker` (finds child button by text, sends BM_CLICK) for modal-dialog testing.
 - `Clipboard.SetText()` is unreliable in headless CI; never write tests that depend on it succeeding.
 - `CheckoutWorkflowService` owns customer assembly, promo application, standard payment processing, order assembly, order-record assembly, and delivery-minutes resolution. `Form1` only reads controls and calls this service.
 - `ICheckoutWorkflowService` + `CheckoutWorkflowService` live in `Services/`; tested via `CheckoutWorkflowServiceTests.cs` (16 tests).
@@ -47,11 +47,11 @@ Claude Code handoff for this repository.
 
 ## Current Verified Handoff
 
-- Current working version: `v2.45.0` (local, pending CI).
-- Previous verified baseline: `v2.44.1` at `a96e55e42d0245a3efa1a909e847dec08ef2d957`.
-- Local test run: `432/432` passed, `92.2%` line coverage, coverage gate passed.
+- Current working version: `v2.46.0` (local, pending CI).
+- Previous verified baseline: `v2.45.0`.
+- Local test run: `441/441` passed, `92.2%` line coverage, coverage gate passed.
 - `v2.44.0` failed because clipboard-dependent receipt-dialog smoke coverage timed out in headless CI. Do not reintroduce clipboard-dependent smoke tests.
-- Next task: push `v2.45.0` to GitHub, verify CI, tag and release; then continue with service extraction/install hardening.
+- Next task: push `v2.46.0` to GitHub, verify CI, tag and release; then continue with service extraction/install hardening.
 
 ## Validation Commands
 
@@ -63,7 +63,7 @@ dotnet build WindowsFormsApplication3.sln --configuration Debug
 .\scripts\Run-Tests.ps1 -Configuration Debug
 ```
 
-Expected: 432 tests passing. Coverage gate: 75% line-rate on WindowsFormsApplication3 (currently 92.2%).
+Expected: 441 tests passing. Coverage gate: 75% line-rate on WindowsFormsApplication3 (currently 92.2%).
 
 Coverage validation:
 

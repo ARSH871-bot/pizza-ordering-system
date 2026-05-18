@@ -9,6 +9,44 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.46.0] — 2026-05-18
+
+### Added
+
+- 9 new tests in `FormSmokeTests`; 441 total, coverage maintained at 92.2% line rate.
+- `Form1_BtnAddPizzaToCart_NoPizzaSelected_ShowsAddToCartError`: unchecks `rbSizeSmall` and
+  `rbCrustNormal` (Form1 constructor sets them checked) so `BuildCurrentPizzaItems()` returns
+  empty; asserts `DialogAutoCloser("Add to Cart")` handles the resulting error MessageBox.
+- `Form1_BtnClearOrder_No_DoesNotClearList`: confirms that answering No on the "Clear Order"
+  YesNo MessageBox leaves `lvOrder` intact (1 item remains). Uses `DialogAutoCloser("Clear Order",
+  respondNo: true)` which sends IDNO (7) via WM_COMMAND.
+- `Form1_BtnPay_PromoCodeInvalid_ShowsPromoError`: fills checkout fields with an invalid promo
+  code and asserts the promo-error MessageBox appears.
+- `Form1_BtnPay_MissingPaymentFields_ShowsValidationError`: leaves required checkout fields blank
+  and asserts the validation-error MessageBox appears.
+- `Form1_BtnPay_InvalidAmountFormat_ShowsValidationError`: sets `txtAmountPaid` to "notanumber"
+  and asserts the validation-error MessageBox appears.
+- `Form1_OrderComplete_No_ClosesForm`: performs a full cash checkout, skips the receipt dialog via
+  `DialogButtonClicker("Order Confirmed", "Skip")`, then answers No on "Order Complete" via
+  `DialogAutoCloser("Order Complete", respondNo: true)`; asserts the form becomes invisible.
+- `Form1_MinorHandlers_KeyPressAndTextChanged`: exercises `txtAmountPaid_KeyPress`,
+  `AllowDigitsOnly` (txtQtyCoke/txtQtyWater), and `txtAmountPaid_TextChanged` directly.
+- `Form1_ValidateDrinkQuantities_ZeroQty_ShowsInvalidQuantityError`: sets a drink quantity to
+  zero and asserts the invalid-quantity MessageBox appears.
+- `Form1_ConfirmOrder_WithSideChecked_AddsSideToList`: checks a side checkbox before confirming
+  the order and asserts the side item appears in `lvOrder`.
+
+### Changed
+
+- `WinFormsTestHelper.DialogAutoCloser`: added `respondNo` constructor overload and updated
+  `WatchLoop` to send IDNO (7) via WM_COMMAND when `respondNo` is true, enabling reliable
+  dismissal of native Win32 YesNo MessageBoxes with the No button.
+- `Form1.cs`: added title strings to previously untitled `MessageBox.Show` calls in `btnPay`
+  (Order Error), `btnAddPizzaToCart` (Add to Cart), and `ValidateDrinkQuantities` (Invalid
+  Quantity) so `DialogAutoCloser` can match them by fragment.
+
+---
+
 ## [2.45.0] — 2026-05-18
 
 ### Added
