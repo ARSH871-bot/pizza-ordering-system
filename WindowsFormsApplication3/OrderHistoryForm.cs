@@ -488,7 +488,7 @@ namespace WindowsFormsApplication3
         // ── CSV export ────────────────────────────────────────────────────────
         private void ExportCsv()
         {
-            if (_listView.Items.Count == 0) return;
+            if (_currentOrders.Count == 0) return;
 
             using (var sfd = new SaveFileDialog())
             {

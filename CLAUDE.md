@@ -47,11 +47,13 @@ Claude Code handoff for this repository.
 
 ## Current Verified Handoff
 
-- Current working version: `v2.51.0` (local, pending CI).
-- Previous verified baseline: `v2.48.0` (CI green). v2.49.0/v2.50.0 failed due to ExportCsv headless hang — fixed in v2.51.0.
-- Local test run: `462/462` passed, `92.2%` line coverage, coverage gate passed.
+- Current working version: `v2.52.0` (local, pending CI).
+- Previous verified baseline: `v2.48.0` (CI green). v2.49.0–v2.51.0 failed due to ExportCsv headless hang.
+- Root cause (found in v2.52.0): `ExportCsv` guarded on `_listView.Items.Count == 0`, but `ApplyFilter`
+  inserts a placeholder item when empty — so Count was 1, not 0. Fixed to `_currentOrders.Count == 0`.
+- Local test run: `465/465` passed, coverage gate passed.
 - `v2.44.0` failed because clipboard-dependent receipt-dialog smoke coverage timed out in headless CI. Do not reintroduce clipboard-dependent smoke tests.
-- Next task: push `v2.51.0` to GitHub, verify CI green; then continue coverage improvements.
+- Next task: push `v2.52.0` to GitHub, verify CI green; then continue coverage improvements.
 - Lesson: never call `form.Show()` + `PerformClick()` on buttons in `OrderHistoryForm` in a test that doesn't need the window visible — use reflection to invoke private methods directly.
 
 ## Validation Commands
@@ -64,7 +66,7 @@ dotnet build WindowsFormsApplication3.sln --configuration Debug
 .\scripts\Run-Tests.ps1 -Configuration Debug
 ```
 
-Expected: 462 tests passing. Coverage gate: 75% line-rate on WindowsFormsApplication3 (currently 92.2%).
+Expected: 465 tests passing. Coverage gate: 75% line-rate on WindowsFormsApplication3 (currently 92.2%+).
 
 Coverage validation:
 

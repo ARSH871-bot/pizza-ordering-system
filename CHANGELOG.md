@@ -9,6 +9,28 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.52.0] — 2026-05-18
+
+### Fixed
+
+- `OrderHistoryForm.ExportCsv`: the empty-list guard checked `_listView.Items.Count == 0`, but
+  `ApplyFilter` always inserts a placeholder "No matching orders found." item when the result set
+  is empty — so `Count` was 1, not 0. Guard changed to `_currentOrders.Count == 0`, which
+  correctly reflects the actual order count and eliminates the headless CI hang.
+
+### Added
+
+- `Form1_ConfirmOrder_NoPizzaSelected_ShowsOrderError`: unchecks size and crust radio buttons so
+  `BuildCurrentPizzaItems()` returns empty; confirms that `btnConfirmOrder` shows an "Order Error"
+  dialog (covers the `!orderResult.IsValid` branch in `btnConfirmOrder_Click`).
+- `Form1_BtnClearOrder_EmptyList_DoesNothing`: clicks `btnClearOrder` on a form with an empty
+  `lvOrder`; verifies no dialog appears (covers the `Count == 0` early-return guard).
+- `SettingsForm_ViewAutoBackupsButton_WithNoDataDir_ShowsBackupUnavailableDialog`: passes
+  `dataDirectory: null` and clicks "View Auto-Backups"; covers the null-dir guard in
+  `BtnViewBackups_Click`.
+
+---
+
 ## [2.51.0] — 2026-05-18
 
 ### Fixed

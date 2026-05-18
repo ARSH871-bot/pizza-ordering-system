@@ -1855,6 +1855,72 @@ namespace PizzaExpress.Tests.Tests
         // ── cboPaymentMethod_SelectedIndexChanged label/enabled branches ──────
 
         [TestMethod]
+        public void Form1_ConfirmOrder_NoPizzaSelected_ShowsOrderError()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo     = new OrderRepository(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    var cart     = new CartService(settings);
+
+                    using (var form = new Form1(repo, cart, settings, showReceiptDialogs: false))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        // Uncheck both defaults so BuildCurrentPizzaItems() returns empty
+                        WinFormsTestHelper.FindByName<RadioButton>(form, "rbSizeSmall").Checked   = false;
+                        WinFormsTestHelper.FindByName<RadioButton>(form, "rbCrustNormal").Checked = false;
+                        WinFormsTestHelper.PumpEvents();
+
+                        using (new WinFormsTestHelper.DialogAutoCloser("Order Error"))
+                            WinFormsTestHelper.FindByName<Button>(form, "btnConfirmOrder").PerformClick();
+
+                        WinFormsTestHelper.PumpEvents();
+                        Assert.IsTrue(form.Visible, "Form should remain visible after order error dialog.");
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        [TestMethod]
+        public void Form1_BtnClearOrder_EmptyList_DoesNothing()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo     = new OrderRepository(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    var cart     = new CartService(settings);
+
+                    using (var form = new Form1(repo, cart, settings, showReceiptDialogs: false))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        // lvOrder is empty on a fresh form — clicking Clear should return immediately
+                        // with no dialog shown (the early-return guard at Count == 0).
+                        WinFormsTestHelper.FindByName<Button>(form, "btnClearOrder").PerformClick();
+                        WinFormsTestHelper.PumpEvents();
+
+                        Assert.IsTrue(form.Visible, "Form should remain visible after clicking Clear on empty list.");
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        // ── cboPaymentMethod — label and enabled state ────────────────────────
+
+        [TestMethod]
         public void Form1_CboPaymentMethod_Cash_DisablesReferenceField()
         {
             WinFormsTestHelper.RunInSta(() =>

@@ -27,17 +27,19 @@ If these disagree, trust fresh code/test/workflow evidence first, then update th
 
 Verified on 2026-05-18 from this workspace.
 
-- Current `master` / `origin/master`: `v2.51.0` (pending CI).
-- Commit title: `v2.51.0: fix ExportCsv headless hang + PinLoginForm correct-PIN test; 462 total, 92.2%`.
-- Previous CI-verified baseline: `v2.48.0`, 457/457 tests, 92.2% coverage, CI green. v2.49.0/v2.50.0 failed due to ExportCsv button-click hang in headless CI — fixed in v2.51.0.
-- Local pre-push validation: Debug 462/462 passed, 92.2% coverage, coverage gate passed.
-- Coverage gate: passed (75% threshold, 92.2% actual).
+- Current `master` / `origin/master`: `v2.52.0` (pending CI).
+- Commit title: `v2.52.0: fix ExportCsv empty-list guard + 3 new coverage tests; 465 total`.
+- Previous CI-verified baseline: `v2.48.0`, 457/457 tests, 92.2% coverage, CI green.
+  v2.49.0–v2.51.0 all failed due to ExportCsv headless hang — root cause fixed in v2.52.0
+  (guard changed from `_listView.Items.Count == 0` to `_currentOrders.Count == 0`).
+- Local pre-push validation: Debug 465/465 passed, coverage gate passed.
+- Coverage gate: passed (75% threshold, 92.2%+ actual).
 
 ## Public Release State
 
-- `v2.48.0` CI green. v2.49.0 and v2.50.0 failed (ExportCsv headless hang — fixed in v2.51.0).
-- `v2.51.0` tag and commits to be pushed to `origin/master`.
-- Next task: verify CI green for `v2.51.0`, then continue coverage improvements.
+- `v2.48.0` CI green. v2.49.0–v2.51.0 failed (ExportCsv headless hang — root cause fixed in v2.52.0).
+- `v2.52.0` tag and commits to be pushed to `origin/master`.
+- Next task: verify CI green for `v2.52.0`, then continue coverage improvements.
 
 ## Important Recent History
 

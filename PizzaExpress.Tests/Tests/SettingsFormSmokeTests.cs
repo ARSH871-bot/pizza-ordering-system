@@ -275,6 +275,35 @@ namespace PizzaExpress.Tests.Tests
             });
         }
 
+        // ── ViewAutoBackups null-dir guard ────────────────────────────────────
+
+        [TestMethod]
+        public void SettingsForm_ViewAutoBackupsButton_WithNoDataDir_ShowsBackupUnavailableDialog()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDir();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+
+                    using (var form = new SettingsForm(settings, dataDirectory: null))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        using (new WinFormsTestHelper.DialogAutoCloser("Backup Unavailable"))
+                            WinFormsTestHelper.FindByTextPrefix<Button>(form, "View Auto-Backups").PerformClick();
+
+                        WinFormsTestHelper.PumpEvents();
+                        Assert.IsTrue(form.Visible, "Form should remain open after unavailable dialog.");
+                    }
+                }
+                finally { DeleteTempDir(tempDir); }
+            });
+        }
+
         // ── Helpers ───────────────────────────────────────────────────────────
 
         private static string CreateTempDir()
