@@ -25,28 +25,19 @@ If these disagree, trust fresh code/test/workflow evidence first, then update th
 
 ## Latest Verified State
 
-Verified on 2026-05-18 from this workspace and GitHub Actions.
+Verified on 2026-05-18 from this workspace.
 
-- Current `master` / `origin/master`: `a96e55e42d0245a3efa1a909e847dec08ef2d957`.
-- Commit title: `v2.44.1: fix receipt dialog test timeout (replace clipboard test with Skip button test)`.
-- Build/Test workflow run: `26013196506`.
-- Result: success.
-- Debug build: passed.
-- Tests with coverage: `424` total, `424` passed.
-- Coverage gate: passed.
-- App package coverage: `WindowsFormsApplication3` at `90%` line coverage against a `75%` threshold.
-- Coverage artifact uploaded: `coverage-report`, artifact ID `7049461464`.
-- Release build: passed.
-- Portable package smoke test: passed for `PizzaExpress-2.44.1-portable.zip`.
+- Current `master` / `origin/master`: `8da8a33` (tag `v2.45.0`).
+- Commit title: `v2.45.0: 8 new tests covering PrintReceipt, ProcessCmdKey branches, inline validation, ListView context menu, and SettingsForm Save; 432 total, 92.2%`.
+- Previous CI-verified baseline: `v2.44.1` at `a96e55e`, Build/Test run `26013196506` (green).
+- Local pre-push validation: Debug 432/432 passed, 92.2% coverage, Release 432/432 passed.
+- Coverage gate: passed (75% threshold, 92.2% actual).
 
 ## Public Release State
 
-- `gh release list --limit 12` showed `v2.33.0` as the latest published GitHub Release.
-- `gh release view v2.44.1` returned `release not found`.
-- `git ls-remote --tags origin "refs/tags/v2.44.1"` returned no exact tag during verification.
-- Therefore: source is green at `v2.44.1`, but public release/tag publication for `v2.44.1` was not verified.
-
-Next release task: create/push the `v2.44.1` tag if still absent, let `release.yml` run, verify the GitHub Release exists, and confirm the portable ZIP plus `.sha256` assets are attached.
+- `v2.44.1` GitHub Release was published and verified (ZIP + SHA256 assets attached).
+- `v2.45.0` tag and commits pushed to `origin/master`. CI workflow (`build-and-test.yml`) and release workflow (`release.yml`) triggered on tag push.
+- Next task: verify CI green for `v2.45.0`, confirm GitHub Release published; then continue coverage or service extraction work.
 
 ## Important Recent History
 
