@@ -5,6 +5,7 @@ Claude Code handoff for this repository.
 ## Read First
 
 - Start with `AGENTS.md` for the full repo operating rules.
+- Read `PROJECT_HANDOFF.md` before making claims about current CI/release status.
 - This file is a short Claude-focused summary of the current architecture, the latest high-value changes, and the safest next steps.
 
 ## Project Summary
@@ -44,6 +45,16 @@ Claude Code handoff for this repository.
 - `ICheckoutWorkflowService` + `CheckoutWorkflowService` live in `Services/`; tested via `CheckoutWorkflowServiceTests.cs` (16 tests).
 - Portable release package includes a SHA256 sidecar and is published automatically on tag push.
 
+## Current Verified Handoff
+
+- Current `master` / `origin/master`: `a96e55e42d0245a3efa1a909e847dec08ef2d957`.
+- Commit title: `v2.44.1: fix receipt dialog test timeout (replace clipboard test with Skip button test)`.
+- Build/Test run `26013196506` passed.
+- CI evidence: Debug build passed, `424/424` tests passed, coverage gate passed, `WindowsFormsApplication3` measured at `90%` line coverage, Release build passed, portable package smoke test passed.
+- `v2.44.0` failed because clipboard-dependent receipt-dialog smoke coverage timed out in headless CI. Do not reintroduce clipboard-dependent smoke tests.
+- `gh release view v2.44.1` returned `release not found`, and no exact remote `refs/tags/v2.44.1` tag was visible during verification.
+- Next task: publish/verify the latest tag and GitHub Release if still absent; then continue with service extraction/install hardening.
+
 ## Validation Commands
 
 Preferred:
@@ -77,6 +88,7 @@ dotnet build WindowsFormsApplication3.sln --configuration Release --no-restore -
 
 All originally planned improvements have been implemented. Meaningful next areas:
 
+- Publish and verify the latest public release tag/assets if `v2.44.1` is still absent.
 - Shrink remaining workflow logic from `Form1.cs` into services.
 - Improve install experience beyond the portable ZIP.
 

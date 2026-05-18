@@ -4,11 +4,14 @@
 
 Repository guidance for humans and coding agents working on Pizza Express NZ.
 
+If account/session context is lost, read `PROJECT_HANDOFF.md` first. It records the latest verified repo state, CI/release status, and next-best path.
+
 This project is a production-style, zero-budget, Windows-only desktop POS built with:
 
 - C# WinForms on .NET Framework 4.8
 - SQLite + Dapper for persistence
-- MSTest + NSubstitute + Coverlet for validation
+- MSTest + NSubstitute for tests
+- `dotnet-coverage collect` wrapping `vstest.console.exe` for .NET Framework coverage
 - GitHub Actions free-tier workflows only
 
 Do not rewrite the stack. Prefer incremental improvements that preserve existing behavior unless fixing a bug or reconciling a documented inconsistency.
@@ -58,6 +61,14 @@ dotnet build WindowsFormsApplication3.sln --configuration Debug
 .\scripts\Run-Tests.ps1 -Configuration Debug
 ```
 
+Coverage validation used by CI:
+
+```powershell
+dotnet tool install --global dotnet-coverage
+.\scripts\Run-Tests.ps1 -Configuration Debug -ResultsDirectory ".\TestResults" -LogFileName "results.trx" -CollectCoverage -CoverageOutput ".\TestResults\coverage.xml"
+.\scripts\Check-Coverage.ps1 -CoverageXml ".\TestResults\coverage.xml" -PackageFilter "WindowsFormsApplication3" -MinLineRate 0.75
+```
+
 Constrained/offline fallback used in this repo when restore is unavailable:
 
 ```powershell
@@ -99,3 +110,11 @@ dotnet build PizzaExpress.Tests\PizzaExpress.Tests.csproj --no-restore --configu
 - Non-cash checkout uses a reference/promo entry field; do not introduce full card-number storage.
 - Staff PINs are PBKDF2-protected, legacy plaintext values should be upgraded rather than preserved, and sensitive actions should reuse or require recent staff authorization instead of bypassing the PIN model.
 - Local data lives under `%APPDATA%\\PizzaExpress`.
+
+## Current Handoff State
+
+- Current verified `master` / `origin/master`: `a96e55e42d0245a3efa1a909e847dec08ef2d957`.
+- Build/Test run `26013196506` passed: Debug build, 424/424 tests, 90% app-package coverage against a 75% gate, Release build, and portable package smoke test.
+- `v2.44.0` failed because a clipboard-dependent receipt-dialog smoke test timed out in CI; `v2.44.1` replaced it with a Skip-button dialog test.
+- `gh release view v2.44.1` returned `release not found` during verification, and no exact remote `refs/tags/v2.44.1` tag was visible.
+- Next agent should verify/publish the latest release tag and GitHub Release before claiming `v2.44.1` is publicly shipped.

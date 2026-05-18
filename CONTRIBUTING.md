@@ -6,6 +6,8 @@ Thank you for your interest in contributing.
 
 ## Workflow
 
+Before starting work, read `PROJECT_HANDOFF.md` for the latest verified CI/release state and any active recovery task.
+
 1. **Fork** the repository and create a branch from `master`.
 2. Name your branch: `feature/short-description` or `fix/short-description`.
 3. Make your changes, keeping each commit focused and atomic.

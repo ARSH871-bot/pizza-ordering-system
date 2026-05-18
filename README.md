@@ -10,6 +10,8 @@
 
 Local-first Pizza Express POS and ordering software for Windows, built in C# WinForms on .NET Framework 4.8 with SQLite + Dapper persistence. This repository is a serious prototype / strong portfolio project focused on truth, operator flow, and zero-budget maintainability.
 
+For maintainers or AI coding agents resuming from lost context, start with [`PROJECT_HANDOFF.md`](PROJECT_HANDOFF.md). It records the latest verified source, CI, coverage, and release state.
+
 ## What The App Does
 
 - Builds pizza orders with 4 sizes, 3 crusts, toppings, drinks, water, and sides
@@ -190,11 +192,12 @@ scripts/
 - Payment handling is reference-based only.
 - `Form1.cs` still owns more workflow orchestration than an ideal long-term design.
 - Accessibility has improved, but it is not yet verified with full assistive-tech testing.
-- Coverage is not currently gated in CI.
+- Coverage is gated in CI for the `WindowsFormsApplication3` package with a 75% line-rate threshold.
 
 ## Roadmap
 
 - Keep shrinking high-risk logic out of `Form1.cs`
+- Publish and verify the latest public release tag/assets when source has moved ahead of GitHub Releases
 - Improve install experience beyond the portable ZIP
 - Continue cleaning older doc/comment encoding artifacts
 
