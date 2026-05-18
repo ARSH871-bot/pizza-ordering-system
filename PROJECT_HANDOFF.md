@@ -27,17 +27,17 @@ If these disagree, trust fresh code/test/workflow evidence first, then update th
 
 Verified on 2026-05-18 from this workspace.
 
-- Current `master` / `origin/master`: `v2.49.0` (pending CI).
-- Commit title: `v2.49.0: 2 new tests covering OpenSettingsForm with settings and ExportCsv empty-list guard; 459 total, 92.2%`.
+- Current `master` / `origin/master`: `v2.50.0` (pending CI).
+- Commit title: `v2.50.0: 2 new tests covering SettingsForm Restore null-dir guard and confirm cancel; 461 total, 92.2%`.
 - Previous CI-verified baseline: `v2.48.0`, 457/457 tests, 92.2% coverage, CI green.
-- Local pre-push validation: Debug 459/459 passed, 92.2% coverage, coverage gate passed.
+- Local pre-push validation: Debug 461/461 passed, 92.2% coverage, coverage gate passed.
 - Coverage gate: passed (75% threshold, 92.2% actual).
 
 ## Public Release State
 
-- `v2.48.0` CI green, GitHub tag pushed.
-- `v2.49.0` tag and commits to be pushed to `origin/master`. CI workflow (`build-and-test.yml`) and release workflow (`release.yml`) will trigger on tag push.
-- Next task: verify CI green for `v2.49.0`, then continue coverage improvements.
+- `v2.48.0` CI green. `v2.49.0` pending CI.
+- `v2.50.0` tag and commits to be pushed to `origin/master`. CI workflow (`build-and-test.yml`) and release workflow (`release.yml`) will trigger on tag push.
+- Next task: verify CI green for `v2.49.0` and `v2.50.0`, then continue coverage improvements.
 
 ## Important Recent History
 

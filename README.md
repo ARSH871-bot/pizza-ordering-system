@@ -1,8 +1,8 @@
 # Pizza Express - New Zealand
 
 [![Build and Test](https://github.com/ARSH871-bot/pizza-ordering-system/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/ARSH871-bot/pizza-ordering-system/actions/workflows/build-and-test.yml)
-![Version](https://img.shields.io/badge/version-2.49.0-brightgreen)
-![Tests](https://img.shields.io/badge/tests-459%20passing-success)
+![Version](https://img.shields.io/badge/version-2.50.0-brightgreen)
+![Tests](https://img.shields.io/badge/tests-461%20passing-success)
 ![Coverage](https://img.shields.io/badge/coverage-92.2%25%20line%20(75%25%20gate)-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Platform](https://img.shields.io/badge/platform-Windows-lightgrey)
@@ -205,6 +205,7 @@ scripts/
 
 | Version | Highlights |
 |---|---|
+| `v2.50.0` | 2 new tests: `SettingsForm` Restore button null-dir guard and Restore with dataDir cancel confirmation; 461 total, 92.2% |
 | `v2.49.0` | 2 new tests: `ProcessCmdKey` Alt+W with valid settings opens SettingsForm; `OrderHistoryForm` ExportCsv empty-list guard; 459 total, 92.2% |
 | `v2.48.0` | 8 new tests: 6 `ProcessCmdKey` branches (Alt+H/R/E/C/F1/Alt+W null-settings), 2 `cboPaymentMethod_SelectedIndexChanged` label/enabled assertions; 457 total, 92.2% |
 | `v2.47.0` | 8 new tests: PinLoginForm locked-out guards, intermediate error messages, null-settings; Form1 null-settings OpenSettingsForm; 449 total, 92.2% |

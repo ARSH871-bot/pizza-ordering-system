@@ -217,6 +217,64 @@ namespace PizzaExpress.Tests.Tests
             });
         }
 
+        // ── Restore button guards ─────────────────────────────────────────────
+
+        [TestMethod]
+        public void SettingsForm_RestoreButton_WithNoDataDir_ShowsBackupUnavailableDialog()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDir();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+
+                    using (var form = new SettingsForm(settings, dataDirectory: null))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        using (new WinFormsTestHelper.DialogAutoCloser("Backup Unavailable"))
+                            WinFormsTestHelper.FindByTextPrefix<Button>(form, "Restore DB").PerformClick();
+
+                        WinFormsTestHelper.PumpEvents();
+                        Assert.IsTrue(form.Visible, "Form should remain open after unavailable dialog.");
+                    }
+                }
+                finally { DeleteTempDir(tempDir); }
+            });
+        }
+
+        [TestMethod]
+        public void SettingsForm_RestoreButton_WithDataDir_NoConfirm_DoesNotRestore()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDir();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+
+                    using (var form = new SettingsForm(settings, dataDirectory: tempDir))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        // No PIN configured so EnsureAuthorized passes; confirmation dialog is
+                        // dismissed with No so the restore is cancelled before the file dialog.
+                        using (new WinFormsTestHelper.DialogAutoCloser("Restore Database", respondNo: true))
+                            WinFormsTestHelper.FindByTextPrefix<Button>(form, "Restore DB").PerformClick();
+
+                        WinFormsTestHelper.PumpEvents();
+                        Assert.IsTrue(form.Visible, "Form should remain open after cancelled restore.");
+                    }
+                }
+                finally { DeleteTempDir(tempDir); }
+            });
+        }
+
         // ── Helpers ───────────────────────────────────────────────────────────
 
         private static string CreateTempDir()

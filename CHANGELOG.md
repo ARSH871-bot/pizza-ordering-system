@@ -9,6 +9,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.50.0] — 2026-05-18
+
+### Added
+
+- 2 new tests in `SettingsFormSmokeTests`; 461 total, 92.2% coverage maintained.
+- `SettingsForm_RestoreButton_WithNoDataDir_ShowsBackupUnavailableDialog`: invokes Restore DB
+  button with null `dataDirectory`; verifies the null-dir guard in `BtnRestore_Click` shows
+  the "Backup Unavailable" dialog.
+- `SettingsForm_RestoreButton_WithDataDir_NoConfirm_DoesNotRestore`: invokes Restore DB with a
+  real temp data dir and no PIN (EnsureAuthorized returns true); dismisses the "Restore Database"
+  YesNo confirmation with No; verifies the restore is cancelled before the file picker opens.
+
+---
+
 ## [2.49.0] — 2026-05-18
 
 ### Added
