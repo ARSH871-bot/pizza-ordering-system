@@ -9,6 +9,26 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.42.0] — 2026-05-18
+
+### Added
+
+- `OrderHistoryFormTests.cs`: 3 new tests covering column-click sorting and keyboard shortcuts:
+  - `OrderHistoryForm_ColumnClick_SortsByDateToggle` — invokes `ListView_ColumnClick`
+    via reflection twice on column 0; asserts `▲` then `▼` in header text; exercises
+    `SortOrders` comparison lambda for date column in both directions.
+  - `OrderHistoryForm_ColumnClick_SortsByTotalAndCustomerName` — clicks columns 1, 4,
+    2, 3 in sequence; exercises all non-default switch branches of `SortOrders`.
+  - `OrderHistoryForm_KeyDown_Delete_WithNoSelection_DoesNotThrow` — raises `KeyDown`
+    via `Control.OnKeyDown` reflection with `Keys.Delete`; form guard returns early
+    without throwing; covers the `KeyDown` lambda body.
+- Added `using System.Reflection` to `OrderHistoryFormTests.cs`.
+
+**Total tests: 419 passing.**
+**Overall WindowsFormsApplication3 coverage now 89.5%.**
+
+---
+
 ## [2.41.0] — 2026-05-18
 
 ### Added

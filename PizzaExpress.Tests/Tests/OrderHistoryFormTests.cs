@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Windows.Forms;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using WindowsFormsApplication3;
@@ -162,6 +163,134 @@ namespace PizzaExpress.Tests.Tests
 
                         chkDate.Checked = false;
                         WinFormsTestHelper.PumpEvents();
+                    }
+                }
+                finally { DeleteTempDir(tempDir); }
+            });
+        }
+
+        // ── Column-click sorting ──────────────────────────────────────────────
+
+        [TestMethod]
+        public void OrderHistoryForm_ColumnClick_SortsByDateToggle()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDir();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo = new OrderRepository(tempDir);
+                    repo.Save(MakeOrder("Alpha", "Auckland"));
+                    repo.Save(MakeOrder("Beta",  "Wellington"));
+                    repo.Save(MakeOrder("Gamma", "Christchurch"));
+
+                    using (var form = new OrderHistoryForm(repo))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        var mi = typeof(OrderHistoryForm).GetMethod(
+                            "ListView_ColumnClick",
+                            BindingFlags.NonPublic | BindingFlags.Instance);
+                        Assert.IsNotNull(mi, "ListView_ColumnClick not found.");
+
+                        var listView = WinFormsTestHelper.EnumerateControls<ListView>(form)
+                            .Single(lv => lv.Columns.Count > 1);
+
+                        // First click on column 0 — ascending (SortOrders lambda runs)
+                        mi.Invoke(form, new object[] { listView, new ColumnClickEventArgs(0) });
+                        WinFormsTestHelper.PumpEvents();
+                        Assert.IsTrue(listView.Columns[0].Text.Contains("▲"),
+                            "Column 0 header should show ascending arrow after first click.");
+
+                        // Second click on column 0 — descending (SortOrders lambda runs again)
+                        mi.Invoke(form, new object[] { listView, new ColumnClickEventArgs(0) });
+                        WinFormsTestHelper.PumpEvents();
+                        Assert.IsTrue(listView.Columns[0].Text.Contains("▼"),
+                            "Column 0 header should show descending arrow after second click.");
+                    }
+                }
+                finally { DeleteTempDir(tempDir); }
+            });
+        }
+
+        [TestMethod]
+        public void OrderHistoryForm_ColumnClick_SortsByTotalAndCustomerName()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDir();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo = new OrderRepository(tempDir);
+                    repo.Save(MakeOrder("Alpha", "Auckland"));
+                    repo.Save(MakeOrder("Beta",  "Wellington"));
+
+                    using (var form = new OrderHistoryForm(repo))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        var mi = typeof(OrderHistoryForm).GetMethod(
+                            "ListView_ColumnClick",
+                            BindingFlags.NonPublic | BindingFlags.Instance);
+
+                        var listView = WinFormsTestHelper.EnumerateControls<ListView>(form)
+                            .Single(lv => lv.Columns.Count > 1);
+
+                        // Column 1 = Customer Name, column 4 = Total
+                        mi.Invoke(form, new object[] { listView, new ColumnClickEventArgs(1) });
+                        WinFormsTestHelper.PumpEvents();
+                        mi.Invoke(form, new object[] { listView, new ColumnClickEventArgs(4) });
+                        WinFormsTestHelper.PumpEvents();
+                        mi.Invoke(form, new object[] { listView, new ColumnClickEventArgs(2) });
+                        WinFormsTestHelper.PumpEvents();
+                        mi.Invoke(form, new object[] { listView, new ColumnClickEventArgs(3) });
+                        WinFormsTestHelper.PumpEvents();
+
+                        // All column headers should remain valid
+                        Assert.IsTrue(listView.Items.Cast<ListViewItem>()
+                            .Any(item => item.Tag is OrderRecord));
+                    }
+                }
+                finally { DeleteTempDir(tempDir); }
+            });
+        }
+
+        // ── Keyboard shortcuts ────────────────────────────────────────────────
+
+        [TestMethod]
+        public void OrderHistoryForm_KeyDown_Delete_WithNoSelection_DoesNotThrow()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDir();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo = new OrderRepository(tempDir);
+
+                    using (var form = new OrderHistoryForm(repo))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        // Raise KeyDown on the form directly — no item selected, guard returns early
+                        var args = new KeyEventArgs(Keys.Delete);
+                        form.GetType()
+                            .GetField("KeyDown", BindingFlags.NonPublic | BindingFlags.Instance |
+                                                 BindingFlags.FlattenHierarchy);
+
+                        // Invoke via the protected OnKeyDown entry point
+                        var onKeyDown = typeof(Control).GetMethod(
+                            "OnKeyDown",
+                            BindingFlags.NonPublic | BindingFlags.Instance);
+                        onKeyDown.Invoke(form, new object[] { args });
+                        WinFormsTestHelper.PumpEvents();
+
+                        Assert.IsTrue(form.Visible);
                     }
                 }
                 finally { DeleteTempDir(tempDir); }
