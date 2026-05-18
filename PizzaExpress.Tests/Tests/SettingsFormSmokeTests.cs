@@ -217,6 +217,45 @@ namespace PizzaExpress.Tests.Tests
             });
         }
 
+        // ── Save with invalid PIN (TrySaveStaffPin returns false) ────────────
+
+        [TestMethod]
+        public void SettingsForm_SaveButton_WithInvalidPin_ShowsValidationError()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDir();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+
+                    using (var form = new SettingsForm(settings, tempDir))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        var grid = WinFormsTestHelper.GetPrivateField<DataGridView>(form, "_grid");
+                        foreach (DataGridViewRow row in grid.Rows)
+                        {
+                            if ((row.Tag as string) == "StaffPin")
+                            {
+                                row.Cells["Value"].Value = "12"; // too short — triggers validation failure
+                                break;
+                            }
+                        }
+
+                        using (new WinFormsTestHelper.DialogAutoCloser("Validation Error"))
+                            WinFormsTestHelper.FindByTextPrefix<Button>(form, "Save Changes").PerformClick();
+
+                        WinFormsTestHelper.PumpEvents();
+                        Assert.IsTrue(form.Visible, "SettingsForm should remain open after invalid PIN error.");
+                    }
+                }
+                finally { DeleteTempDir(tempDir); }
+            });
+        }
+
         // ── Restore button guards ─────────────────────────────────────────────
 
         [TestMethod]

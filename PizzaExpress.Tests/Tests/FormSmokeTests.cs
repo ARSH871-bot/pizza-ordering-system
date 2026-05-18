@@ -1478,6 +1478,47 @@ namespace PizzaExpress.Tests.Tests
             });
         }
 
+        // ── txtPostalCode KeyPress lambda (Form1.<>c) ─────────────────────────
+
+        [TestMethod]
+        public void Form1_PostalCode_KeyPress_BlocksNonDigit()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo     = new OrderRepository(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    var cart     = new CartService(settings);
+
+                    using (var form = new Form1(repo, cart, settings, showReceiptDialogs: false))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        var txtPostal  = WinFormsTestHelper.FindByName<TextBox>(form, "txtPostalCode");
+                        var onKeyPress = typeof(Control).GetMethod(
+                            "OnKeyPress", BindingFlags.NonPublic | BindingFlags.Instance);
+
+                        var kpLetter = new KeyPressEventArgs('a');
+                        onKeyPress.Invoke(txtPostal, new object[] { kpLetter });
+                        Assert.IsTrue(kpLetter.Handled, "Letter 'a' should be blocked in postal code field.");
+
+                        var kpBack = new KeyPressEventArgs('\b');
+                        onKeyPress.Invoke(txtPostal, new object[] { kpBack });
+                        Assert.IsFalse(kpBack.Handled, "Backspace should be allowed in postal code field.");
+
+                        var kpDigit = new KeyPressEventArgs('5');
+                        onKeyPress.Invoke(txtPostal, new object[] { kpDigit });
+                        Assert.IsFalse(kpDigit.Handled, "Digit '5' should be allowed in postal code field.");
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
         // ── KeyPress handlers + AllowDigitsOnly + TextChanged ────────────────
 
         [TestMethod]

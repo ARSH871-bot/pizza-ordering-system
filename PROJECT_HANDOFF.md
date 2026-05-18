@@ -25,18 +25,19 @@ If these disagree, trust fresh code/test/workflow evidence first, then update th
 
 ## Latest Verified State
 
-Verified on 2026-05-18 from this workspace.
+Verified on 2026-05-19 from this workspace.
 
-- Current `master` / `origin/master`: `v2.52.0` (CI green, run 26030731842).
-- Commit title: `v2.52.0: fix ExportCsv empty-list guard + 3 new coverage tests; 465 total`.
-- Previous CI-verified baseline: `v2.48.0`. v2.49.0–v2.51.0 failed; v2.52.0 is the new verified baseline.
-- Local pre-push validation: Debug 465/465 passed, coverage gate passed.
-- Coverage gate: passed (75% threshold, 92.2%+ actual).
+- Current `master` / `origin/master`: `v2.53.0` (pending CI).
+- Commit title: `v2.53.0: 4 new coverage tests (postal KeyPress, CLR/Back buttons, invalid PIN save); 469 total`.
+- Previous CI-verified baseline: `v2.52.0` (CI green, run 26030731842).
+- Local pre-push validation: Debug 469/469 passed, coverage gate passed.
+- Coverage gate: passed (75% threshold, 94.3%+ actual).
 
 ## Public Release State
 
 - `v2.52.0` CI green (run 26030731842). New verified baseline.
-- Next task: continue coverage improvements (v2.53.0+).
+- `v2.53.0` tag and commits to be pushed to `origin/master`.
+- Next task: verify CI green for `v2.53.0`, then continue coverage improvements.
 
 ## Important Recent History
 

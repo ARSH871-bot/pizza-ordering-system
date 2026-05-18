@@ -9,6 +9,23 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.53.0] — 2026-05-19
+
+### Added
+
+- `Form1_PostalCode_KeyPress_BlocksNonDigit`: invokes `OnKeyPress` on `txtPostalCode` via
+  reflection; covers the inline lambda that blocks non-digit, non-backspace characters
+  (Form1.<>c lines 197–199).
+- `PinLoginForm_ClearButton_ClearsEnteredPin`: enters two digits via keyboard then
+  `PerformClick`s the CLR pad button; covers the `btnClear.Click` lambda (lines 157–163).
+- `PinLoginForm_BackButton_RemovesLastDigit`: enters two digits then `PerformClick`s the Back
+  pad button; covers the `btnBack.Click` lambda (lines 170–178).
+- `SettingsForm_SaveButton_WithInvalidPin_ShowsValidationError`: sets the StaffPin grid row to
+  "12" (too short) and clicks Save; covers the `continue` branch when `TrySaveStaffPin` returns
+  false (SettingsForm line 276) and the resulting "Validation Error" dialog + `LoadSettings` reload.
+
+---
+
 ## [2.52.0] — 2026-05-18
 
 ### Fixed

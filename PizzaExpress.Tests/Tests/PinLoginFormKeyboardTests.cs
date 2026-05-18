@@ -561,6 +561,72 @@ namespace PizzaExpress.Tests.Tests
             });
         }
 
+        // ── CLR and Back pad buttons ──────────────────────────────────────────
+
+        [TestMethod]
+        public void PinLoginForm_ClearButton_ClearsEnteredPin()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    settings.Set("StaffPin", PinSecurity.Protect("1234"));
+
+                    using (var form = new PinLoginForm(settings))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        form.OnKeyDown(form, new KeyEventArgs(Keys.D1));
+                        form.OnKeyDown(form, new KeyEventArgs(Keys.D2));
+                        Assert.AreEqual(2, GetDotsLabel(form).Text.Length, "Should have 2 dots before CLR.");
+
+                        WinFormsTestHelper.FindByTextPrefix<Button>(form, "CLR").PerformClick();
+                        WinFormsTestHelper.PumpEvents();
+
+                        Assert.AreEqual(string.Empty, GetDotsLabel(form).Text,
+                            "CLR button should clear all entered digits.");
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        [TestMethod]
+        public void PinLoginForm_BackButton_RemovesLastDigit()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    settings.Set("StaffPin", PinSecurity.Protect("1234"));
+
+                    using (var form = new PinLoginForm(settings))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        form.OnKeyDown(form, new KeyEventArgs(Keys.D1));
+                        form.OnKeyDown(form, new KeyEventArgs(Keys.D2));
+                        Assert.AreEqual(2, GetDotsLabel(form).Text.Length, "Should have 2 dots before Back.");
+
+                        WinFormsTestHelper.FindByTextPrefix<Button>(form, "Back").PerformClick();
+                        WinFormsTestHelper.PumpEvents();
+
+                        Assert.AreEqual(1, GetDotsLabel(form).Text.Length,
+                            "Back button should remove exactly one digit.");
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
         // ── Helper ────────────────────────────────────────────────────────────
 
         private static void TriggerLockout(PinLoginForm form)
