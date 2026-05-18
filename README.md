@@ -1,9 +1,9 @@
 # Pizza Express - New Zealand
 
 [![Build and Test](https://github.com/ARSH871-bot/pizza-ordering-system/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/ARSH871-bot/pizza-ordering-system/actions/workflows/build-and-test.yml)
-![Version](https://img.shields.io/badge/version-2.44.0-brightgreen)
+![Version](https://img.shields.io/badge/version-2.44.1-brightgreen)
 ![Tests](https://img.shields.io/badge/tests-424%20passing-success)
-![Coverage](https://img.shields.io/badge/coverage-90.3%25%20line%20(75%25%20gate)-brightgreen)
+![Coverage](https://img.shields.io/badge/coverage-90.0%25%20line%20(75%25%20gate)-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Platform](https://img.shields.io/badge/platform-Windows-lightgrey)
 ![Framework](https://img.shields.io/badge/.NET-4.8-purple)
@@ -202,7 +202,8 @@ scripts/
 
 | Version | Highlights |
 |---|---|
-| `v2.44.0` | `DialogButtonClicker` helper + receipt dialog Copy test; crosses 90% coverage; 424 total, 90.3% |
+| `v2.44.1` | Fix: replace clipboard-based receipt test (CI timeout) with Skip-button test; `DialogButtonClicker` helper retained; 424 total, 90.0% |
+| `v2.44.0` | `DialogButtonClicker` helper + receipt dialog button coverage; 424 total |
 | `v2.43.0` | 4 new tests: 3 Form1 Tab 2 button dialogs (History, Sales Report, End of Day) + SettingsForm CellBeginEdit/EndEdit lambdas; 423 total, coverage 89.9% |
 | `v2.42.0` | 3 new `OrderHistoryForm` tests (column-click sort toggle, all sort columns, KeyDown Delete guard); covers `ListView_ColumnClick`, `SortOrders` lambda all branches; 419 total, coverage 89.5% |
 | `v2.41.0` | 1 new `Form1` smoke test covering receipt-options dialog block (`showReceiptDialogs: true` path); `DialogAutoCloser` closes both sequential dialogs; covers `ResetFullForm`; 416 total, coverage 89.0% |

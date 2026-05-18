@@ -12,7 +12,8 @@ Claude Code handoff for this repository.
 - Project: Pizza Express NZ POS / ordering system
 - Stack: C# WinForms on .NET Framework 4.8
 - Persistence: SQLite + Dapper
-- Tests: MSTest + NSubstitute + Coverlet
+- Tests: MSTest + NSubstitute
+- Coverage: `dotnet-coverage collect` wrapping `vstest.console.exe`
 - Constraints: zero-budget, no paid tools/services, no blind rewrites
 
 ## Architecture
@@ -37,7 +38,8 @@ Claude Code handoff for this repository.
 - Staff PINs are PBKDF2-protected; legacy plaintext PINs upgrade on successful login; recent staff auth is reused for Settings plus history void/delete actions.
 - CSV/print export content builders are extracted as `internal static` methods and covered by unit tests.
 - `Form1` has an `internal` constructor overload with `showReceiptDialogs = false` used by smoke tests.
-- Both CI workflows (`build-and-test.yml`, `release.yml`) are fully green as of v2.22.5.
+- `WinFormsTestHelper` has `DialogAutoCloser` (title-fragment + IDOK/IDYES/WM_CLOSE) and `DialogButtonClicker` (finds child button by text, sends BM_CLICK) for modal-dialog testing.
+- `Clipboard.SetText()` is unreliable in headless CI; never write tests that depend on it succeeding.
 - `CheckoutWorkflowService` owns customer assembly, promo application, standard payment processing, order assembly, order-record assembly, and delivery-minutes resolution. `Form1` only reads controls and calls this service.
 - `ICheckoutWorkflowService` + `CheckoutWorkflowService` live in `Services/`; tested via `CheckoutWorkflowServiceTests.cs` (16 tests).
 - Portable release package includes a SHA256 sidecar and is published automatically on tag push.
@@ -52,7 +54,15 @@ dotnet build WindowsFormsApplication3.sln --configuration Debug
 .\scripts\Run-Tests.ps1 -Configuration Debug
 ```
 
-Expected: 424 tests passing. Coverage gate: 75% line-rate on WindowsFormsApplication3 (currently 90.3%).
+Expected: 424 tests passing. Coverage gate: 75% line-rate on WindowsFormsApplication3 (currently 90.0%).
+
+Coverage validation:
+
+```powershell
+dotnet tool install --global dotnet-coverage
+.\scripts\Run-Tests.ps1 -Configuration Debug -ResultsDirectory ".\TestResults" -LogFileName "results.trx" -CollectCoverage -CoverageOutput ".\TestResults\coverage.xml"
+.\scripts\Check-Coverage.ps1 -CoverageXml ".\TestResults\coverage.xml" -PackageFilter "WindowsFormsApplication3" -MinLineRate 0.75
+```
 
 Release validation:
 

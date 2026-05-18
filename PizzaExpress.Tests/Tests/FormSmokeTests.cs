@@ -631,7 +631,7 @@ namespace PizzaExpress.Tests.Tests
         }
 
         [TestMethod]
-        public void Form1_ReceiptDialog_CopyToClipboard_ThenSkip_CompletesOrder()
+        public void Form1_ReceiptDialog_SkipButton_ClosesDialogAndPromptsOrderComplete()
         {
             WinFormsTestHelper.RunInSta(() =>
             {
@@ -670,14 +670,17 @@ namespace PizzaExpress.Tests.Tests
 
                         Assert.IsTrue(WinFormsTestHelper.FindByName<Button>(form, "btnSubmitOrder").Enabled);
 
-                        // Click "Copy to Clipboard" inside receipt dialog, dismiss "Copied" MessageBox,
-                        // then click "Skip" to close the receipt dialog,
-                        // then answer No to "Order Complete" (closes form).
-                        using (new WinFormsTestHelper.DialogButtonClicker("Order Confirmed", "Copy to Clipboard"))
-                        using (new WinFormsTestHelper.DialogAutoCloser("Copied", "Order Complete"))
+                        // Click "Skip" inside the receipt dialog (covers btnSkip.Click lambda),
+                        // then IDYES on "Order Complete" resets the form to Tab 1.
+                        using (new WinFormsTestHelper.DialogButtonClicker("Order Confirmed", "Skip"))
+                        using (new WinFormsTestHelper.DialogAutoCloser("Order Complete"))
                             WinFormsTestHelper.FindByName<Button>(form, "btnSubmitOrder").PerformClick();
 
                         WinFormsTestHelper.PumpEvents();
+
+                        var tabControl = WinFormsTestHelper.FindByName<TabControl>(form, "tabControl1");
+                        Assert.AreEqual(0, tabControl.SelectedIndex,
+                            "Form should return to Tab 1 after Order Again.");
                     }
 
                     Assert.AreEqual(1, repo.LoadAll().Count, "Order should be persisted.");

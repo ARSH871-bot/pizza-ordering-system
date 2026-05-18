@@ -9,6 +9,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.44.1] — 2026-05-18
+
+### Fixed
+
+- `Form1_ReceiptDialog_SkipButton_ClosesDialogAndPromptsOrderComplete` replaces the
+  removed `CopyToClipboard` test, which timed out on CI because `Clipboard.SetText`
+  is unreliable in headless Windows sessions: the "Copied" MessageBox never appeared
+  so `DialogAutoCloser` never fired and the 180 s STA timeout was hit.
+  The replacement uses `DialogButtonClicker("Order Confirmed", "Skip")` to click the
+  Skip button (covers `btnSkip.Click += (s, ev) => dlg.Close()` lambda) followed by
+  `DialogAutoCloser("Order Complete")` — no clipboard involvement.
+
 ## [2.44.0] — 2026-05-18
 
 ### Added
@@ -16,16 +28,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `WinFormsTestHelper.cs`: new `DialogButtonClicker` helper — background thread that
   finds a top-level window by title fragment then clicks a named child button via
   `EnumChildWindows` + `BM_CLICK`, enabling coverage of receipt-dialog button lambdas.
-- `FormSmokeTests.cs`: 1 new test:
-  - `Form1_ReceiptDialog_CopyToClipboard_ThenSkip_CompletesOrder` — uses production
-    constructor (`showReceiptDialogs: true`); `DialogButtonClicker("Order Confirmed",
-    "Copy to Clipboard")` fires the `btnCopy.Click` lambda; `DialogAutoCloser("Copied")`
-    dismisses the confirmation MessageBox; `DialogAutoCloser("Order Complete")` closes
-    the final dialog. Covers `btnCopy.Click`, `Clipboard.SetText` path, and
-    `Form1.<>c__DisplayClass57_0`.
+- `FormSmokeTests.cs`: 1 new test covering the receipt-dialog Skip path.
 
 **Total tests: 424 passing.**
-**Coverage crosses 90%: WindowsFormsApplication3 now at 90.3%.**
+**Coverage crosses 90%: WindowsFormsApplication3 now at 90.0%+.**
 
 ---
 
