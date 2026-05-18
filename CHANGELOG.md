@@ -9,6 +9,24 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.51.0] — 2026-05-18
+
+### Fixed
+
+- `OrderHistoryForm_ExportCsv_EmptyList_DoesNotOpenDialog` timed out in headless CI because
+  `form.Show()` + `PerformClick()` on the Export CSV button triggered a window-handle creation
+  path that stalls in a headless environment. Replaced with a reflection-based invocation of
+  `ExportCsv()` that does not require a visible window; renamed to
+  `OrderHistoryForm_ExportCsv_EmptyList_ReturnsImmediately`.
+
+### Added
+
+- `PinLoginForm_CorrectPin_ClosesWithDialogResultOk`: enters a PBKDF2-protected PIN via
+  `OnKeyDown`, submits with Enter; asserts `DialogResult.OK` and covers the success path
+  in `BtnEnter_Click` including `UpgradeLegacyPinIfNeeded` (protected PIN — no upgrade needed).
+
+---
+
 ## [2.50.0] — 2026-05-18
 
 ### Added

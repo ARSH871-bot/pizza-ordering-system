@@ -504,6 +504,43 @@ namespace PizzaExpress.Tests.Tests
             });
         }
 
+        // ── Correct PIN — success path ────────────────────────────────────────
+
+        [TestMethod]
+        public void PinLoginForm_CorrectPin_ClosesWithDialogResultOk()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+
+                    // Store a known PBKDF2-protected PIN
+                    settings.Set("StaffPin", PinSecurity.Protect("1234"));
+
+                    using (var form = new PinLoginForm(settings))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        // Enter "1234" via keyboard
+                        foreach (var key in new[] { Keys.D1, Keys.D2, Keys.D3, Keys.D4 })
+                            form.OnKeyDown(form, new KeyEventArgs(key));
+
+                        // Submit
+                        form.OnKeyDown(form, new KeyEventArgs(Keys.Enter));
+                        WinFormsTestHelper.PumpEvents();
+
+                        Assert.AreEqual(DialogResult.OK, form.DialogResult,
+                            "Correct PIN should close the form with DialogResult.OK.");
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
         // ── UpgradeLegacyPinIfNeeded with null settings ───────────────────────
 
         [TestMethod]
