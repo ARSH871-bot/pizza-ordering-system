@@ -362,6 +362,79 @@ namespace PizzaExpress.Tests.Tests
             });
         }
 
+        // ── View Details with PaymentReference ───────────────────────────────
+
+        [TestMethod]
+        public void OrderHistoryForm_ViewDetails_WithPaymentReference_ShowsReferenceRow()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDir();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo = new OrderRepository(tempDir);
+                    var order = MakeOrder("Grace Hall", "Wellington");
+                    order.PaymentMethod    = "Credit Card";
+                    order.PaymentReference = "****5678";
+                    repo.Save(order);
+
+                    using (var form = new OrderHistoryForm(repo))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        var listView = WinFormsTestHelper.EnumerateControls<ListView>(form)
+                            .Single(lv => lv.Columns.Count > 1);
+                        listView.Items[0].Selected = true;
+                        WinFormsTestHelper.PumpEvents();
+
+                        using (new WinFormsTestHelper.DialogAutoCloser("Order Details"))
+                            WinFormsTestHelper.FindByTextPrefix<Button>(form, "View Details").PerformClick();
+
+                        WinFormsTestHelper.PumpEvents();
+                    }
+                }
+                finally { DeleteTempDir(tempDir); }
+            });
+        }
+
+        // ── Void Order — already voided ───────────────────────────────────────
+
+        [TestMethod]
+        public void OrderHistoryForm_VoidOrder_AlreadyVoided_ShowsAlreadyVoidedDialog()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDir();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo = new OrderRepository(tempDir);
+                    var order = MakeOrder("Henry Irving", "Auckland");
+                    repo.Save(order);
+                    repo.VoidOrder(order.Id);
+
+                    using (var form = new OrderHistoryForm(repo))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        var listView = WinFormsTestHelper.EnumerateControls<ListView>(form)
+                            .Single(lv => lv.Columns.Count > 1);
+                        listView.Items[0].Selected = true;
+                        WinFormsTestHelper.PumpEvents();
+
+                        using (new WinFormsTestHelper.DialogAutoCloser("Already Voided"))
+                            WinFormsTestHelper.FindByTextPrefix<Button>(form, "Void Order").PerformClick();
+
+                        WinFormsTestHelper.PumpEvents();
+                    }
+                }
+                finally { DeleteTempDir(tempDir); }
+            });
+        }
+
         // ── Helpers ───────────────────────────────────────────────────────────
 
         private static OrderRecord MakeOrder(string customerName, string region)

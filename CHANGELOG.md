@@ -9,6 +9,25 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.57.0] — 2026-05-19
+
+### Added
+
+- `OrderHistoryForm_ViewDetails_WithPaymentReference_ShowsReferenceRow`: saves an order with
+  `PaymentReference = "****5678"`, selects it, and clicks View Details; covers the
+  `sb.AppendLine($"Reference   : ...")` line (OrderHistoryForm line 419).
+- `OrderHistoryForm_VoidOrder_AlreadyVoided_ShowsAlreadyVoidedDialog`: pre-voids an order via
+  `repo.VoidOrder`, selects it, and clicks Void Order; covers the "already voided" MessageBox
+  path (lines 459–465) in `VoidSelectedOrder`.
+- `PinSecurity_ConstantTimeEquals_DifferentLengths_ReturnsFalse`: calls the private static
+  `ConstantTimeEquals` method via reflection with arrays of different lengths; covers the
+  `return false` branch at line 105 of PinSecurity.cs.
+- `RunAutoBackup_WhenOldestFileLocked_SwallowsDeleteException`: pre-seeds 7 auto-backup files,
+  locks the oldest with an exclusive FileStream, then calls `RunAutoBackup`; covers the `catch`
+  block at line 137 of DatabaseBackupService.cs where a failed `File.Delete` is silently ignored.
+
+---
+
 ## [2.56.0] — 2026-05-19
 
 ### Added

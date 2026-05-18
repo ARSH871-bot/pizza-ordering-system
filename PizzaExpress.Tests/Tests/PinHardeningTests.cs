@@ -242,6 +242,22 @@ namespace PizzaExpress.Tests.Tests
             PinSecurity.Protect("12"); // below minimum length — covers the throw on line 29
         }
 
+        [TestMethod]
+        public void PinSecurity_ConstantTimeEquals_DifferentLengths_ReturnsFalse()
+        {
+            var mi = typeof(PinSecurity).GetMethod(
+                "ConstantTimeEquals",
+                BindingFlags.NonPublic | BindingFlags.Static);
+            Assert.IsNotNull(mi, "ConstantTimeEquals not found via reflection.");
+
+            bool result = (bool)mi.Invoke(null, new object[]
+            {
+                new byte[] { 1, 2, 3 },
+                new byte[] { 1, 2 },
+            });
+            Assert.IsFalse(result, "Different-length byte arrays must not be considered equal.");
+        }
+
         private static void EnterDigits(Control form, string digits)
         {
             foreach (char digit in digits)

@@ -192,6 +192,32 @@ namespace PizzaExpress.Tests.Tests
                 "Results should be newest-first");
         }
 
+        // ── PruneAutoBackups catch branch ─────────────────────────────────────
+
+        [TestMethod]
+        public void RunAutoBackup_WhenOldestFileLocked_SwallowsDeleteException()
+        {
+            CreateFakeDb(_tempDir);
+            string backupDir = Path.Combine(_tempDir, "Backups");
+            Directory.CreateDirectory(backupDir);
+
+            // Pre-seed 7 old files; RunAutoBackup adds today's making 8 total.
+            // AutoBackupKeep = 7, so index 7 (the oldest) must be deleted.
+            for (int i = 1; i <= 7; i++)
+            {
+                string date = DateTime.Today.AddDays(-i).ToString("yyyyMMdd");
+                File.WriteAllText(Path.Combine(backupDir, $"orders_auto_{date}.db"), "fake");
+            }
+
+            // Lock the oldest file so File.Delete throws — covers the catch block.
+            string oldest = Path.Combine(backupDir,
+                $"orders_auto_{DateTime.Today.AddDays(-7):yyyyMMdd}.db");
+            using (File.Open(oldest, FileMode.Open, FileAccess.Read, FileShare.None))
+            {
+                DatabaseBackupService.RunAutoBackup(_tempDir);
+            }
+        }
+
         // ── Helpers ───────────────────────────────────────────────────────────
 
         private static void CreateFakeDb(string dataDir, string content = "fake db content")
