@@ -9,6 +9,26 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.44.0] — 2026-05-18
+
+### Added
+
+- `WinFormsTestHelper.cs`: new `DialogButtonClicker` helper — background thread that
+  finds a top-level window by title fragment then clicks a named child button via
+  `EnumChildWindows` + `BM_CLICK`, enabling coverage of receipt-dialog button lambdas.
+- `FormSmokeTests.cs`: 1 new test:
+  - `Form1_ReceiptDialog_CopyToClipboard_ThenSkip_CompletesOrder` — uses production
+    constructor (`showReceiptDialogs: true`); `DialogButtonClicker("Order Confirmed",
+    "Copy to Clipboard")` fires the `btnCopy.Click` lambda; `DialogAutoCloser("Copied")`
+    dismisses the confirmation MessageBox; `DialogAutoCloser("Order Complete")` closes
+    the final dialog. Covers `btnCopy.Click`, `Clipboard.SetText` path, and
+    `Form1.<>c__DisplayClass57_0`.
+
+**Total tests: 424 passing.**
+**Coverage crosses 90%: WindowsFormsApplication3 now at 90.3%.**
+
+---
+
 ## [2.43.0] — 2026-05-18
 
 ### Added

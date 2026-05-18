@@ -221,5 +221,96 @@ namespace PizzaExpress.Tests.Tests
             [DllImport("user32.dll", CharSet = CharSet.Auto)]
             private static extern IntPtr SendMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
         }
+
+        // Finds a top-level window whose title contains titleFragment, then
+        // clicks a child button whose text equals buttonText via BM_CLICK.
+        internal sealed class DialogButtonClicker : IDisposable
+        {
+            private readonly string _titleFragment;
+            private readonly string _buttonText;
+            private readonly Thread _thread;
+            private volatile bool _disposed;
+
+            public DialogButtonClicker(string titleFragment, string buttonText)
+            {
+                _titleFragment = titleFragment;
+                _buttonText    = buttonText;
+                _thread = new Thread(WatchLoop) { IsBackground = true };
+                _thread.Start();
+            }
+
+            public void Dispose()
+            {
+                _disposed = true;
+                _thread.Join(1000);
+            }
+
+            private void WatchLoop()
+            {
+                while (!_disposed)
+                {
+                    IntPtr dialogHwnd = IntPtr.Zero;
+
+                    EnumWindows((hWnd, _) =>
+                    {
+                        string title = GetWindowTitle(hWnd);
+                        if (!string.IsNullOrWhiteSpace(title) &&
+                            title.IndexOf(_titleFragment, StringComparison.OrdinalIgnoreCase) >= 0)
+                        {
+                            dialogHwnd = hWnd;
+                            return false;
+                        }
+                        return true;
+                    }, IntPtr.Zero);
+
+                    if (dialogHwnd != IntPtr.Zero)
+                    {
+                        EnumChildWindows(dialogHwnd, (child, _) =>
+                        {
+                            string text = GetWindowTitle(child);
+                            if (string.Equals(text, _buttonText, StringComparison.OrdinalIgnoreCase))
+                            {
+                                SendMessage(child, BM_CLICK, IntPtr.Zero, IntPtr.Zero);
+                                _disposed = true;
+                                return false;
+                            }
+                            return true;
+                        }, IntPtr.Zero);
+                    }
+
+                    if (!_disposed)
+                        Thread.Sleep(50);
+                }
+            }
+
+            private static string GetWindowTitle(IntPtr hWnd)
+            {
+                int length = GetWindowTextLength(hWnd);
+                if (length <= 0) return string.Empty;
+                var sb = new StringBuilder(length + 1);
+                GetWindowText(hWnd, sb, sb.Capacity);
+                return sb.ToString();
+            }
+
+            private const uint BM_CLICK = 0x00F5;
+
+            private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+            private delegate bool EnumChildProc(IntPtr hWnd, IntPtr lParam);
+
+            [DllImport("user32.dll")]
+            private static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
+
+            [DllImport("user32.dll")]
+            private static extern bool EnumChildWindows(IntPtr hWndParent, EnumChildProc lpEnumFunc, IntPtr lParam);
+
+            [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+            private static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
+
+            [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+            private static extern int GetWindowTextLength(IntPtr hWnd);
+
+            [DllImport("user32.dll", CharSet = CharSet.Auto)]
+            private static extern IntPtr SendMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+        }
     }
 }

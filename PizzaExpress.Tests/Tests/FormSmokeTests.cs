@@ -631,6 +631,62 @@ namespace PizzaExpress.Tests.Tests
         }
 
         [TestMethod]
+        public void Form1_ReceiptDialog_CopyToClipboard_ThenSkip_CompletesOrder()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo     = new OrderRepository(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    var cart     = new CartService(settings);
+
+                    using (var form = new Form1(repo, cart, settings))  // showReceiptDialogs = true
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        WinFormsTestHelper.FindByName<RadioButton>(form, "rbSizeSmall").Checked   = true;
+                        WinFormsTestHelper.FindByName<RadioButton>(form, "rbCrustNormal").Checked = true;
+                        WinFormsTestHelper.FindByName<Button>(form, "btnConfirmOrder").PerformClick();
+                        WinFormsTestHelper.PumpEvents();
+
+                        WinFormsTestHelper.FindByName<Button>(form, "btnCheckOut").PerformClick();
+                        WinFormsTestHelper.PumpEvents();
+
+                        WinFormsTestHelper.FindByName<TextBox>(form, "txtFirstName").Text  = "Lee";
+                        WinFormsTestHelper.FindByName<TextBox>(form, "txtLastName").Text   = "Park";
+                        WinFormsTestHelper.FindByName<TextBox>(form, "txtAddress").Text    = "9 High Street";
+                        WinFormsTestHelper.FindByName<TextBox>(form, "txtCity").Text       = "Auckland";
+                        WinFormsTestHelper.FindByName<TextBox>(form, "txtPostalCode").Text = "1010";
+                        WinFormsTestHelper.FindByName<ComboBox>(form, "cboRegion").SelectedItem = "Auckland";
+                        WinFormsTestHelper.FindByName<ComboBox>(form, "cboPaymentMethod").SelectedItem = "Cash";
+                        WinFormsTestHelper.FindByName<TextBox>(form, "txtAmountPaid").Text = "50.00";
+
+                        WinFormsTestHelper.FindByName<Button>(form, "btnPay").PerformClick();
+                        WinFormsTestHelper.PumpEvents();
+
+                        Assert.IsTrue(WinFormsTestHelper.FindByName<Button>(form, "btnSubmitOrder").Enabled);
+
+                        // Click "Copy to Clipboard" inside receipt dialog, dismiss "Copied" MessageBox,
+                        // then click "Skip" to close the receipt dialog,
+                        // then answer No to "Order Complete" (closes form).
+                        using (new WinFormsTestHelper.DialogButtonClicker("Order Confirmed", "Copy to Clipboard"))
+                        using (new WinFormsTestHelper.DialogAutoCloser("Copied", "Order Complete"))
+                            WinFormsTestHelper.FindByName<Button>(form, "btnSubmitOrder").PerformClick();
+
+                        WinFormsTestHelper.PumpEvents();
+                    }
+
+                    Assert.AreEqual(1, repo.LoadAll().Count, "Order should be persisted.");
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        [TestMethod]
         public void Form1_HistoryButton_OpensOrderHistoryDialog()
         {
             WinFormsTestHelper.RunInSta(() =>
