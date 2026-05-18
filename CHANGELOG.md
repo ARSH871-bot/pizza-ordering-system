@@ -9,6 +9,26 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.58.0] — 2026-05-19
+
+### Added
+
+- `Form1_ProcessCmdKey_UnhandledKey_ReturnsFalse`: invokes `ProcessCmdKey` via reflection with
+  `Keys.F2` (no handler registered); covers the `return base.ProcessCmdKey(...)` fall-through
+  at line 629 of Form1.cs.
+- `Form1_OpenSettingsForm_WithPinConfigured_AuthFailed_ReturnsEarly`: configures a staff PIN,
+  resets static auth session state, then calls `OpenSettingsForm` via reflection with a
+  DialogAutoCloser on "Staff Login"; covers the early-return path at line 487 of Form1.cs when
+  `EnsureAuthorized` returns false.
+- `MigrateFromNdjson_WhenMoveToMigratedFails_CatchSwallowsException`: pre-creates
+  `orders.ndjson` + `orders.ndjson.migrated` so `File.Move` throws `IOException`; covers the
+  outer `catch` block at lines 402–405 of OrderRepository.cs.
+- `MigrateFromJsonArray_WhenMoveToMigratedFails_CatchSwallowsException`: pre-creates
+  `orders.json` + `orders.json.migrated` so `File.Move` throws `IOException`; covers the
+  outer `catch` block at lines 421–424 of OrderRepository.cs.
+
+---
+
 ## [2.57.0] — 2026-05-19
 
 ### Added

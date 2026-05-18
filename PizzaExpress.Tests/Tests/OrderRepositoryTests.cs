@@ -658,6 +658,46 @@ namespace PizzaExpress.Tests.Tests
             Assert.IsNotNull(repo);
         }
 
+        // ── Legacy migration catch blocks ─────────────────────────────────────
+
+        [TestMethod]
+        public void MigrateFromNdjson_WhenMoveToMigratedFails_CatchSwallowsException()
+        {
+            string tempDir = Path.Combine(Path.GetTempPath(), "PizzaExpressMigNdjson_" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(tempDir);
+            try
+            {
+                string ndjsonPath = Path.Combine(tempDir, "orders.ndjson");
+                File.WriteAllText(ndjsonPath, "");
+                File.WriteAllText(ndjsonPath + ".migrated", "already_exists");
+                var repo = new OrderRepository(tempDir);
+                Assert.IsNotNull(repo);
+            }
+            finally
+            {
+                if (Directory.Exists(tempDir)) Directory.Delete(tempDir, true);
+            }
+        }
+
+        [TestMethod]
+        public void MigrateFromJsonArray_WhenMoveToMigratedFails_CatchSwallowsException()
+        {
+            string tempDir = Path.Combine(Path.GetTempPath(), "PizzaExpressMigJson_" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(tempDir);
+            try
+            {
+                string jsonPath = Path.Combine(tempDir, "orders.json");
+                File.WriteAllText(jsonPath, "[]");
+                File.WriteAllText(jsonPath + ".migrated", "already_exists");
+                var repo = new OrderRepository(tempDir);
+                Assert.IsNotNull(repo);
+            }
+            finally
+            {
+                if (Directory.Exists(tempDir)) Directory.Delete(tempDir, true);
+            }
+        }
+
         // ── Helpers ───────────────────────────────────────────────────────────
 
         private static OrderRecord MakeRecord(string name)

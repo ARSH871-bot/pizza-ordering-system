@@ -2024,6 +2024,79 @@ namespace PizzaExpress.Tests.Tests
             });
         }
 
+        // ── ProcessCmdKey — unhandled key falls through to base ───────────────
+
+        [TestMethod]
+        public void Form1_ProcessCmdKey_UnhandledKey_ReturnsFalse()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo     = new OrderRepository(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    var cart     = new CartService(settings);
+
+                    using (var form = new Form1(repo, cart, settings, showReceiptDialogs: false))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        var mi   = typeof(Form1).GetMethod("ProcessCmdKey",
+                            BindingFlags.NonPublic | BindingFlags.Instance);
+                        var args = new object[] { new Message(), Keys.F2 };
+                        bool result = (bool)mi.Invoke(form, args);
+                        Assert.IsFalse(result, "An unhandled key should fall through and return false.");
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        // ── OpenSettingsForm — auth-fail early return ─────────────────────────
+
+        [TestMethod]
+        public void Form1_OpenSettingsForm_WithPinConfigured_AuthFailed_ReturnsEarly()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo     = new OrderRepository(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    settings.Set("StaffPin", "1234");
+                    var cart = new CartService(settings);
+
+                    // Ensure no recent auth so EnsureAuthorized always prompts
+                    typeof(StaffAuthSession)
+                        .GetField("_lastAuthenticatedUtc", BindingFlags.Static | BindingFlags.NonPublic)
+                        .SetValue(null, DateTime.MinValue);
+
+                    using (var form = new Form1(repo, cart, settings, showReceiptDialogs: false))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        var mi = typeof(Form1).GetMethod("OpenSettingsForm",
+                            BindingFlags.NonPublic | BindingFlags.Instance);
+
+                        // WM_CLOSE on PinLoginForm returns Cancel → EnsureAuthorized returns false →
+                        // OpenSettingsForm hits the early return at line 487.
+                        using (new WinFormsTestHelper.DialogAutoCloser("Staff Login"))
+                            mi.Invoke(form, null);
+
+                        WinFormsTestHelper.PumpEvents();
+                        Assert.IsTrue(form.Visible, "Form should remain visible after auth failure.");
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
         private static string CreateTempDataDirectory()
         {
             string dir = Path.Combine(Path.GetTempPath(), "PizzaExpressForms_" + Guid.NewGuid().ToString("N"));
