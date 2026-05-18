@@ -9,6 +9,25 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.60.0] — 2026-05-19
+
+### Added
+
+- `CrashLogPath_ContainsPizzaExpressAndLogs`: invokes the private static `CrashLogPath`
+  method via reflection; covers lines 104–108 of Program.cs.
+- `WriteCrashLog_WithException_CreatesLogFile`: invokes the private static `WriteCrashLog`
+  via reflection with a synthetic exception; covers lines 79–95 of Program.cs (the main
+  success path including `Directory.CreateDirectory`, `File.WriteAllText`, and log content
+  formatting).
+- `OnUnhandledDomainException_WithException_DoesNotThrow`: invokes the private static
+  handler via reflection with a real `Exception` object; covers lines 71–74 of Program.cs
+  (the `is Exception ex` true branch that delegates to `WriteCrashLog`).
+- `OnUnhandledDomainException_WithNonException_DoesNotThrow`: invokes the handler with
+  a non-`Exception` object; covers line 73's false branch where the cast check fails and
+  `WriteCrashLog` is not called.
+
+---
+
 ## [2.59.0] — 2026-05-19
 
 ### Added

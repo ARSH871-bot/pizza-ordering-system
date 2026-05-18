@@ -47,10 +47,10 @@ Claude Code handoff for this repository.
 
 ## Current Verified Handoff
 
-- Current working version: `v2.59.0` (local, pending CI). Previous verified baseline: `v2.58.0` (local 489/489).
-- Local test run: `491/491` passed, coverage gate passed.
+- Current working version: `v2.60.0` (local, pending CI). Previous verified baseline: `v2.59.0` (local 491/491).
+- Local test run: `495/495` passed, coverage gate passed.
 - `v2.44.0` failed because clipboard-dependent receipt-dialog smoke coverage timed out in headless CI. Do not reintroduce clipboard-dependent smoke tests.
-- Next task: continue coverage improvements (v2.60.0+).
+- Next task: continue coverage improvements (v2.61.0+).
 - Lesson: never call `form.Show()` + `PerformClick()` on buttons in `OrderHistoryForm` in a test that doesn't need the window visible — use reflection to invoke private methods directly.
 
 ## Validation Commands
@@ -63,7 +63,7 @@ dotnet build WindowsFormsApplication3.sln --configuration Debug
 .\scripts\Run-Tests.ps1 -Configuration Debug
 ```
 
-Expected: 491 tests passing. Coverage gate: 75% line-rate on WindowsFormsApplication3 (currently 94.6%+).
+Expected: 495 tests passing. Coverage gate: 75% line-rate on WindowsFormsApplication3 (currently 94.6%+).
 
 Coverage validation:
 
