@@ -9,6 +9,22 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.54.0] — 2026-05-19
+
+### Added
+
+- `SettingsForm_CancelButton_ClosesForm`: clicks the Cancel button on a live SettingsForm; covers
+  the `_btnCancel.Click` lambda (SettingsForm.<>c__DisplayClass15_0 line 185).
+- `PinLoginForm_IsLockedOut_AfterExpiry_CallsResetLockout`: triggers lockout then uses reflection
+  to back-date `_lockedUntilUtc`, then calls `IsLockedOut()`; covers the expiry branch and the
+  entire `ResetLockout()` method (lines 333–347).
+- `PinLoginForm_ClearButton_WhileLockedOut_DoesNothing`: triggers lockout then `PerformClick`s
+  the CLR pad button; covers the locked-out early-return guard in `btnClear.Click` (line 159).
+- `PinLoginForm_BackButton_WhileLockedOut_DoesNothing`: triggers lockout then `PerformClick`s
+  the Back pad button; covers the locked-out early-return guard in `btnBack.Click` (line 172).
+
+---
+
 ## [2.53.0] — 2026-05-19
 
 ### Added

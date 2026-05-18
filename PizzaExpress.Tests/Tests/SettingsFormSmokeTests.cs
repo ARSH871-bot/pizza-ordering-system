@@ -12,6 +12,34 @@ namespace PizzaExpress.Tests.Tests
     [TestClass]
     public class SettingsFormSmokeTests
     {
+        // ── Cancel button closes form ─────────────────────────────────────────
+
+        [TestMethod]
+        public void SettingsForm_CancelButton_ClosesForm()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDir();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+
+                    using (var form = new SettingsForm(settings, tempDir))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        WinFormsTestHelper.FindByTextPrefix<Button>(form, "Cancel").PerformClick();
+                        WinFormsTestHelper.PumpEvents();
+
+                        Assert.IsFalse(form.Visible, "SettingsForm should close after clicking Cancel.");
+                    }
+                }
+                finally { DeleteTempDir(tempDir); }
+            });
+        }
+
         // ── No data directory guard (ShowNoDataDir) ───────────────────────────
 
         [TestMethod]

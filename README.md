@@ -1,9 +1,9 @@
 # Pizza Express - New Zealand
 
 [![Build and Test](https://github.com/ARSH871-bot/pizza-ordering-system/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/ARSH871-bot/pizza-ordering-system/actions/workflows/build-and-test.yml)
-![Version](https://img.shields.io/badge/version-2.53.0-brightgreen)
-![Tests](https://img.shields.io/badge/tests-469%20passing-success)
-![Coverage](https://img.shields.io/badge/coverage-94.3%25%20line%20(75%25%20gate)-brightgreen)
+![Version](https://img.shields.io/badge/version-2.54.0-brightgreen)
+![Tests](https://img.shields.io/badge/tests-473%20passing-success)
+![Coverage](https://img.shields.io/badge/coverage-94.6%25%20line%20(75%25%20gate)-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Platform](https://img.shields.io/badge/platform-Windows-lightgrey)
 ![Framework](https://img.shields.io/badge/.NET-4.8-purple)
@@ -205,6 +205,7 @@ scripts/
 
 | Version | Highlights |
 |---|---|
+| `v2.54.0` | 4 new tests: SettingsForm Cancel button, PinLoginForm IsLockedOut expiry/ResetLockout, CLR+Back locked-out guards; 473 total, 94.6% |
 | `v2.53.0` | 4 new tests: postal code KeyPress lambda, PinLoginForm CLR/Back pad buttons, SettingsForm invalid-PIN save path; 469 total, 94.3% |
 | `v2.52.0` | Fix: `ExportCsv` empty-list guard used `_listView.Items.Count` but `ApplyFilter` inserts a placeholder — changed to `_currentOrders.Count == 0`; 3 new tests (ConfirmOrder no-pizza, ClearOrder empty list, ViewAutoBackups null-dir); 465 total |
 | `v2.51.0` | Fix: replace headless-hanging `ExportCsv_EmptyList` button-click test with reflection invocation; add `PinLoginForm` correct-PIN success path; 462 total, 92.2% |

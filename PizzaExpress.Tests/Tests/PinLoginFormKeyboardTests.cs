@@ -561,6 +561,108 @@ namespace PizzaExpress.Tests.Tests
             });
         }
 
+        // ── IsLockedOut expiry path (ResetLockout) ────────────────────────────
+
+        [TestMethod]
+        public void PinLoginForm_IsLockedOut_AfterExpiry_CallsResetLockout()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    settings.Set("StaffPin", PinSecurity.Protect("1234"));
+
+                    using (var form = new PinLoginForm(settings))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+                        TriggerLockout(form);
+
+                        // Force lockout to appear expired via reflection
+                        typeof(PinLoginForm)
+                            .GetField("_lockedUntilUtc", BindingFlags.NonPublic | BindingFlags.Instance)
+                            .SetValue(form, DateTime.UtcNow.AddSeconds(-1));
+
+                        // Calling IsLockedOut now hits the expiry branch and invokes ResetLockout
+                        var isLockedOut = typeof(PinLoginForm).GetMethod(
+                            "IsLockedOut", BindingFlags.NonPublic | BindingFlags.Instance);
+                        bool result = (bool)isLockedOut.Invoke(form, null);
+
+                        Assert.IsFalse(result, "IsLockedOut should return false once the lockout time has passed.");
+                        Assert.IsTrue(
+                            WinFormsTestHelper.GetPrivateField<Button>(form, "_btnEnter").Enabled,
+                            "Enter button should be re-enabled after lockout expires.");
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        // ── CLR and Back buttons while locked out ─────────────────────────────
+
+        [TestMethod]
+        public void PinLoginForm_ClearButton_WhileLockedOut_DoesNothing()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    settings.Set("StaffPin", PinSecurity.Protect("1234"));
+
+                    using (var form = new PinLoginForm(settings))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+                        TriggerLockout(form);
+
+                        int dotsBefore = GetDotsLabel(form).Text.Length;
+                        WinFormsTestHelper.FindByTextPrefix<Button>(form, "CLR").PerformClick();
+                        WinFormsTestHelper.PumpEvents();
+
+                        Assert.AreEqual(dotsBefore, GetDotsLabel(form).Text.Length,
+                            "CLR should have no effect while the form is locked out.");
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        [TestMethod]
+        public void PinLoginForm_BackButton_WhileLockedOut_DoesNothing()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    settings.Set("StaffPin", PinSecurity.Protect("1234"));
+
+                    using (var form = new PinLoginForm(settings))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+                        TriggerLockout(form);
+
+                        int dotsBefore = GetDotsLabel(form).Text.Length;
+                        WinFormsTestHelper.FindByTextPrefix<Button>(form, "Back").PerformClick();
+                        WinFormsTestHelper.PumpEvents();
+
+                        Assert.AreEqual(dotsBefore, GetDotsLabel(form).Text.Length,
+                            "Back should have no effect while the form is locked out.");
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
         // ── CLR and Back pad buttons ──────────────────────────────────────────
 
         [TestMethod]
