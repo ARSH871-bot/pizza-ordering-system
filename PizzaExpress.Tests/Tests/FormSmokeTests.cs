@@ -631,6 +631,109 @@ namespace PizzaExpress.Tests.Tests
         }
 
         [TestMethod]
+        public void Form1_HistoryButton_OpensOrderHistoryDialog()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo     = new OrderRepository(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    var cart     = new CartService(settings);
+
+                    using (var form = new Form1(repo, cart, settings, showReceiptDialogs: false))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        // Navigate to Tab 2 so the Order History button is accessible
+                        WinFormsTestHelper.FindByName<RadioButton>(form, "rbSizeSmall").Checked   = true;
+                        WinFormsTestHelper.FindByName<RadioButton>(form, "rbCrustNormal").Checked = true;
+                        WinFormsTestHelper.FindByName<Button>(form, "btnConfirmOrder").PerformClick();
+                        WinFormsTestHelper.PumpEvents();
+
+                        using (new WinFormsTestHelper.DialogAutoCloser("Order History"))
+                            WinFormsTestHelper.FindByTextPrefix<Button>(form, "Order History").PerformClick();
+
+                        WinFormsTestHelper.PumpEvents();
+                        Assert.IsTrue(form.Visible, "Form1 should still be visible after closing Order History.");
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        [TestMethod]
+        public void Form1_SalesReportButton_OpensSalesReportDialog()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo     = new OrderRepository(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    var cart     = new CartService(settings);
+
+                    using (var form = new Form1(repo, cart, settings, showReceiptDialogs: false))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        WinFormsTestHelper.FindByName<RadioButton>(form, "rbSizeSmall").Checked   = true;
+                        WinFormsTestHelper.FindByName<RadioButton>(form, "rbCrustNormal").Checked = true;
+                        WinFormsTestHelper.FindByName<Button>(form, "btnConfirmOrder").PerformClick();
+                        WinFormsTestHelper.PumpEvents();
+
+                        using (new WinFormsTestHelper.DialogAutoCloser("Sales Report"))
+                            WinFormsTestHelper.FindByTextPrefix<Button>(form, "Sales Report").PerformClick();
+
+                        WinFormsTestHelper.PumpEvents();
+                        Assert.IsTrue(form.Visible);
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        [TestMethod]
+        public void Form1_EndOfDayButton_OpensEndOfDayDialog()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo     = new OrderRepository(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    var cart     = new CartService(settings);
+
+                    using (var form = new Form1(repo, cart, settings, showReceiptDialogs: false))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        WinFormsTestHelper.FindByName<RadioButton>(form, "rbSizeSmall").Checked   = true;
+                        WinFormsTestHelper.FindByName<RadioButton>(form, "rbCrustNormal").Checked = true;
+                        WinFormsTestHelper.FindByName<Button>(form, "btnConfirmOrder").PerformClick();
+                        WinFormsTestHelper.PumpEvents();
+
+                        using (new WinFormsTestHelper.DialogAutoCloser("End of Day"))
+                            WinFormsTestHelper.FindByTextPrefix<Button>(form, "End of Day").PerformClick();
+
+                        WinFormsTestHelper.PumpEvents();
+                        Assert.IsTrue(form.Visible);
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        [TestMethod]
         public void Form1_ExitButton_Yes_ClosesForm()
         {
             WinFormsTestHelper.RunInSta(() =>

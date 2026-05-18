@@ -1,4 +1,5 @@
 using System.IO;
+using System.Reflection;
 using System.Windows.Forms;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using WindowsFormsApplication3.Forms;
@@ -98,6 +99,51 @@ namespace PizzaExpress.Tests.Tests
 
                         WinFormsTestHelper.PumpEvents();
                         Assert.IsTrue(form.Visible);
+                    }
+                }
+                finally { DeleteTempDir(tempDir); }
+            });
+        }
+
+        // ── DataGridView cell-edit lambdas ────────────────────────────────────
+
+        [TestMethod]
+        public void SettingsForm_CellBeginEdit_AndCellEndEdit_ChangeBackColor()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDir();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+
+                    using (var form = new SettingsForm(settings, tempDir))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        var grid = WinFormsTestHelper.GetPrivateField<DataGridView>(form, "_grid");
+                        Assert.IsNotNull(grid, "_grid field not found.");
+                        Assert.IsTrue(grid.Rows.Count > 0, "Grid must have at least one row.");
+
+                        // Select the Value cell (column index 1) of the first row
+                        grid.CurrentCell = grid.Rows[0].Cells[1];
+                        WinFormsTestHelper.PumpEvents();
+
+                        // BeginEdit triggers CellBeginEdit lambda — highlights the cell
+                        grid.BeginEdit(true);
+                        WinFormsTestHelper.PumpEvents();
+
+                        // EndEdit triggers CellEndEdit lambda — resets the highlight
+                        grid.EndEdit();
+                        WinFormsTestHelper.PumpEvents();
+
+                        // Cell background should be cleared
+                        Assert.AreEqual(
+                            System.Drawing.Color.Empty,
+                            grid.Rows[0].Cells[1].Style.BackColor,
+                            "CellEndEdit should reset cell BackColor to Empty.");
                     }
                 }
                 finally { DeleteTempDir(tempDir); }

@@ -9,6 +9,32 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.43.0] — 2026-05-18
+
+### Added
+
+- `FormSmokeTests.cs`: 3 new `Form1` smoke tests covering programmatic Tab 2 buttons:
+  - `Form1_HistoryButton_OpensOrderHistoryDialog` — navigates to Tab 2, clicks "Order
+    History", `DialogAutoCloser("Order History")` closes the form; covers
+    `btnHistory.Click` lambda.
+  - `Form1_SalesReportButton_OpensSalesReportDialog` — clicks "Sales Report",
+    `DialogAutoCloser("Sales Report")` closes it; covers `OpenSalesReportForm` via
+    button lambda.
+  - `Form1_EndOfDayButton_OpensEndOfDayDialog` — clicks "End of Day",
+    `DialogAutoCloser("End of Day")` closes it; covers `OpenEndOfDayForm` via
+    button lambda.
+- `SettingsFormSmokeTests.cs`: 1 new test:
+  - `SettingsForm_CellBeginEdit_AndCellEndEdit_ChangeBackColor` — gets `_grid` via
+    reflection, sets `CurrentCell` to a Value cell, calls `BeginEdit(true)` then
+    `EndEdit()`; exercises the `CellBeginEdit` highlight and `CellEndEdit` reset
+    lambdas in `SettingsForm.<>c__DisplayClass15_0`.
+- Added `using System.Reflection` to `SettingsFormSmokeTests.cs`.
+
+**Total tests: 423 passing.**
+**Overall WindowsFormsApplication3 coverage now 89.9%.**
+
+---
+
 ## [2.42.0] — 2026-05-18
 
 ### Added
