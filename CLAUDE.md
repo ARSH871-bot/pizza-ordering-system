@@ -47,13 +47,11 @@ Claude Code handoff for this repository.
 
 ## Current Verified Handoff
 
-- Current `master` / `origin/master`: `a96e55e42d0245a3efa1a909e847dec08ef2d957`.
-- Commit title: `v2.44.1: fix receipt dialog test timeout (replace clipboard test with Skip button test)`.
-- Build/Test run `26013196506` passed.
-- CI evidence: Debug build passed, `424/424` tests passed, coverage gate passed, `WindowsFormsApplication3` measured at `90%` line coverage, Release build passed, portable package smoke test passed.
+- Current working version: `v2.45.0` (local, pending CI).
+- Previous verified baseline: `v2.44.1` at `a96e55e42d0245a3efa1a909e847dec08ef2d957`.
+- Local test run: `432/432` passed, `92.2%` line coverage, coverage gate passed.
 - `v2.44.0` failed because clipboard-dependent receipt-dialog smoke coverage timed out in headless CI. Do not reintroduce clipboard-dependent smoke tests.
-- `gh release view v2.44.1` returned `release not found`, and no exact remote `refs/tags/v2.44.1` tag was visible during verification.
-- Next task: publish/verify the latest tag and GitHub Release if still absent; then continue with service extraction/install hardening.
+- Next task: push `v2.45.0` to GitHub, verify CI, tag and release; then continue with service extraction/install hardening.
 
 ## Validation Commands
 
@@ -65,7 +63,7 @@ dotnet build WindowsFormsApplication3.sln --configuration Debug
 .\scripts\Run-Tests.ps1 -Configuration Debug
 ```
 
-Expected: 424 tests passing. Coverage gate: 75% line-rate on WindowsFormsApplication3 (currently 90.0%).
+Expected: 432 tests passing. Coverage gate: 75% line-rate on WindowsFormsApplication3 (currently 92.2%).
 
 Coverage validation:
 

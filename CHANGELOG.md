@@ -9,6 +9,36 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.45.0] — 2026-05-18
+
+### Added
+
+- 8 new tests across `FormSmokeTests` and `SettingsFormSmokeTests`; 432 total, 92.2% line coverage.
+- `Form1_PrintReceipt_OpensPrintPreviewDialog`: injects `_lastReceiptText` via reflection,
+  calls the private `PrintReceipt(Order)` method, and closes the `PrintPreviewDialog` via
+  `DialogAutoCloser("Print Preview")`. Covers all 70 lines of `PrintReceipt`.
+- `Form1_ProcessCmdKey_AltK_OnTab2_NavigatesToTab3`: invokes `ProcessCmdKey` with
+  `Keys.Alt | Keys.K` while on Tab 2; verifies navigation to Tab 3. Also selects
+  ExtraLarge + Sausage crust to cover `RecalculateLiveTotal` ExtraLarge/Sausage branches.
+- `Form1_ProcessCmdKey_AltY_OnTab3_TriggersValidation`: invokes `ProcessCmdKey` with
+  `Keys.Alt | Keys.Y` on Tab 3 with empty customer fields; `DialogAutoCloser("Validation Error")`
+  dismisses the resulting MessageBox.
+- `Form1_ProcessCmdKey_Escape_FromTab3AndTab2_NavigatesBack`: Escape from Tab 3 goes to Tab 2,
+  Escape from Tab 2 goes to Tab 1.
+- `Form1_InlineValidation_Leave_InvalidAndValid_UpdatesBackColor`: invokes the private
+  `txtPostalCode_Leave`, `txtContactNo_Leave`, and `txtEmail_Leave` handlers directly via
+  reflection with both valid and invalid inputs; asserts BackColor changes.
+- `Form1_LvContextMenu_RemoveSelectedItem_UpdatesList`: navigates to Tab 2, adds an item
+  to `lvOrder`, selects it, then invokes the context-menu Remove handler via
+  `ToolStripItem.OnClick` reflection (direct `PerformClick` bails when the menu is not open).
+- `SettingsForm_SaveButton_WithValidData_ShowsSavedDialogAndCloses`: clicks Save Changes
+  with valid default data; `DialogAutoCloser("Saved")` handles the confirmation, form closes.
+- `SettingsForm_SaveButton_WithInvalidNumericValue_ShowsValidationError`: sets a numeric
+  setting value to "notanumber" via the grid, clicks Save Changes; `DialogAutoCloser("Validation Error")`
+  handles the error dialog, form stays open.
+
+---
+
 ## [2.44.1] — 2026-05-18
 
 ### Fixed

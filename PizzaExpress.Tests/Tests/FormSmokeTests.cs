@@ -1,4 +1,5 @@
 using System;
+using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -877,6 +878,294 @@ namespace PizzaExpress.Tests.Tests
                             mi.Invoke(form, null);
 
                         WinFormsTestHelper.PumpEvents();
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        // ── PrintReceipt ─────────────────────────────────────────────────────
+
+        [TestMethod]
+        public void Form1_PrintReceipt_OpensPrintPreviewDialog()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo     = new OrderRepository(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    var cart     = new CartService(settings);
+
+                    using (var form = new Form1(repo, cart, settings, showReceiptDialogs: false))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        // Inject receipt text so PrintReceipt has content to render
+                        var receiptField = typeof(Form1).GetField(
+                            "_lastReceiptText", BindingFlags.NonPublic | BindingFlags.Instance);
+                        receiptField.SetValue(form, "Pizza Express Receipt\nLine 2\nLine 3");
+
+                        var printMethod = typeof(Form1).GetMethod(
+                            "PrintReceipt", BindingFlags.NonPublic | BindingFlags.Instance);
+
+                        using (new WinFormsTestHelper.DialogAutoCloser("Print Preview"))
+                            printMethod.Invoke(form, new object[] { new WindowsFormsApplication3.Models.Order() });
+
+                        WinFormsTestHelper.PumpEvents();
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        // ── ProcessCmdKey branches ────────────────────────────────────────────
+
+        [TestMethod]
+        public void Form1_ProcessCmdKey_AltK_OnTab2_NavigatesToTab3()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo     = new OrderRepository(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    var cart     = new CartService(settings);
+
+                    using (var form = new Form1(repo, cart, settings, showReceiptDialogs: false))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        // ExtraLarge + Sausage crust covers RecalculateLiveTotal branches
+                        WinFormsTestHelper.FindByName<RadioButton>(form, "rbSizeExtraLarge").Checked = true;
+                        WinFormsTestHelper.FindByName<RadioButton>(form, "rbCrustSausage").Checked   = true;
+                        WinFormsTestHelper.FindByName<Button>(form, "btnConfirmOrder").PerformClick();
+                        WinFormsTestHelper.PumpEvents();
+
+                        var tabControl = WinFormsTestHelper.FindByName<TabControl>(form, "tabControl1");
+                        Assert.AreEqual(1, tabControl.SelectedIndex, "Should be on Tab 2 after Confirm Order.");
+
+                        var mi  = typeof(Form1).GetMethod("ProcessCmdKey", BindingFlags.NonPublic | BindingFlags.Instance);
+                        var msg = new Message();
+                        mi.Invoke(form, new object[] { msg, Keys.Alt | Keys.K });
+                        WinFormsTestHelper.PumpEvents();
+
+                        Assert.AreEqual(2, tabControl.SelectedIndex, "Alt+K on Tab 2 should navigate to Tab 3.");
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        [TestMethod]
+        public void Form1_ProcessCmdKey_AltY_OnTab3_TriggersValidation()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo     = new OrderRepository(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    var cart     = new CartService(settings);
+
+                    using (var form = new Form1(repo, cart, settings, showReceiptDialogs: false))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        WinFormsTestHelper.FindByName<RadioButton>(form, "rbSizeSmall").Checked   = true;
+                        WinFormsTestHelper.FindByName<RadioButton>(form, "rbCrustNormal").Checked = true;
+                        WinFormsTestHelper.FindByName<Button>(form, "btnConfirmOrder").PerformClick();
+                        WinFormsTestHelper.PumpEvents();
+                        WinFormsTestHelper.FindByName<Button>(form, "btnCheckOut").PerformClick();
+                        WinFormsTestHelper.PumpEvents();
+
+                        var tabControl = WinFormsTestHelper.FindByName<TabControl>(form, "tabControl1");
+                        Assert.AreEqual(2, tabControl.SelectedIndex, "Should be on Tab 3.");
+
+                        var mi  = typeof(Form1).GetMethod("ProcessCmdKey", BindingFlags.NonPublic | BindingFlags.Instance);
+                        var msg = new Message();
+
+                        // Alt+Y on Tab 3 with empty customer fields triggers validation error
+                        using (new WinFormsTestHelper.DialogAutoCloser("Validation Error"))
+                            mi.Invoke(form, new object[] { msg, Keys.Alt | Keys.Y });
+
+                        WinFormsTestHelper.PumpEvents();
+                        Assert.AreEqual(2, tabControl.SelectedIndex, "Should remain on Tab 3.");
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        [TestMethod]
+        public void Form1_ProcessCmdKey_Escape_FromTab3AndTab2_NavigatesBack()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo     = new OrderRepository(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    var cart     = new CartService(settings);
+
+                    using (var form = new Form1(repo, cart, settings, showReceiptDialogs: false))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        WinFormsTestHelper.FindByName<RadioButton>(form, "rbSizeSmall").Checked   = true;
+                        WinFormsTestHelper.FindByName<RadioButton>(form, "rbCrustNormal").Checked = true;
+                        WinFormsTestHelper.FindByName<Button>(form, "btnConfirmOrder").PerformClick();
+                        WinFormsTestHelper.PumpEvents();
+                        WinFormsTestHelper.FindByName<Button>(form, "btnCheckOut").PerformClick();
+                        WinFormsTestHelper.PumpEvents();
+
+                        var tabControl = WinFormsTestHelper.FindByName<TabControl>(form, "tabControl1");
+                        Assert.AreEqual(2, tabControl.SelectedIndex, "Should be on Tab 3.");
+
+                        var mi  = typeof(Form1).GetMethod("ProcessCmdKey", BindingFlags.NonPublic | BindingFlags.Instance);
+                        var msg = new Message();
+
+                        mi.Invoke(form, new object[] { msg, Keys.Escape });
+                        WinFormsTestHelper.PumpEvents();
+                        Assert.AreEqual(1, tabControl.SelectedIndex, "Escape from Tab 3 should go to Tab 2.");
+
+                        mi.Invoke(form, new object[] { msg, Keys.Escape });
+                        WinFormsTestHelper.PumpEvents();
+                        Assert.AreEqual(0, tabControl.SelectedIndex, "Escape from Tab 2 should go to Tab 1.");
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        // ── Inline validation Leave handlers ──────────────────────────────────
+
+        [TestMethod]
+        public void Form1_InlineValidation_Leave_InvalidAndValid_UpdatesBackColor()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo     = new OrderRepository(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    var cart     = new CartService(settings);
+
+                    using (var form = new Form1(repo, cart, settings, showReceiptDialogs: false))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        var txtPostalCode = WinFormsTestHelper.FindByName<TextBox>(form, "txtPostalCode");
+                        var txtContactNo  = WinFormsTestHelper.FindByName<TextBox>(form, "txtContactNo");
+                        var txtEmail      = WinFormsTestHelper.FindByName<TextBox>(form, "txtEmail");
+
+                        var leavePostal  = typeof(Form1).GetMethod("txtPostalCode_Leave",
+                            BindingFlags.NonPublic | BindingFlags.Instance);
+                        var leaveContact = typeof(Form1).GetMethod("txtContactNo_Leave",
+                            BindingFlags.NonPublic | BindingFlags.Instance);
+                        var leaveEmail   = typeof(Form1).GetMethod("txtEmail_Leave",
+                            BindingFlags.NonPublic | BindingFlags.Instance);
+
+                        // Invalid postal code
+                        txtPostalCode.Text = "XYZ";
+                        leavePostal.Invoke(form, new object[] { txtPostalCode, EventArgs.Empty });
+                        Assert.AreNotEqual(SystemColors.Window, txtPostalCode.BackColor,
+                            "Invalid postal code should set a non-Window BackColor.");
+
+                        // Valid postal code
+                        txtPostalCode.Text = "1010";
+                        leavePostal.Invoke(form, new object[] { txtPostalCode, EventArgs.Empty });
+
+                        // Empty contact — neutral
+                        txtContactNo.Text = "";
+                        leaveContact.Invoke(form, new object[] { txtContactNo, EventArgs.Empty });
+                        Assert.AreEqual(SystemColors.Window, txtContactNo.BackColor,
+                            "Empty contact should restore Window BackColor.");
+
+                        // Invalid contact
+                        txtContactNo.Text = "bad";
+                        leaveContact.Invoke(form, new object[] { txtContactNo, EventArgs.Empty });
+                        Assert.AreNotEqual(SystemColors.Window, txtContactNo.BackColor,
+                            "Invalid contact should set a non-Window BackColor.");
+
+                        // Empty email — neutral
+                        txtEmail.Text = "";
+                        leaveEmail.Invoke(form, new object[] { txtEmail, EventArgs.Empty });
+                        Assert.AreEqual(SystemColors.Window, txtEmail.BackColor,
+                            "Empty email should restore Window BackColor.");
+
+                        // Invalid email
+                        txtEmail.Text = "notanemail";
+                        leaveEmail.Invoke(form, new object[] { txtEmail, EventArgs.Empty });
+                        Assert.AreNotEqual(SystemColors.Window, txtEmail.BackColor,
+                            "Invalid email should set a non-Window BackColor.");
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        // ── ListView context menu ─────────────────────────────────────────────
+
+        [TestMethod]
+        public void Form1_LvContextMenu_RemoveSelectedItem_UpdatesList()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo     = new OrderRepository(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    var cart     = new CartService(settings);
+
+                    using (var form = new Form1(repo, cart, settings, showReceiptDialogs: false))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        // Navigate to Tab 2 so lvOrder has a valid window handle
+                        WinFormsTestHelper.FindByName<RadioButton>(form, "rbSizeSmall").Checked   = true;
+                        WinFormsTestHelper.FindByName<RadioButton>(form, "rbCrustNormal").Checked = true;
+                        WinFormsTestHelper.FindByName<Button>(form, "btnConfirmOrder").PerformClick();
+                        WinFormsTestHelper.PumpEvents();
+
+                        var lvOrder    = WinFormsTestHelper.FindByName<ListView>(form, "lvOrder");
+                        int countBefore = lvOrder.Items.Count;
+                        var lvi = new ListViewItem("Extra Item");
+                        lvi.SubItems.Add("1");
+                        lvi.SubItems.Add("5.00");
+                        lvOrder.Items.Add(lvi);
+                        lvOrder.Items[lvOrder.Items.Count - 1].Selected = true;
+                        WinFormsTestHelper.PumpEvents();
+                        Assert.AreEqual(countBefore + 1, lvOrder.Items.Count, "Item should have been added.");
+
+                        var ctxMenu    = WinFormsTestHelper.GetPrivateField<ContextMenuStrip>(form, "_lvContextMenu");
+                        var menuRemove = (ToolStripMenuItem)ctxMenu.Items[0];
+                        // PerformClick bails when the ContextMenuStrip is not open (Available==false).
+                        // Invoke OnClick directly to fire the Click event handlers.
+                        var onClickMethod = typeof(ToolStripItem).GetMethod(
+                            "OnClick", BindingFlags.NonPublic | BindingFlags.Instance);
+                        onClickMethod.Invoke(menuRemove, new object[] { EventArgs.Empty });
+                        WinFormsTestHelper.PumpEvents();
+
+                        Assert.AreEqual(countBefore, lvOrder.Items.Count, "Item should have been removed.");
                     }
                 }
                 finally { DeleteTempDataDirectory(tempDir); }

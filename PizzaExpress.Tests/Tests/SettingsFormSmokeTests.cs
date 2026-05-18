@@ -150,6 +150,73 @@ namespace PizzaExpress.Tests.Tests
             });
         }
 
+        // ── Save button paths ─────────────────────────────────────────────────
+
+        [TestMethod]
+        public void SettingsForm_SaveButton_WithValidData_ShowsSavedDialogAndCloses()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDir();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+
+                    using (var form = new SettingsForm(settings, tempDir))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        using (new WinFormsTestHelper.DialogAutoCloser("Saved"))
+                            WinFormsTestHelper.FindByTextPrefix<Button>(form, "Save Changes").PerformClick();
+
+                        WinFormsTestHelper.PumpEvents();
+                        Assert.IsFalse(form.Visible, "SettingsForm should close after successful save.");
+                    }
+                }
+                finally { DeleteTempDir(tempDir); }
+            });
+        }
+
+        [TestMethod]
+        public void SettingsForm_SaveButton_WithInvalidNumericValue_ShowsValidationError()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDir();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+
+                    using (var form = new SettingsForm(settings, tempDir))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        var grid = WinFormsTestHelper.GetPrivateField<DataGridView>(form, "_grid");
+                        foreach (DataGridViewRow row in grid.Rows)
+                        {
+                            string key = row.Tag as string;
+                            if (SettingsForm.IsNumericKey(key))
+                            {
+                                row.Cells["Value"].Value = "notanumber";
+                                break;
+                            }
+                        }
+
+                        using (new WinFormsTestHelper.DialogAutoCloser("Validation Error"))
+                            WinFormsTestHelper.FindByTextPrefix<Button>(form, "Save Changes").PerformClick();
+
+                        WinFormsTestHelper.PumpEvents();
+                        Assert.IsTrue(form.Visible, "SettingsForm should remain open after validation error.");
+                    }
+                }
+                finally { DeleteTempDir(tempDir); }
+            });
+        }
+
         // ── Helpers ───────────────────────────────────────────────────────────
 
         private static string CreateTempDir()
