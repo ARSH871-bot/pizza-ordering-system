@@ -9,6 +9,35 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.47.0] — 2026-05-18
+
+### Added
+
+- 8 new tests in `PinLoginFormKeyboardTests` and `FormSmokeTests`; 449 total, coverage maintained.
+- `PinLoginForm_IncorrectPin_FirstAttempt_ShowsAttemptsRemainingMessage`: one wrong PIN attempt;
+  asserts `_lblError` contains "2 attempts remaining."
+- `PinLoginForm_IncorrectPin_SecondAttempt_ShowsOneRemainingMessage`: two wrong PIN attempts;
+  asserts `_lblError` contains "1 attempt remaining."
+- `PinLoginForm_AppendDigit_WhileLockedOut_DoesNotChange`: triggers lockout (3 wrong attempts),
+  then presses a digit key; asserts dots count is unchanged.
+- `PinLoginForm_BtnEnter_WhileLockedOut_UpdatesLockoutMessage`: calls `BtnEnter_Click` via
+  reflection while locked out; asserts `_lblError` still says "Try again."
+- `PinLoginForm_OnKeyDown_Backspace_WhileLockedOut_HandledNoChange`: asserts Backspace is marked
+  handled but dots are unchanged while locked out.
+- `PinLoginForm_OnKeyDown_Delete_WhileLockedOut_HandledNoChange`: same for Delete key.
+- `PinLoginForm_UpgradeLegacyPin_NullSettings_DoesNotThrow`: invokes `UpgradeLegacyPinIfNeeded`
+  via reflection on a form created with null settings; asserts no exception.
+- `Form1_OpenSettingsForm_NullSettings_ShowsNotAvailableDialog`: creates Form1 with null settings,
+  invokes `OpenSettingsForm` via reflection; `DialogAutoCloser("Settings")` handles the dialog.
+
+### Fixed
+
+- `Form1_BtnPay_PromoCodeInvalid_ShowsPromoError`: added required customer fields before clicking
+  `btnPay` so `ValidateCustomer` passes and the promo-error branch is reached. Previously the test
+  was relying on timing to close the "Validation Error" dialog accidentally; now robust.
+
+---
+
 ## [2.46.0] — 2026-05-18
 
 ### Added

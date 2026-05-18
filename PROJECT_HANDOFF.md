@@ -27,17 +27,17 @@ If these disagree, trust fresh code/test/workflow evidence first, then update th
 
 Verified on 2026-05-18 from this workspace.
 
-- Current `master` / `origin/master`: `v2.46.0` (pending CI).
-- Commit title: `v2.46.0: 9 new tests covering btnAddPizzaToCart no-pizza, btnClearOrder No, btnPay error paths, Order Complete No, and minor handlers; 441 total, 92.2%`.
-- Previous CI-verified baseline: `v2.45.0` at `8da8a33`, 432/432 tests, 92.2% coverage.
-- Local pre-push validation: Debug 441/441 passed, 92.2% coverage, coverage gate passed.
+- Current `master` / `origin/master`: `v2.47.0` (pending CI).
+- Commit title: `v2.47.0: 8 new tests covering PinLoginForm locked-out guards, error messages, null-settings; Form1 null-settings OpenSettingsForm; 449 total, 92.2%`.
+- Previous CI-verified baseline: `v2.46.0`, 441/441 tests, 92.2% coverage.
+- Local pre-push validation: Debug 449/449 passed, 92.2% coverage, coverage gate passed.
 - Coverage gate: passed (75% threshold, 92.2% actual).
 
 ## Public Release State
 
-- `v2.45.0` GitHub Release was published and verified (ZIP + SHA256 assets attached).
-- `v2.46.0` tag and commits to be pushed to `origin/master`. CI workflow (`build-and-test.yml`) and release workflow (`release.yml`) will trigger on tag push.
-- Next task: verify CI green for `v2.46.0`, confirm GitHub Release published; then continue coverage or service extraction work.
+- `v2.46.0` GitHub Release was published and verified (ZIP + SHA256 assets attached).
+- `v2.47.0` tag and commits to be pushed to `origin/master`. CI workflow (`build-and-test.yml`) and release workflow (`release.yml`) will trigger on tag push.
+- Next task: verify CI green for `v2.47.0`, confirm GitHub Release published; then continue coverage or service extraction work.
 
 ## Important Recent History
 

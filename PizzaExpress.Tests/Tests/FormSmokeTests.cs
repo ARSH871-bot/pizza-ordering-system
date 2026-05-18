@@ -884,6 +884,40 @@ namespace PizzaExpress.Tests.Tests
             });
         }
 
+        // ── OpenSettingsForm — null settings guard ────────────────────────────
+
+        [TestMethod]
+        public void Form1_OpenSettingsForm_NullSettings_ShowsNotAvailableDialog()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo = new OrderRepository(tempDir);
+                    var cart = new CartService();  // no settings needed for this test
+
+                    // Pass null for settings — covers the null-settings guard in OpenSettingsForm
+                    using (var form = new Form1(repo, cart, null, showReceiptDialogs: false))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        var mi = typeof(Form1).GetMethod(
+                            "OpenSettingsForm", BindingFlags.NonPublic | BindingFlags.Instance);
+
+                        using (new WinFormsTestHelper.DialogAutoCloser("Settings"))
+                            mi.Invoke(form, null);
+
+                        WinFormsTestHelper.PumpEvents();
+                        Assert.IsTrue(form.Visible, "Form should remain visible after dismissing the dialog.");
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
         // ── PrintReceipt ─────────────────────────────────────────────────────
 
         [TestMethod]
@@ -1278,6 +1312,14 @@ namespace PizzaExpress.Tests.Tests
                         WinFormsTestHelper.FindByName<Button>(form, "btnCheckOut").PerformClick();
                         WinFormsTestHelper.PumpEvents();
 
+                        // Fill required customer fields so ValidateCustomer passes and
+                        // the code reaches the promo-error branch.
+                        WinFormsTestHelper.FindByName<TextBox>(form, "txtFirstName").Text  = "Promo";
+                        WinFormsTestHelper.FindByName<TextBox>(form, "txtLastName").Text   = "Test";
+                        WinFormsTestHelper.FindByName<TextBox>(form, "txtAddress").Text    = "1 Test St";
+                        WinFormsTestHelper.FindByName<TextBox>(form, "txtCity").Text       = "Auckland";
+                        WinFormsTestHelper.FindByName<TextBox>(form, "txtPostalCode").Text = "1010";
+                        WinFormsTestHelper.FindByName<ComboBox>(form, "cboRegion").SelectedItem = "Auckland";
                         WinFormsTestHelper.FindByName<ComboBox>(form, "cboPaymentMethod").SelectedItem = "Promo Card";
                         WinFormsTestHelper.FindByName<TextBox>(form, "txtCardOrPromo").Text = "BADCODE";
 

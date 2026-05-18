@@ -302,5 +302,239 @@ namespace PizzaExpress.Tests.Tests
                 finally { DeleteTempDataDirectory(tempDir); }
             });
         }
+
+        // ── Intermediate error messages (1 and 2 remaining attempts) ──────────
+
+        [TestMethod]
+        public void PinLoginForm_IncorrectPin_FirstAttempt_ShowsAttemptsRemainingMessage()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    settings.Set("StaffPin", PinSecurity.Protect("1234"));
+
+                    using (var form = new PinLoginForm(settings))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        // Enter wrong PIN "9999" once
+                        for (int i = 0; i < 4; i++)
+                            form.OnKeyDown(form, new KeyEventArgs(Keys.D9));
+                        form.OnKeyDown(form, new KeyEventArgs(Keys.Enter));
+                        WinFormsTestHelper.PumpEvents();
+
+                        Label error = WinFormsTestHelper.GetPrivateField<Label>(form, "_lblError");
+                        StringAssert.Contains(error.Text, "2 attempts remaining",
+                            "After first wrong attempt, should show 2 remaining.");
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        [TestMethod]
+        public void PinLoginForm_IncorrectPin_SecondAttempt_ShowsOneRemainingMessage()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    settings.Set("StaffPin", PinSecurity.Protect("1234"));
+
+                    using (var form = new PinLoginForm(settings))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        // Enter wrong PIN "9999" twice
+                        for (int attempt = 0; attempt < 2; attempt++)
+                        {
+                            for (int i = 0; i < 4; i++)
+                                form.OnKeyDown(form, new KeyEventArgs(Keys.D9));
+                            form.OnKeyDown(form, new KeyEventArgs(Keys.Enter));
+                            WinFormsTestHelper.PumpEvents();
+                        }
+
+                        Label error = WinFormsTestHelper.GetPrivateField<Label>(form, "_lblError");
+                        StringAssert.Contains(error.Text, "1 attempt remaining",
+                            "After second wrong attempt, should show 1 remaining.");
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        // ── Locked-out guard paths ────────────────────────────────────────────
+
+        [TestMethod]
+        public void PinLoginForm_AppendDigit_WhileLockedOut_DoesNotChange()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    settings.Set("StaffPin", PinSecurity.Protect("1234"));
+
+                    using (var form = new PinLoginForm(settings))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+                        TriggerLockout(form);
+
+                        int dotsBefore = GetDotsLabel(form).Text.Length;
+
+                        // Attempt to add a digit while locked out
+                        form.OnKeyDown(form, new KeyEventArgs(Keys.D5));
+                        WinFormsTestHelper.PumpEvents();
+
+                        Assert.AreEqual(dotsBefore, GetDotsLabel(form).Text.Length,
+                            "No digit should be appended while locked out.");
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        [TestMethod]
+        public void PinLoginForm_BtnEnter_WhileLockedOut_UpdatesLockoutMessage()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    settings.Set("StaffPin", PinSecurity.Protect("1234"));
+
+                    using (var form = new PinLoginForm(settings))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+                        TriggerLockout(form);
+
+                        // Click Unlock while locked out — should call UpdateLockoutMessage and return
+                        var btnEnter = WinFormsTestHelper.GetPrivateField<Button>(form, "_btnEnter");
+                        var btnEnterClick = typeof(PinLoginForm).GetMethod(
+                            "BtnEnter_Click", BindingFlags.NonPublic | BindingFlags.Instance);
+                        btnEnterClick.Invoke(form, new object[] { btnEnter, EventArgs.Empty });
+                        WinFormsTestHelper.PumpEvents();
+
+                        Label error = WinFormsTestHelper.GetPrivateField<Label>(form, "_lblError");
+                        StringAssert.Contains(error.Text, "Try again",
+                            "Locked-out click should update the lockout message.");
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        [TestMethod]
+        public void PinLoginForm_OnKeyDown_Backspace_WhileLockedOut_HandledNoChange()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    settings.Set("StaffPin", PinSecurity.Protect("1234"));
+
+                    using (var form = new PinLoginForm(settings))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+                        TriggerLockout(form);
+
+                        int dotsBefore = GetDotsLabel(form).Text.Length;
+
+                        var backE = new KeyEventArgs(Keys.Back);
+                        form.OnKeyDown(form, backE);
+
+                        Assert.IsTrue(backE.Handled, "Backspace while locked out should be marked handled.");
+                        Assert.AreEqual(dotsBefore, GetDotsLabel(form).Text.Length,
+                            "Dots should not change on Backspace while locked out.");
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        [TestMethod]
+        public void PinLoginForm_OnKeyDown_Delete_WhileLockedOut_HandledNoChange()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    settings.Set("StaffPin", PinSecurity.Protect("1234"));
+
+                    using (var form = new PinLoginForm(settings))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+                        TriggerLockout(form);
+
+                        int dotsBefore = GetDotsLabel(form).Text.Length;
+
+                        var delE = new KeyEventArgs(Keys.Delete);
+                        form.OnKeyDown(form, delE);
+
+                        Assert.IsTrue(delE.Handled, "Delete while locked out should be marked handled.");
+                        Assert.AreEqual(dotsBefore, GetDotsLabel(form).Text.Length,
+                            "Dots should not change on Delete while locked out.");
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        // ── UpgradeLegacyPinIfNeeded with null settings ───────────────────────
+
+        [TestMethod]
+        public void PinLoginForm_UpgradeLegacyPin_NullSettings_DoesNotThrow()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                using (var form = new PinLoginForm(null))
+                {
+                    form.Show();
+                    WinFormsTestHelper.PumpEvents();
+
+                    // Invoke the private method directly — should return immediately without throwing
+                    var mi = typeof(PinLoginForm).GetMethod(
+                        "UpgradeLegacyPinIfNeeded", BindingFlags.NonPublic | BindingFlags.Instance);
+                    mi.Invoke(form, null);
+                }
+            });
+        }
+
+        // ── Helper ────────────────────────────────────────────────────────────
+
+        private static void TriggerLockout(PinLoginForm form)
+        {
+            for (int attempt = 0; attempt < 3; attempt++)
+            {
+                for (int i = 0; i < 4; i++)
+                    form.OnKeyDown(form, new KeyEventArgs(Keys.D9));
+                form.OnKeyDown(form, new KeyEventArgs(Keys.Enter));
+                WinFormsTestHelper.PumpEvents();
+            }
+        }
     }
 }
