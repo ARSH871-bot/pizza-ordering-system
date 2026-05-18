@@ -9,6 +9,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.62.0] — 2026-05-19
+
+### Added
+
+- `WriteCrashLog_WithNullException_SwallowsException`: passes `null` as the exception argument
+  to `WriteCrashLog` via reflection; the `null` dereference during string interpolation
+  triggers the inner `catch {}` block at lines 96–97 of Program.cs, completing coverage of
+  the crash-log writer's exception-safe boundary.
+
+---
+
 ## [2.61.0] — 2026-05-19
 
 ### Added

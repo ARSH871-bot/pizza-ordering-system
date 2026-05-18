@@ -50,6 +50,17 @@ namespace PizzaExpress.Tests.Tests
             Assert.IsTrue(after > before, "WriteCrashLog should have created at least one crash log file.");
         }
 
+        [TestMethod]
+        public void WriteCrashLog_WithNullException_SwallowsException()
+        {
+            var mi = typeof(Program).GetMethod("WriteCrashLog",
+                BindingFlags.NonPublic | BindingFlags.Static);
+            Assert.IsNotNull(mi, "WriteCrashLog not found via reflection.");
+            // Passing null causes NullReferenceException during string interpolation;
+            // the inner catch {} must swallow it without rethrowing.
+            mi.Invoke(null, new object[] { null });
+        }
+
         // ── OnUnhandledDomainException ────────────────────────────────────────
 
         [TestMethod]
