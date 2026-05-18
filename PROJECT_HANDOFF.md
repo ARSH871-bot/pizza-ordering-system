@@ -27,10 +27,10 @@ If these disagree, trust fresh code/test/workflow evidence first, then update th
 
 Verified on 2026-05-19 from this workspace.
 
-- Current `master` / `origin/master`: `v2.54.0` (pending CI).
-- Commit title: `v2.54.0: 4 new coverage tests (Cancel btn, IsLockedOut expiry, CLR/Back locked-out); 473 total`.
+- Current `master` / `origin/master`: `v2.55.0` (pending CI).
+- Commit title: `v2.55.0: 4 new coverage tests (EnsureLockoutTimer second call, timer stop, UpdateLockoutMessage clamp, SortOrders default); 477 total`.
 - Previous CI-verified baseline: `v2.53.0` (CI green, run 26059150981).
-- Local pre-push validation: Debug 473/473 passed, coverage gate passed.
+- Local pre-push validation: Debug 477/477 passed, coverage gate passed.
 - Coverage gate: passed (75% threshold, 94.6%+ actual).
 
 ## Public Release State

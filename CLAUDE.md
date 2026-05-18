@@ -47,12 +47,12 @@ Claude Code handoff for this repository.
 
 ## Current Verified Handoff
 
-- Current working version: `v2.54.0` (local, pending CI). Previous verified baseline: `v2.53.0` (CI green).
+- Current working version: `v2.55.0` (local, pending CI). Previous verified baseline: `v2.54.0` (local 473/473).
 - ExportCsv root cause fix: guard changed from `_listView.Items.Count == 0` to `_currentOrders.Count == 0`
   because `ApplyFilter` inserts a placeholder item when empty — making Count 1, not 0.
-- Local test run: `473/473` passed, coverage gate passed.
+- Local test run: `477/477` passed, coverage gate passed.
 - `v2.44.0` failed because clipboard-dependent receipt-dialog smoke coverage timed out in headless CI. Do not reintroduce clipboard-dependent smoke tests.
-- Next task: continue coverage improvements (v2.53.0+).
+- Next task: continue coverage improvements (v2.56.0+).
 - Lesson: never call `form.Show()` + `PerformClick()` on buttons in `OrderHistoryForm` in a test that doesn't need the window visible — use reflection to invoke private methods directly.
 
 ## Validation Commands

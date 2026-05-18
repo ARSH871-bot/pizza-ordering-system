@@ -325,6 +325,43 @@ namespace PizzaExpress.Tests.Tests
             });
         }
 
+        // ── SortOrders default column (no-op) ────────────────────────────────
+
+        [TestMethod]
+        public void OrderHistoryForm_SortOrders_UnknownColumn_ReturnsZero()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDir();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo = new OrderRepository(tempDir);
+                    repo.Save(MakeOrder("Alice", "Auckland"));
+                    repo.Save(MakeOrder("Bob",   "Wellington"));
+
+                    var settings = new SettingsRepository(tempDir);
+                    using (var form = new OrderHistoryForm(repo, settings))
+                    {
+                        // Set _sortColumn to a value outside switch cases (0–4)
+                        typeof(OrderHistoryForm)
+                            .GetField("_sortColumn", BindingFlags.NonPublic | BindingFlags.Instance)
+                            .SetValue(form, 99);
+
+                        // SortOrders relies on _currentOrders, which loads on construction;
+                        // invoke it directly to hit the default: return 0 branch
+                        typeof(OrderHistoryForm)
+                            .GetMethod("SortOrders", BindingFlags.NonPublic | BindingFlags.Instance)
+                            .Invoke(form, null);
+                    }
+                }
+                finally
+                {
+                    if (Directory.Exists(tempDir)) Directory.Delete(tempDir, true);
+                }
+            });
+        }
+
         // ── Helpers ───────────────────────────────────────────────────────────
 
         private static OrderRecord MakeOrder(string customerName, string region)

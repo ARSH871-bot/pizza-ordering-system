@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Threading;
 using System.Windows.Forms;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using WindowsFormsApplication3.Forms;
@@ -558,6 +559,127 @@ namespace PizzaExpress.Tests.Tests
                         "UpgradeLegacyPinIfNeeded", BindingFlags.NonPublic | BindingFlags.Instance);
                     mi.Invoke(form, null);
                 }
+            });
+        }
+
+        // ── EnsureLockoutTimer second lockout (timer already exists) ─────────
+
+        [TestMethod]
+        public void PinLoginForm_EnsureLockoutTimer_SecondLockout_ReusesTimer()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    settings.Set("StaffPin", PinSecurity.Protect("1234"));
+
+                    using (var form = new PinLoginForm(settings))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        // First lockout — creates the timer (_lockoutTimer == null path in EnsureLockoutTimer)
+                        TriggerLockout(form);
+
+                        // Reset lockout state via reflection so a second lockout cycle can fire
+                        var type   = typeof(PinLoginForm);
+                        type.GetField("_lockedUntilUtc",  BindingFlags.NonPublic | BindingFlags.Instance).SetValue(form, DateTime.MinValue);
+                        type.GetField("_failedAttempts",  BindingFlags.NonPublic | BindingFlags.Instance).SetValue(form, 0);
+                        WinFormsTestHelper.GetPrivateField<Button>(form, "_btnEnter").Enabled = true;
+
+                        // Second lockout — _lockoutTimer != null, so EnsureLockoutTimer restarts it (lines 352-354)
+                        TriggerLockout(form);
+
+                        // Verify form is still locked out (timer restart succeeded)
+                        Assert.IsFalse(
+                            WinFormsTestHelper.GetPrivateField<Button>(form, "_btnEnter").Enabled,
+                            "Enter button should be disabled after second lockout.");
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        // ── LockoutTimer stops when lockout expires ───────────────────────────
+
+        [TestMethod]
+        public void PinLoginForm_LockoutTimer_AfterExpiry_Stops()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    settings.Set("StaffPin", PinSecurity.Protect("1234"));
+
+                    using (var form = new PinLoginForm(settings))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+                        TriggerLockout(form);
+
+                        // Back-date the lockout so it appears expired
+                        typeof(PinLoginForm)
+                            .GetField("_lockedUntilUtc", BindingFlags.NonPublic | BindingFlags.Instance)
+                            .SetValue(form, DateTime.UtcNow.AddSeconds(-1));
+
+                        // Pump the message loop long enough for the 250 ms timer to tick and stop
+                        Thread.Sleep(350);
+                        WinFormsTestHelper.PumpEvents();
+                        Thread.Sleep(150);
+                        WinFormsTestHelper.PumpEvents();
+
+                        var timer = WinFormsTestHelper.GetPrivateField<System.Windows.Forms.Timer>(
+                            form, "_lockoutTimer");
+                        Assert.IsFalse(timer.Enabled,
+                            "Lockout timer should stop once the lockout period expires.");
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        // ── UpdateLockoutMessage clamp path ───────────────────────────────────
+
+        [TestMethod]
+        public void PinLoginForm_UpdateLockoutMessage_AfterExpiry_ClampsToZero()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    settings.Set("StaffPin", PinSecurity.Protect("1234"));
+
+                    using (var form = new PinLoginForm(settings))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+                        TriggerLockout(form);
+
+                        // Back-date so remaining time is negative
+                        typeof(PinLoginForm)
+                            .GetField("_lockedUntilUtc", BindingFlags.NonPublic | BindingFlags.Instance)
+                            .SetValue(form, DateTime.UtcNow.AddSeconds(-5));
+
+                        // Call UpdateLockoutMessage directly — remaining is negative, should clamp to 0
+                        typeof(PinLoginForm)
+                            .GetMethod("UpdateLockoutMessage", BindingFlags.NonPublic | BindingFlags.Instance)
+                            .Invoke(form, null);
+
+                        var lblError = WinFormsTestHelper.GetPrivateField<Label>(form, "_lblError");
+                        StringAssert.Contains(lblError.Text, "1s",
+                            "Clamped remaining should display as 1 second (Math.Max(1, ...)).");
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
             });
         }
 

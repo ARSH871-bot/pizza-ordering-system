@@ -9,6 +9,24 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.55.0] — 2026-05-19
+
+### Added
+
+- `PinLoginForm_EnsureLockoutTimer_SecondLockout_ReusesTimer`: triggers two consecutive lockouts;
+  covers the `_lockoutTimer != null` branch in `EnsureLockoutTimer` (lines 352–354) where the
+  existing timer is stopped and reconfigured rather than a new one allocated.
+- `PinLoginForm_LockoutTimer_AfterExpiry_Stops`: triggers lockout, back-dates `_lockedUntilUtc`
+  via reflection, then waits for two timer ticks via `Thread.Sleep` + `PumpEvents`; covers the
+  `timer.Stop()` path inside the lockout-timer callback (PinLoginForm line ~370).
+- `PinLoginForm_UpdateLockoutMessage_AfterExpiry_ClampsToZero`: back-dates `_lockedUntilUtc` 5s
+  in the past and calls `UpdateLockoutMessage` via reflection; covers the `Math.Max(0, ...)` clamp
+  that prevents negative countdown display.
+- `OrderHistoryForm_SortOrders_UnknownColumn_ReturnsZero`: sets `_sortColumn` to 99 via reflection
+  then invokes `SortOrders`; covers the `default: return 0` branch in the switch-based comparer.
+
+---
+
 ## [2.54.0] — 2026-05-19
 
 ### Added
