@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NSubstitute;
 using WindowsFormsApplication3;
 using WindowsFormsApplication3.Forms;
 using WindowsFormsApplication3.Infrastructure;
@@ -2091,6 +2092,67 @@ namespace PizzaExpress.Tests.Tests
 
                         WinFormsTestHelper.PumpEvents();
                         Assert.IsTrue(form.Visible, "Form should remain visible after auth failure.");
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        // ── ShowAboutDialog ───────────────────────────────────────────────────
+
+        [TestMethod]
+        public void Form1_ShowAboutDialog_ShowsAndCloses()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo     = new OrderRepository(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    var cart     = new CartService(settings);
+                    using (var form = new Form1(repo, cart, settings, showReceiptDialogs: false))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+                        var mi = typeof(Form1).GetMethod("ShowAboutDialog",
+                            BindingFlags.NonPublic | BindingFlags.Instance);
+                        using (new WinFormsTestHelper.DialogAutoCloser("About"))
+                            mi.Invoke(form, null);
+                        WinFormsTestHelper.PumpEvents();
+                        Assert.IsTrue(form.Visible, "Form should remain visible after about dialog.");
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        // ── SubmitOrder repo-catch ────────────────────────────────────────────
+
+        [TestMethod]
+        public void Form1_SubmitOrder_WhenRepoThrows_CatchLogsAndContinues()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo     = Substitute.For<IOrderRepository>();
+                    repo.When(r => r.Save(Arg.Any<OrderRecord>()))
+                        .Do(_ => throw new IOException("disk full"));
+                    var settings = new SettingsRepository(tempDir);
+                    var cart     = new CartService(settings);
+                    using (var form = new Form1(repo, cart, settings, showReceiptDialogs: false))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+                        var mi = typeof(Form1).GetMethod("btnSubmitOrder_Click",
+                            BindingFlags.NonPublic | BindingFlags.Instance);
+                        mi.Invoke(form, new object[] { form, EventArgs.Empty });
+                        WinFormsTestHelper.PumpEvents();
+                        Assert.IsTrue(form.Visible, "Form should survive a repo Save exception.");
                     }
                 }
                 finally { DeleteTempDataDirectory(tempDir); }

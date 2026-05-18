@@ -9,6 +9,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.59.0] — 2026-05-19
+
+### Added
+
+- `Form1_ShowAboutDialog_ShowsAndCloses`: invokes the private `ShowAboutDialog` method via
+  reflection with a `DialogAutoCloser("About")`; covers the `MessageBox.Show` path at
+  lines 565–577 of Form1.cs.
+- `Form1_SubmitOrder_WhenRepoThrows_CatchLogsAndContinues`: uses an NSubstitute mock of
+  `IOrderRepository` that throws `IOException` on `Save`; invokes `btnSubmitOrder_Click`
+  via reflection; covers the `catch (Exception ex)` block at lines 862–866 of Form1.cs that
+  protects history persistence from crashing the order workflow.
+
+---
+
 ## [2.58.0] — 2026-05-19
 
 ### Added

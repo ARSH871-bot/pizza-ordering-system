@@ -27,10 +27,10 @@ If these disagree, trust fresh code/test/workflow evidence first, then update th
 
 Verified on 2026-05-19 from this workspace.
 
-- Current `master` / `origin/master`: `v2.58.0` (pending CI).
-- Commit title: `v2.58.0: 4 new coverage tests (Form1 ProcessCmdKey default/OpenSettingsForm auth-fail, OrderRepo migration catches); 489 total`.
+- Current `master` / `origin/master`: `v2.59.0` (pending CI).
+- Commit title: `v2.59.0: 2 new coverage tests (Form1 ShowAboutDialog, SubmitOrder repo-catch); 491 total`.
 - Previous CI-verified baseline: `v2.53.0` (CI green, run 26059150981).
-- Local pre-push validation: Debug 489/489 passed, coverage gate passed.
+- Local pre-push validation: Debug 491/491 passed, coverage gate passed.
 - Coverage gate: passed (75% threshold, 94.6%+ actual).
 
 ## Public Release State
