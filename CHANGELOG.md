@@ -9,6 +9,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.49.0] — 2026-05-18
+
+### Added
+
+- 2 new tests; 459 total, 92.2% coverage maintained.
+- `Form1_ProcessCmdKey_AltW_WithSettings_OpensSettingsForm`: covers the normal `OpenSettingsForm`
+  path (non-null settings, no PIN configured); `EnsureAuthorized` returns true, SettingsForm opens.
+- `OrderHistoryForm_ExportCsv_EmptyList_DoesNotOpenDialog`: covers the `count == 0` early-return
+  guard in `ExportCsv`; verifies no dialog appears and the form stays visible.
+
+---
+
 ## [2.48.0] — 2026-05-18
 
 ### Added

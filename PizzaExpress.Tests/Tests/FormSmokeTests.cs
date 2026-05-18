@@ -1790,6 +1790,39 @@ namespace PizzaExpress.Tests.Tests
         }
 
         [TestMethod]
+        public void Form1_ProcessCmdKey_AltW_WithSettings_OpensSettingsForm()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo     = new OrderRepository(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    var cart     = new CartService(settings);
+
+                    using (var form = new Form1(repo, cart, settings, showReceiptDialogs: false))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        var mi  = typeof(Form1).GetMethod("ProcessCmdKey", BindingFlags.NonPublic | BindingFlags.Instance);
+                        var msg = new Message();
+
+                        // No PIN configured so EnsureAuthorized returns true; SettingsForm opens
+                        using (new WinFormsTestHelper.DialogAutoCloser("Settings"))
+                            mi.Invoke(form, new object[] { msg, Keys.Alt | Keys.W });
+
+                        WinFormsTestHelper.PumpEvents();
+                        Assert.IsTrue(form.Visible, "Form1 should remain visible after SettingsForm closes.");
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        [TestMethod]
         public void Form1_ProcessCmdKey_AltW_NullSettings_ShowsSettingsDialog()
         {
             WinFormsTestHelper.RunInSta(() =>

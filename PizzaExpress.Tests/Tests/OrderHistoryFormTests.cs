@@ -297,6 +297,36 @@ namespace PizzaExpress.Tests.Tests
             });
         }
 
+        // ── ExportCsv branches ────────────────────────────────────────────────
+
+        [TestMethod]
+        public void OrderHistoryForm_ExportCsv_EmptyList_DoesNotOpenDialog()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDir();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo     = new OrderRepository(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+
+                    using (var form = new OrderHistoryForm(repo, settings))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        // No orders — ExportCsv returns immediately without showing a dialog
+                        WinFormsTestHelper.FindByTextPrefix<Button>(form, "Export CSV").PerformClick();
+                        WinFormsTestHelper.PumpEvents();
+
+                        Assert.IsTrue(form.Visible, "Form should remain visible after empty-list export.");
+                    }
+                }
+                finally { DeleteTempDir(tempDir); }
+            });
+        }
+
         // ── Helpers ───────────────────────────────────────────────────────────
 
         private static OrderRecord MakeOrder(string customerName, string region)
