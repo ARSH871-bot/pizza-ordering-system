@@ -342,6 +342,35 @@ namespace PizzaExpress.Tests.Tests
             });
         }
 
+        [TestMethod]
+        public void SettingsForm_RestoreButton_WithPinConfigured_AuthFailed_ShowsAuthorisationRequired()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDir();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    settings.Set("StaffPin", "1234");
+
+                    using (var form = new SettingsForm(settings, dataDirectory: tempDir))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        using (new WinFormsTestHelper.DialogAutoCloser("Staff Login"))
+                        using (new WinFormsTestHelper.DialogAutoCloser("Authorisation Required"))
+                            WinFormsTestHelper.FindByTextPrefix<Button>(form, "Restore DB").PerformClick();
+
+                        WinFormsTestHelper.PumpEvents();
+                        Assert.IsTrue(form.Visible, "Form should remain open after failed authorisation.");
+                    }
+                }
+                finally { DeleteTempDir(tempDir); }
+            });
+        }
+
         // ── ViewAutoBackups null-dir guard ────────────────────────────────────
 
         [TestMethod]

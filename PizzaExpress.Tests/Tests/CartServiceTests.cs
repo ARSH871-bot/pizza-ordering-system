@@ -178,6 +178,17 @@ namespace PizzaExpress.Tests.Tests
             Assert.AreEqual(4.25m, cart.GetSidePrice());
         }
 
+        [TestMethod]
+        public void BuildPizzaItems_WithNonNumericPriceSetting_FallsBackToDefault()
+        {
+            var cart = new CartService(new StubSettingsRepository(
+                new Dictionary<string, string> { ["PizzaPrice.Small"] = "not-a-number" }));
+
+            var items = cart.BuildPizzaItems(PizzaSize.Small, CrustType.Normal, 1, null);
+
+            Assert.AreEqual(4.00m, items[0].TotalPrice);
+        }
+
         private sealed class StubSettingsRepository : ISettingsRepository
         {
             private readonly Dictionary<string, string> _values;

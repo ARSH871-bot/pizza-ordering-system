@@ -649,6 +649,15 @@ namespace PizzaExpress.Tests.Tests
             Assert.AreEqual("TXN-98765", loaded[0].PaymentReference);
         }
 
+        // ── Default constructor ───────────────────────────────────────────────
+
+        [TestMethod]
+        public void DefaultConstructor_UsesAppDataPath_DoesNotThrow()
+        {
+            var repo = new OrderRepository();
+            Assert.IsNotNull(repo);
+        }
+
         // ── Helpers ───────────────────────────────────────────────────────────
 
         private static OrderRecord MakeRecord(string name)

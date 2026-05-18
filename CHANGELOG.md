@@ -9,6 +9,24 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.56.0] — 2026-05-19
+
+### Added
+
+- `PinSecurity_Protect_TooShortPin_ThrowsArgumentException`: calls `PinSecurity.Protect("12")`
+  (below minimum length); covers the `throw new ArgumentException` on line 29 of PinSecurity.cs.
+- `BuildPizzaItems_WithNonNumericPriceSetting_FallsBackToDefault`: passes `"not-a-number"` as the
+  configured price; covers the `return fallback;` branch (line 106) in `CartService.GetDecimalSetting`
+  when `decimal.TryParse` fails.
+- `SettingsForm_RestoreButton_WithPinConfigured_AuthFailed_ShowsAuthorisationRequired`: configures a
+  staff PIN then dismisses the PinLoginForm with WM_CLOSE (→ `EnsureAuthorized` returns false);
+  covers lines 445–448 in `SettingsForm.BtnRestore_Click`.
+- `DefaultConstructor_UsesAppDataPath_DoesNotThrow`: instantiates `new OrderRepository()` (the
+  parameterless constructor that uses `%APPDATA%\PizzaExpress`); covers lines 26–30 of
+  OrderRepository.cs.
+
+---
+
 ## [2.55.0] — 2026-05-19
 
 ### Added

@@ -235,6 +235,13 @@ namespace PizzaExpress.Tests.Tests
             }
         }
 
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentException))]
+        public void PinSecurity_Protect_TooShortPin_ThrowsArgumentException()
+        {
+            PinSecurity.Protect("12"); // below minimum length — covers the throw on line 29
+        }
+
         private static void EnterDigits(Control form, string digits)
         {
             foreach (char digit in digits)
