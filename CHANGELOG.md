@@ -9,6 +9,27 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.48.0] — 2026-05-18
+
+### Added
+
+- 8 new tests in `FormSmokeTests`; 457 total, 92.2% coverage maintained.
+- `Form1_ProcessCmdKey_AltH_OpensOrderHistoryDialog`: covers `case Keys.Alt | Keys.H:` in
+  `ProcessCmdKey`; opens `OrderHistoryForm` and asserts form stays visible.
+- `Form1_ProcessCmdKey_AltR_OpensSalesReportDialog`: covers `case Keys.Alt | Keys.R:`.
+- `Form1_ProcessCmdKey_AltE_OpensEndOfDayDialog`: covers `case Keys.Alt | Keys.E:`.
+- `Form1_ProcessCmdKey_AltC_OnTab1_ConfirmsOrder`: covers `case Keys.Alt | Keys.C:`; asserts
+  tab advances to Tab 2 after calling `btnConfirmOrder_Click` via the shortcut.
+- `Form1_ProcessCmdKey_F1_ShowsKeyboardHelp`: covers `case Keys.F1:`.
+- `Form1_ProcessCmdKey_AltW_NullSettings_ShowsSettingsDialog`: covers `case Keys.Alt | Keys.W:`
+  with null settings; asserts "Settings unavailable" dialog appears.
+- `Form1_CboPaymentMethod_Cash_DisablesReferenceField`: sets payment method to Cash; asserts
+  `txtCardOrPromo.Enabled == false` and `lblCardOrPromo.Text == "Reference:"`.
+- `Form1_CboPaymentMethod_PromoCard_SetsPromoCodeLabel`: sets payment method to Promo Card;
+  asserts field enabled, label is "*Promo Code:", `AccessibleName == "Promo Code"`.
+
+---
+
 ## [2.47.0] — 2026-05-18
 
 ### Added

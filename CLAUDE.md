@@ -47,11 +47,11 @@ Claude Code handoff for this repository.
 
 ## Current Verified Handoff
 
-- Current working version: `v2.47.0` (local, pending CI).
-- Previous verified baseline: `v2.46.0`.
-- Local test run: `449/449` passed, `92.2%` line coverage, coverage gate passed.
+- Current working version: `v2.48.0` (local, pending CI).
+- Previous verified baseline: `v2.47.0` (CI green).
+- Local test run: `457/457` passed, `92.2%` line coverage, coverage gate passed.
 - `v2.44.0` failed because clipboard-dependent receipt-dialog smoke coverage timed out in headless CI. Do not reintroduce clipboard-dependent smoke tests.
-- Next task: push `v2.47.0` to GitHub, verify CI, tag and release; then continue with service extraction/install hardening.
+- Next task: push `v2.48.0` to GitHub, verify CI, tag and release; then continue coverage improvements.
 
 ## Validation Commands
 
@@ -63,7 +63,7 @@ dotnet build WindowsFormsApplication3.sln --configuration Debug
 .\scripts\Run-Tests.ps1 -Configuration Debug
 ```
 
-Expected: 449 tests passing. Coverage gate: 75% line-rate on WindowsFormsApplication3 (currently 92.2%).
+Expected: 457 tests passing. Coverage gate: 75% line-rate on WindowsFormsApplication3 (currently 92.2%).
 
 Coverage validation:
 

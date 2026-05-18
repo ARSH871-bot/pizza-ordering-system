@@ -1626,6 +1626,264 @@ namespace PizzaExpress.Tests.Tests
             });
         }
 
+        // ── ProcessCmdKey Alt+H, Alt+R, Alt+E, Alt+C, F1, Alt+W branches ─────────
+
+        [TestMethod]
+        public void Form1_ProcessCmdKey_AltH_OpensOrderHistoryDialog()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo     = new OrderRepository(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    var cart     = new CartService(settings);
+
+                    using (var form = new Form1(repo, cart, settings, showReceiptDialogs: false))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        var mi  = typeof(Form1).GetMethod("ProcessCmdKey", BindingFlags.NonPublic | BindingFlags.Instance);
+                        var msg = new Message();
+
+                        using (new WinFormsTestHelper.DialogAutoCloser("Order History"))
+                            mi.Invoke(form, new object[] { msg, Keys.Alt | Keys.H });
+
+                        WinFormsTestHelper.PumpEvents();
+                        Assert.IsTrue(form.Visible, "Form1 should remain visible after Order History dialog closes.");
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        [TestMethod]
+        public void Form1_ProcessCmdKey_AltR_OpensSalesReportDialog()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo     = new OrderRepository(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    var cart     = new CartService(settings);
+
+                    using (var form = new Form1(repo, cart, settings, showReceiptDialogs: false))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        var mi  = typeof(Form1).GetMethod("ProcessCmdKey", BindingFlags.NonPublic | BindingFlags.Instance);
+                        var msg = new Message();
+
+                        using (new WinFormsTestHelper.DialogAutoCloser("Sales Report"))
+                            mi.Invoke(form, new object[] { msg, Keys.Alt | Keys.R });
+
+                        WinFormsTestHelper.PumpEvents();
+                        Assert.IsTrue(form.Visible, "Form1 should remain visible after Sales Report dialog closes.");
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        [TestMethod]
+        public void Form1_ProcessCmdKey_AltE_OpensEndOfDayDialog()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo     = new OrderRepository(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    var cart     = new CartService(settings);
+
+                    using (var form = new Form1(repo, cart, settings, showReceiptDialogs: false))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        var mi  = typeof(Form1).GetMethod("ProcessCmdKey", BindingFlags.NonPublic | BindingFlags.Instance);
+                        var msg = new Message();
+
+                        using (new WinFormsTestHelper.DialogAutoCloser("End of Day"))
+                            mi.Invoke(form, new object[] { msg, Keys.Alt | Keys.E });
+
+                        WinFormsTestHelper.PumpEvents();
+                        Assert.IsTrue(form.Visible, "Form1 should remain visible after End of Day dialog closes.");
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        [TestMethod]
+        public void Form1_ProcessCmdKey_AltC_OnTab1_ConfirmsOrder()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo     = new OrderRepository(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    var cart     = new CartService(settings);
+
+                    using (var form = new Form1(repo, cart, settings, showReceiptDialogs: false))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        var tabControl = WinFormsTestHelper.FindByName<TabControl>(form, "tabControl1");
+                        Assert.AreEqual(0, tabControl.SelectedIndex, "Should start on Tab 1.");
+
+                        var mi  = typeof(Form1).GetMethod("ProcessCmdKey", BindingFlags.NonPublic | BindingFlags.Instance);
+                        var msg = new Message();
+                        mi.Invoke(form, new object[] { msg, Keys.Alt | Keys.C });
+                        WinFormsTestHelper.PumpEvents();
+
+                        Assert.AreEqual(1, tabControl.SelectedIndex, "Alt+C on Tab 1 should navigate to Tab 2.");
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        [TestMethod]
+        public void Form1_ProcessCmdKey_F1_ShowsKeyboardHelp()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo     = new OrderRepository(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    var cart     = new CartService(settings);
+
+                    using (var form = new Form1(repo, cart, settings, showReceiptDialogs: false))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        var mi  = typeof(Form1).GetMethod("ProcessCmdKey", BindingFlags.NonPublic | BindingFlags.Instance);
+                        var msg = new Message();
+
+                        using (new WinFormsTestHelper.DialogAutoCloser("Keyboard Shortcuts"))
+                            mi.Invoke(form, new object[] { msg, Keys.F1 });
+
+                        WinFormsTestHelper.PumpEvents();
+                        Assert.IsTrue(form.Visible, "Form1 should remain visible after Keyboard Help closes.");
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        [TestMethod]
+        public void Form1_ProcessCmdKey_AltW_NullSettings_ShowsSettingsDialog()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    var repo = new OrderRepository(tempDir);
+                    var cart = new CartService();
+
+                    using (var form = new Form1(repo, cart, null, showReceiptDialogs: false))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        var mi  = typeof(Form1).GetMethod("ProcessCmdKey", BindingFlags.NonPublic | BindingFlags.Instance);
+                        var msg = new Message();
+
+                        using (new WinFormsTestHelper.DialogAutoCloser("Settings"))
+                            mi.Invoke(form, new object[] { msg, Keys.Alt | Keys.W });
+
+                        WinFormsTestHelper.PumpEvents();
+                        Assert.IsTrue(form.Visible, "Form1 should remain visible after Settings unavailable dialog.");
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        // ── cboPaymentMethod_SelectedIndexChanged label/enabled branches ──────
+
+        [TestMethod]
+        public void Form1_CboPaymentMethod_Cash_DisablesReferenceField()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo     = new OrderRepository(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    var cart     = new CartService(settings);
+
+                    using (var form = new Form1(repo, cart, settings, showReceiptDialogs: false))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        WinFormsTestHelper.FindByName<ComboBox>(form, "cboPaymentMethod").SelectedItem = "Cash";
+                        WinFormsTestHelper.PumpEvents();
+
+                        var txtRef = WinFormsTestHelper.FindByName<TextBox>(form, "txtCardOrPromo");
+                        var lbl    = WinFormsTestHelper.FindByName<Label>(form, "lblCardOrPromo");
+                        Assert.IsFalse(txtRef.Enabled, "txtCardOrPromo should be disabled for Cash.");
+                        Assert.AreEqual("Reference:", lbl.Text);
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
+        [TestMethod]
+        public void Form1_CboPaymentMethod_PromoCard_SetsPromoCodeLabel()
+        {
+            WinFormsTestHelper.RunInSta(() =>
+            {
+                string tempDir = CreateTempDataDirectory();
+                try
+                {
+                    DatabaseMigrator.Run(tempDir);
+                    var repo     = new OrderRepository(tempDir);
+                    var settings = new SettingsRepository(tempDir);
+                    var cart     = new CartService(settings);
+
+                    using (var form = new Form1(repo, cart, settings, showReceiptDialogs: false))
+                    {
+                        form.Show();
+                        WinFormsTestHelper.PumpEvents();
+
+                        WinFormsTestHelper.FindByName<ComboBox>(form, "cboPaymentMethod").SelectedItem = "Promo Card";
+                        WinFormsTestHelper.PumpEvents();
+
+                        var txtRef = WinFormsTestHelper.FindByName<TextBox>(form, "txtCardOrPromo");
+                        var lbl    = WinFormsTestHelper.FindByName<Label>(form, "lblCardOrPromo");
+                        Assert.IsTrue(txtRef.Enabled, "txtCardOrPromo should be enabled for Promo Card.");
+                        Assert.AreEqual("*Promo Code:", lbl.Text);
+                        Assert.AreEqual("Promo Code", txtRef.AccessibleName);
+                    }
+                }
+                finally { DeleteTempDataDirectory(tempDir); }
+            });
+        }
+
         private static string CreateTempDataDirectory()
         {
             string dir = Path.Combine(Path.GetTempPath(), "PizzaExpressForms_" + Guid.NewGuid().ToString("N"));
