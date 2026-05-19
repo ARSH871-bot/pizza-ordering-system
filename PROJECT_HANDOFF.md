@@ -27,11 +27,11 @@ If these disagree, trust fresh code/test/workflow evidence first, then update th
 
 Verified on 2026-05-19 from this workspace.
 
-- Current `master` / `origin/master`: `v2.62.0` (pending CI).
+- Current `master` / `origin/master`: `v2.62.0` — CI-verified green (run 26066333718).
 - Commit title: `v2.62.0: 1 new coverage test (Program WriteCrashLog null-catch); 498 total`.
 - Previous CI-verified baseline: `v2.53.0` (CI green, run 26059150981).
-- Local pre-push validation: Debug 498/498 passed, coverage gate passed.
-- Coverage gate: passed (75% threshold, ~82% actual overall).
+- Pre-push validation: Debug 498/498 passed, coverage gate passed.
+- Coverage gate: passed (75% threshold, 96.9% actual on WindowsFormsApplication3 package per CI).
 - Coverage plateau: remaining gaps are Main(), SaveFileDialog/OpenFileDialog blocks, print preview, auto-generated Settings — all untestable headlessly.
 
 ## Public Release State

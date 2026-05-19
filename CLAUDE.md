@@ -47,8 +47,7 @@ Claude Code handoff for this repository.
 
 ## Current Verified Handoff
 
-- Current working version: `v2.62.0` (local, pending CI). Previous verified baseline: `v2.61.0` (local 497/497).
-- Local test run: `498/498` passed, coverage gate passed.
+- Current working version: `v2.62.0`. CI-verified green (run 26066333718): 498/498 tests, 96.9% package coverage, Release workflow green, ZIP + .sha256 assets uploaded.
 - `v2.44.0` failed because clipboard-dependent receipt-dialog smoke coverage timed out in headless CI. Do not reintroduce clipboard-dependent smoke tests.
 - Coverage plateau reached: remaining uncovered code is Main() entry point, SaveFileDialog/OpenFileDialog blocks, print preview code, and auto-generated Settings class — all legitimately untestable in headless CI.
 - Next task: focus on non-coverage improvements (architecture, docs, install experience).
@@ -64,7 +63,7 @@ dotnet build WindowsFormsApplication3.sln --configuration Debug
 .\scripts\Run-Tests.ps1 -Configuration Debug
 ```
 
-Expected: 498 tests passing. Coverage gate: 75% line-rate on WindowsFormsApplication3 (currently 82%+).
+Expected: 498 tests passing. Coverage gate: 75% line-rate on WindowsFormsApplication3 (currently 96.9% per CI).
 
 Coverage validation:
 
