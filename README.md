@@ -1,9 +1,9 @@
 # Pizza Express - New Zealand
 
 [![Build and Test](https://github.com/ARSH871-bot/pizza-ordering-system/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/ARSH871-bot/pizza-ordering-system/actions/workflows/build-and-test.yml)
-![Version](https://img.shields.io/badge/version-2.54.0-brightgreen)
-![Tests](https://img.shields.io/badge/tests-473%20passing-success)
-![Coverage](https://img.shields.io/badge/coverage-94.6%25%20line%20(75%25%20gate)-brightgreen)
+![Version](https://img.shields.io/badge/version-2.62.0-brightgreen)
+![Tests](https://img.shields.io/badge/tests-498%20passing-success)
+![Coverage](https://img.shields.io/badge/coverage-96.9%25%20line%20(75%25%20gate)-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Platform](https://img.shields.io/badge/platform-Windows-lightgrey)
 ![Framework](https://img.shields.io/badge/.NET-4.8-purple)
